@@ -1,0 +1,308 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{fullpage}
+\usepackage{parskip}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage[table]{xcolor}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{standalone}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.text}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage[margin=1.5cm, includefoot, footskip=30pt]{geometry}
+\usepackage{blkarray}
+
+
+\title{Admission \& Bed Movement Policies for an ICU}
+\author{Mark Tuson, Virginia Ahedo, Geraint Palmer}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Problem}
+An ICU contains a number of beds. Let $B$ be the set of beds ($|B| = 44$).
+
+Each bed can be categorised as either being an isolation cubicle, or not.
+Isolation cubicle are those where those where patients with contagious diseases of preferred, in order to easier contain the disease.
+Otherwise, beds are in a shared ward.
+
+Depending on its location within the ICU unit, each bed requires a different amount of nurses.
+This can be though of as a partition of the set $P$ of the set of beds $B$, where each element $B_i \in P$ is a subset of the beds $B_i \subseteq B$ that can all be looked after by the same nurse.
+Therefore, $|P|$ nurses are required for all $|B|$ beds.
+
+An isolation cubicle always requires one whole nurse.
+Therefore it is a bed $b \in B$ such that $\{b\} \in P$.
+
+Patients are admitted to the ICU according to a Poisson distribution.
+Two types of patient can enter the ICU: those with contagious diseases ($C$), and those with non-communicable illnesses ($N$).
+It is preferred that patients with contagious diseases are assigned to isolation cubicles; although if required they can be places in a shared ward at some extra staffing cost. Patients with non-communicable illnesses may be placed anywhere.
+
+When a patient arrives, if there is no free bed available, they are turned away, at some cost.
+If there is a free bed available, then they are admitted, and the ICU unit can move patients around to in order to place the newly arriving patient in any bed.
+Moving patients from bed to bed, or moving beds around the ICU unit, is believed to be detrimental to the patient, and so this would incur some cost.
+
+Patients are discharged, freeing up their beds.
+It is assumed that lengths of stays are Exponentially distributed.
+
+We would like to find a policy that informs the ICU unit, given the current system state and arriving patient, what, if any, bed moved should be done to minimise cost.
+
+
+\section{Markov Decision Process Formulation}
+First consider this a Markov Decision Process $(S, A, P, R)$, with states $s \in S$, actions $a \in A$, transition probabilities $p_{s,s',a} \in P$, and rewards $r_{s,s',a} \in R$.
+This is a discrete time MDP, with actions being taken at the discrete events where arrivals and discharges take place.
+
+\subsubsection*{State Space}
+Let $S$ be the set of states.
+Each state needs to represent the patients currently in the ICU, whether they are in isolation cubicles, how many nurses are required to care for them in their bed.
+It will also need to represent which discrete event is currently occurring, and arrival of a patient of the discharge of a patient.
+
+Let:
+
+\begin{equation*}
+s = (M, e)
+\end{equation*}
+
+be a state, where $e \in \{N \text{ arrives}, C \text{ arrives}, \text{Discharge}\}$ represents the type of event occurring at the time of observation, and $M$ represents the state of the ICU. Let $M$ be a $|P| \times 3$ matrix, where the rows represent each partition $B_i \in P$; and the three columns represent the numbers of beds occupied by $N$ patients, $C$ patients, or are empty $E$, in each partition.
+
+For example, consider a ward with 9 beds, with the following staffing partition:
+a group of 3 beds can be looked after by one nurse ($B_1$), a group of 4 beds can be looked after by one nurse ($B_2$), and there are two isolation cubicles ($B_3$ and $B_4$).
+Let $B_1$ contain 3 $N$ patients, let $B_2$ contain 1 $N$ and one $C$ patient, let $B_3$ contain one $C$ patient, and let $B_4$ be empty.
+This is described by:
+
+\begin{equation*}
+M^{\star} =
+\begin{blockarray}{cccc}
+& C & N & E \\
+\begin{block}{c(ccc)}
+B_1 & 0 & 3 & 0 \\
+B_2 & 1 & 1 & 2 \\
+B_3 & 1 & 0 & 0 \\
+B_3 & 0 & 0 & 1 \\
+\end{block}
+\end{blockarray}
+\end{equation*}
+
+Now consider a contagious patient arrives, then the state would become:
+
+\begin{equation*}
+s^{\star} = (M^{\star}, C \text{ arrives})
+\end{equation*}
+
+\subsubsection*{Actions}
+Actions correspond to placing the newly arriving customer in each of the partitioned blocks.
+If there are free beds in those blocks, then the placement is straightforward.
+For example, from $M^{\star}$, placing a contagious customer into block $B_2$ and $B_4$ is straightforward, and will result in the states:
+
+\begin{multicols}{2}
+
+\begin{equation*}
+M_2 = \begin{blockarray}{cccc}
+& C & N & E \\
+\begin{block}{c(ccc)}
+B_1 & 0 & 3 & 0 \\
+B_2 & 2 & 1 & 1 \\
+B_3 & 1 & 0 & 0 \\
+B_3 & 0 & 0 & 1 \\
+\end{block}
+\end{blockarray}
+\end{equation*}
+
+\begin{equation*}
+M_4 = \begin{blockarray}{cccc}
+& C & N & E \\
+\begin{block}{c(ccc)}
+B_1 & 0 & 3 & 0 \\
+B_2 & 1 & 1 & 2 \\
+B_3 & 1 & 0 & 0 \\
+B_3 & 1 & 0 & 0 \\
+\end{block}
+\end{blockarray}
+\end{equation*}
+
+\end{multicols}
+
+However, to place the newly arriving contagious patient in block $B_1$, a bed move has to occur.
+That bed move can result in a number of different configurations, e.g.:
+
+\begin{itemize}
+  \item moving a patient with a non-communicable disease to $B_2$:
+  \begin{equation*}
+  \begin{blockarray}{cccc}
+  & C & N & E \\
+  \begin{block}{c(ccc)}
+  B_1 & 1 & 2 & 0 \\
+  B_2 & 1 & 2 & 1 \\
+  B_3 & 1 & 0 & 0 \\
+  B_3 & 0 & 0 & 1 \\
+  \end{block}
+  \end{blockarray}
+  \end{equation*}
+
+  \item moving a patient with a non-communicable disease to $B_3$:
+  \begin{equation*}
+  \begin{blockarray}{cccc}
+  & C & N & E \\
+  \begin{block}{c(ccc)}
+  B_1 & 1 & 2 & 0 \\
+  B_2 & 1 & 1 & 2 \\
+  B_3 & 1 & 0 & 0 \\
+  B_3 & 0 & 1 & 0 \\
+  \end{block}
+  \end{blockarray}
+  \end{equation*}
+
+  \item moving a patient with a non-communicable disease to $B_3$, then moving a contagious patient from $B_3$ to $B_2$:
+  \begin{equation*}
+  \begin{blockarray}{cccc}
+  & C & N & E \\
+  \begin{block}{c(ccc)}
+  B_1 & 1 & 2 & 0 \\
+  B_2 & 2 & 1 & 1 \\
+  B_3 & 0 & 1 & 0 \\
+  B_3 & 0 & 0 & 1 \\
+  \end{block}
+  \end{blockarray}
+  \end{equation*}
+
+  \item moving a patient with a non-communicable disease to $B_3$, then moving a contagious patient from $B_3$ to $B_4$:
+  \begin{equation*}
+  \begin{blockarray}{cccc}
+  & C & N & E \\
+  \begin{block}{c(ccc)}
+  B_1 & 1 & 2 & 0 \\
+  B_2 & 1 & 1 & 2 \\
+  B_3 & 0 & 1 & 0 \\
+  B_3 & 1 & 0 & 0 \\
+  \end{block}
+  \end{blockarray}
+  \end{equation*}
+
+\end{itemize}
+
+\subsubsection*{Transition Probabilities}
+Transition probabilities between states, given specific bed move actions, will be governed by Poisson arrivals and discharges.
+Let $\lambda_N$ and $\lambda_C$ be the arrival rates of patients with non-communicable and contagious diseases respectively, and let all patients be discharged with rate $\mu$.
+
+At state $s^{\star} = (M^{\star}, C \text{ arrives})$ described above, given that the action take was to admit the patient to block $B_2$.
+Then immediately the system will be in an intermediate state described by the matrix $M_2$ above.
+From here, we will transition to states:
+
+\begin{itemize}
+  \item $s = (M_2, \;\; C \text{ arrives})$ with rate $\lambda_C$
+  \item $s = (M_2, \;\; N \text{ arrives})$ with rate $\lambda_N$
+\end{itemize}
+
+and for discharges:
+
+\begin{equation*}
+s = \left(
+\begin{blockarray}{cccc}
+& C & N & E \\
+\begin{block}{c(ccc)}
+B_1 & 0 & 2 & 0 \\
+B_2 & 2 & 1 & 1 \\
+B_3 & 1 & 0 & 0 \\
+B_3 & 0 & 0 & 1 \\
+\end{block}
+\end{blockarray}, \;\; \text{Discharge} \right)
+\end{equation*}
+
+with rate $3\mu$,
+
+\begin{equation*}
+s = \left(
+\begin{blockarray}{cccc}
+& C & N & E \\
+\begin{block}{c(ccc)}
+B_1 & 0 & 3 & 0 \\
+B_2 & 1 & 1 & 1 \\
+B_3 & 1 & 0 & 0 \\
+B_3 & 0 & 0 & 1 \\
+\end{block}
+\end{blockarray}, \;\; \text{Discharge} \right)
+\end{equation*}
+
+with rate $2\mu$, etc. There would be a different resulting state, and transition rate, depending on which block the patient was discharged from, and whether they are a $C$ or $N$ patient.
+
+Poisson rates can be converted to discrete probabilities by normalisation.
+
+
+\subsubsection*{Rewards}
+
+The reward received for transitioning from state $s_1$ to state $s_2$ given action $a$ was taken will consist of three components:
+
+\begin{equation*}
+\text{Reward}(s_1, s_2, a) = - (\text{Staffing costs} + \text{Inconvenience costs} + \text{Moving costs}) 
+\end{equation*}
+
+Where:
+
+\begin{itemize}
+  \item \textit{Staffing costs} correspond to the number of staff hours required to care for the patients over time.
+  If the action $a$ operated on state $s_1$ occurred at time $t_1$, and then transitioned to state $s_2$ at time $t_2$, then the staffing cost is the cost of being in the intermediate state for the time interval $t_2 - t_1$.
+  The staffing cost of being in the intermediate state is the number of non-empty blocks, as one nurse is required per block if there is at least one patient there.
+
+  \item \textit{Inconvenience costs} correspond to any additional staffing costs required when patients are not in their preferred blocks, e.g. if a contagious patient is not in an isolation cubicle, or if a block contains a mix of contagious patients and patients with non-communicable diseases.
+
+  \item \textit{Moving costs} correspond to the non-monetary cost of moving a patient between beds.
+  This represents possible worsening of outcomes due to the stresses of moving.
+\end{itemize}
+
+
+\subsection*{Alternative Formulation}
+The formulation above assumes that ICU managers make moving decisions at the time of arrival.
+Another formulation would be that moving decisions can be made at the beginning of each day.
+This formulation would reduce the state space, but increase stochasticity in the transitions and the complexity of the actions, as many different events, both arrivals and discharges, can occur in one day.
+
+
+
+\section{Gain Insight - Value/Policy Iteration on Small Models}
+For the ICU at CAVUHB, there are 44 beds.
+This would result in a huge state space, which would probably be intractable to solve analytically.
+However, analytical methods such as dynamic programming, including value iteration and policy iteration, are a good first attempt for MDPs.
+I therefore propose considering much smaller problems, such as the example given in this plan, and solving them analytically.
+
+\begin{itemize}
+  \item Solve using value iteration: a simple iterative algorithm to find the value of expected reward for each state, and find policies that choose actions that maximise expected rewards.
+  This can often be slow in convergence.
+  \item Solve using policy iteration: a more complex two-stage algorithm that iterates to find the best policy to maximise expected rewards.
+  This can often be faster than value iteration for large state spaces.
+\end{itemize}
+
+The policies found on these smaller examples may be able to simplify our model.
+For example, it may inform us that it is always more beneficial to place newly arriving contagious patients in isolation cubicles where possible - reducing our action space.
+
+These smaller models can also help us validate and verify our rewards function, that may be more subjective than objective, especially for inconvenience and moving costs.
+
+
+\section{Find Policy - Reinforcement Learning on Large Model}
+For the full model with 44 beds, I propose solving using simulation optimisation, in particular reinforcement learning and Q-learning to heuristically find the optimal policies, with a Monte Carlo simulation taking care of the stochastic nature of the arrivals and discharges.
+
+Reinforcement learning is not guaranteed to find an optimal policy, however it will run far quicker on large problems such as these than dynamic programming.
+One reason it does so is because it will focus on exploring regions of the state space that are most likely to occur, as it will sample these more often.
+Therefore it could result in a policy based on expected rewards that are is fairly accurate if the produced policy is followed, but however will be inaccurate if decisions are made that do not follow the produces policy.
+
+
+\section{Optimising Cubicle Configurations}
+So far we have assumed that the ICU configuration is fixed, that is the partition $P$ is given.
+If finding an optimal policy given a fixed $P$ as above is successful, and does not take too much computing power, then a natural next question to ask is, can we optimise the partition $P$.
+That is, what is the optimal number of isolation cubicles, and blocks with various patient-to-nurse ratios?
+A metaheuristic could help find this optimal partition, with the objective function being finding an optimal policy based on a given partition and finding the expected reward when following that optimal policy.
+
+
+
+\end{document}
