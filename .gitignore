@@ -1,5 +1,6 @@
-t*__pycache__*
+*__pycache__*
 *.ipynb_checkpoints/*
+*src/.ipynb_checkpoints/*
 *.DS_Store
 *.log
 *.aux
