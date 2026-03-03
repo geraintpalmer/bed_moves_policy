@@ -343,8 +343,22 @@ def test_combine_dfs():
         'Q': [100.0, 200.0, 250.0, 350.0, 100.0],
         'hits': [2, 2, 2, 4, 4]
     })
-
     pd.testing.assert_frame_equal(A, expectedA)
+
+
+def test_convert_df_to_dict():
+    df = pd.DataFrame({
+        'state': ['(111)', '(111)', '(222)'],
+        'action': [1, 2, 1],
+        'Q': [150.0, 200.0, 300.0],
+        'hits': [1, 2, 3]
+    })
+    expected_dict = {
+        '(111)': {1: 150.0, 2: 200.0},
+        '(222)': {1: 300.0}
+    }
+    assert bedmoves.convert_dataframe_to_dictionary(df) == expected_dict
+
 
 
 def test_random_choice_chooser():

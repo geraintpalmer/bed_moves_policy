@@ -198,6 +198,16 @@ def combine_Qvalues(list_of_Qval_dfs):
     del combined_df['state-action']
     return combined_df
 
+def convert_dataframe_to_dictionary(df):
+    """
+    Converts a dataframe of Qvalues back into a dictionary of Q-values
+    """
+    Qdict = {}
+    for row in df.iterrows():
+        if row[1]['state'] not in Qdict:
+            Qdict[row[1]['state']] = {}
+        Qdict[row[1]['state']][row[1]['action']] = row[1]['Q']
+    return Qdict
 
 class RandomChoice:
     def choose_arriving_block(self, state, patient_type):
