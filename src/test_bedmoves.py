@@ -3,6 +3,7 @@ import pytest
 import numpy as np
 import ciw
 import math
+import pandas as pd
 
 class FakeSimulation:
     pass
@@ -320,6 +321,32 @@ def test_get_available_moves():
     assert available_moves == []
 
 
+def test_combine_dfs():
+    A1 = pd.DataFrame({
+        'state': ['(111)', '(111)', '(222)'],
+        'action': [1, 2, 1],
+        'Q': [150.0, 200.0, 300.0],
+        'hits': [1, 2, 3]
+    })
+
+    A2 = pd.DataFrame({
+        'state': ['(111)', '(111)', '(222)', '(333)'],
+        'action': [1, 3, 1, 2],
+        'Q': [50.0, 250.0, 500.0, 100.0],
+        'hits': [1, 2, 1, 4]
+    })
+
+    A = bedmoves.combine_Qvalues([A1, A2])
+    expectedA = pd.DataFrame({
+        'state': ['(111)', '(111)', '(111)', '(222)', '(333)'],
+        'action': [1, 2, 3, 1, 2],
+        'Q': [100.0, 200.0, 250.0, 350.0, 100.0],
+        'hits': [2, 2, 2, 4, 4]
+    })
+
+    pd.testing.assert_frame_equal(A, expectedA)
+
+
 def test_random_choice_chooser():
     RC = bedmoves.RandomChoice()
     S9 = np.array(
@@ -389,6 +416,8 @@ def test_Agent():
     assert A2.action == 9
     assert A1.Q == 0.0
     assert A2.Q == 3.5
+    assert A1.hits == 0
+    assert A2.hits == 0
     assert np.array_equal(A1.Qts, [0.0])
     assert np.array_equal(A2.Qts, [3.5])
     assert np.array_equal(A1.ts, [0.0])
@@ -404,6 +433,8 @@ def test_Agent():
     assert A2.action == 9
     assert A1.Q == 1.5
     assert A2.Q == 2.9
+    assert A1.hits == 1
+    assert A2.hits == 1
     assert np.array_equal(A1.Qts, [0.0, 1.5])
     assert np.array_equal(A2.Qts, [3.5, 2.9])
     assert np.array_equal(A1.ts, [0.0, 0.8])
@@ -836,18 +867,21 @@ def test_BedMovesSimulation_arrival_and_exit():
 
 
 def test_can_simulate_with_initial_Qvals():
+    # First test on a state-action I will encounter
+    state = (
+        (
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 2
+    )
+    action = 7
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_rate=0.9,
         transform_parameter=0.2,
         initial_Qvalues={
-            (
-                (
-                    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-                    (0, 0, 0, 0, 0, 0, 0, 0, 0),
-                    (0, 0, 0, 0, 0, 0, 0, 0, 0)
-                ), 2
-            ): {1: 2.5}
+            state: {action: 2.5}
         }
     )
     S = bedmoves.BedMoveSimulation(
@@ -868,4 +902,90 @@ def test_can_simulate_with_initial_Qvals():
         Qlearning=Q,
         seed=0
     )
-    S.simulate_until_max_time(500)
+    S.simulate_until_max_time(2)
+    vals = Q.output_Qvalues()
+    state_action_paris = vals['state'] + (vals['action'].astype(str))
+    initial_state_action_pair = str(state) + str(action)
+    assert any(state_action_paris == initial_state_action_pair)
+
+    # Now repeat for an action I won't encounter
+    state = (
+        (
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 2
+    )
+    action = 2
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=0.2,
+        initial_Qvalues={
+            state: {action: 2.5}
+        }
+    )
+    S = bedmoves.BedMoveSimulation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.1),
+            ciw.dists.Exponential(0.5),
+            ciw.dists.Exponential(0.2)
+        ],
+        action_chooser=bedmoves.RandomChoice(),
+        isolation_penalty=3,
+        adjacent_move_penalty=1,
+        nonadjacent_move_penalty=2,
+        Qlearning=Q,
+        seed=0
+    )
+    S.simulate_until_max_time(2)
+    vals = Q.output_Qvalues()
+    state_action_paris = vals['state'] + (vals['action'].astype(str))
+    initial_state_action_pair = str(state) + str(action)
+    assert any(state_action_paris == initial_state_action_pair)
+
+    # Now repeat for an state I won't encounter
+    state = (
+        (
+            (1, 1, 1, 1, 1, 1, 1, 1, 1),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 2
+    )
+    action = 2
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=0.2,
+        initial_Qvalues={
+            state: {action: 2.5}
+        }
+    )
+    S = bedmoves.BedMoveSimulation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.1),
+            ciw.dists.Exponential(0.5),
+            ciw.dists.Exponential(0.2)
+        ],
+        action_chooser=bedmoves.RandomChoice(),
+        isolation_penalty=3,
+        adjacent_move_penalty=1,
+        nonadjacent_move_penalty=2,
+        Qlearning=Q,
+        seed=0
+    )
+    S.simulate_until_max_time(2)
+    vals = Q.output_Qvalues()
+    state_action_paris = vals['state'] + (vals['action'].astype(str))
+    initial_state_action_pair = str(state) + str(action)
+    assert any(state_action_paris == initial_state_action_pair)

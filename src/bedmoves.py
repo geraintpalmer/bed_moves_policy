@@ -170,6 +170,35 @@ def get_available_moves(state):
     return available_moves
 
 
+def combine_Qvalues(list_of_Qval_dfs):
+    """
+    Combines many dataframes of Qvales (the output of Q.output_Q_values),
+    such that the resulting Qvalues are the weighted average of the
+    Qvalues across all dataframes (weighted by number of hits), and the
+    number of hits are summed.
+
+    Arguments:
+      + `list_of_Qval_dfs`: a list of dataframes to be combined
+
+    Returns: A combined dataframe.
+    """
+    concated_df = pd.concat(list_of_Qval_dfs)
+    concated_df['state-action'] = concated_df['state'] + concated_df['action'].astype(str)
+    concated_df['Q x hits'] = concated_df['Q'] * concated_df['hits']
+    combined_df = pd.DataFrame(
+        {
+            'state': concated_df.groupby('state-action')['state'].last(),
+            'action': concated_df.groupby('state-action')['action'].last(),
+            'Q': concated_df.groupby('state-action')['Q x hits'].sum(),
+            'hits': concated_df.groupby('state-action')['hits'].sum(),
+        }
+    )
+    combined_df['Q'] = combined_df['Q'] / combined_df['hits']
+    combined_df = combined_df.reset_index()
+    del combined_df['state-action']
+    return combined_df
+
+
 class RandomChoice:
     def choose_arriving_block(self, state, patient_type):
         """
@@ -185,7 +214,7 @@ class RandomChoice:
 
 
 class Agent:
-    def __init__(self, state, action, Q=0.0):
+    def __init__(self, state, action, Q=0.0, hits=0):
         """
         Initialises a Q-learning agent for a particular
         state-action pair.
@@ -200,6 +229,7 @@ class Agent:
         self.Q = Q
         self.Qts = [Q]
         self.ts = [0.0]
+        self.hits = hits
 
     def update_Q(self, newQ, t):
         """
@@ -208,6 +238,7 @@ class Agent:
         self.Qts.append(newQ)
         self.ts.append(t)
         self.Q = newQ
+        self.hits += 1
 
 
 class QLearning:
@@ -245,7 +276,8 @@ class QLearning:
                 a = Agent(
                     state=state,
                     action=action,
-                    Q=initial_Qvalues[state][action]
+                    Q=initial_Qvalues[state][action],
+                    hits=1
                 )
                 self.agents[state][action] = a
 
@@ -318,21 +350,20 @@ class QLearning:
         states = []
         actions = []
         Qs = []
-        ns = []
+        hits = []
         for state in self.agents:
             for action in self.agents[state]:
-                n = len(self.agents[state][action].Qts) - 1
-                if n > 1:
+                if self.agents[state][action].hits > 0:
                     states.append(str(state))
                     actions.append(action)
                     Qs.append(self.agents[state][action].Q)
-                    ns.append(n)
+                    hits.append(self.agents[state][action].hits)
         return pd.DataFrame(
             {
                 'state': states,
                 'action': actions,
                 'Q': Qs,
-                'n': ns
+                'hits': hits
             }
         )
 
