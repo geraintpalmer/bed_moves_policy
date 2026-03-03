@@ -209,18 +209,57 @@ def convert_dataframe_to_dictionary(df):
         Qdict[row[1]['state']][row[1]['action']] = row[1]['Q']
     return Qdict
 
-class RandomChoice:
+
+class EpsilonHard:
+    def __init__(self, epsilon, QLearning):
+        """
+        Initialises the epsilon-hard action selection policy object.
+        That is, chooses the best strategy `epislon` on the time, and
+        randomly otherwise.
+
+        Arguments:
+          + `epsilon`: a probability (low: explore more, high: exploit more)
+          + `QLearning`: a Qlearning object.
+        """
+        self.epsilon = epsilon
+        self.QLearning = QLearning
+
     def choose_arriving_block(self, state, patient_type):
         """
-        Randomly chooses a block for an arriving patient.
+        Randomly chooses a block for an arriving patient 1-epsilon
+        of the time. Otherwise chooses the best.
         """
         available_blocks = get_available_insert_moves(state)
         if len(available_blocks) == 0:
             return False
+        if random.random() < self.epsilon:
+            return self.choose_best_block(state, patient_type)
+        return self.choose_random_block(available_blocks)
+
+    def choose_random_block(self, available_blocks):
+        """
+        Chooses a block randomly from a list of blocks.
+
+        Arguments:
+          + `available_blocks`: a list of available blocks to
+             insert a patient to.
+
+        Returns: a block.
+        """
         return random.choice(available_blocks)
 
+    def choose_best_block(self, state, patient_type):
+        """
+        Chooses the best action.
+        """
+        qstate = self.QLearning.get_hash_state((state, patient_type))
+        return max(
+            self.QLearning.agents[qstate].keys(),
+            key=lambda a: self.QLearning.agents[qstate][a].Q
+        )
+
     def __repr__(self):
-        return "RandomChoice"
+        return f"EpsilonHard-{self.epsilon}"
 
 
 class Agent:

@@ -361,8 +361,8 @@ def test_convert_df_to_dict():
 
 
 
-def test_random_choice_chooser():
-    RC = bedmoves.RandomChoice()
+def test_epsilonhard_00():
+    RC = bedmoves.EpsilonHard(epsilon=0.0, QLearning=None)
     S9 = np.array(
         (
             (3, 2, 2, 3, 2, 2, 0, 0, 0),
@@ -410,6 +410,56 @@ def test_random_choice_chooser():
     assert RC.choose_arriving_block(Sfull, 0) == False
     assert RC.choose_arriving_block(Sfull, 0) == False
     assert RC.choose_arriving_block(Sfull, 0) == False
+
+
+def test_epsilonhard_10():
+    S123 = np.array(
+        (
+            (2, 1, 1, 3, 2, 2, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 1, 1, 1)
+        )
+    )
+    hashS123 = bedmoves.QLearning.get_hash_state(None, (S123, 0))
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=2.0,
+        initial_Qvalues={hashS123: {1: 0.35, 2: 1.56, 3: 0.98}}
+    )
+    EH = bedmoves.EpsilonHard(epsilon=1.0, QLearning=Q)
+    ciw.seed(0)
+    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 2
+
+
+def test_epsilonhard_07():
+    ## Choosing epsilon as 07 should result in action 2 being chosen
+    ## 4/5 of the time (7/10 of the time as the best, and (3/10 * 1/3)
+    ## of the time randomly)
+    S123 = np.array(
+        (
+            (2, 1, 1, 3, 2, 2, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 1, 1, 1)
+        )
+    )
+    hashS123 = bedmoves.QLearning.get_hash_state(None, (S123, 0))
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=2.0,
+        initial_Qvalues={hashS123: {1: 0.35, 2: 1.56, 3: 0.98}}
+    )
+    EH = bedmoves.EpsilonHard(epsilon=0.7, QLearning=Q)
+    ciw.seed(0)
+    choices = [EH.choose_arriving_block(S123, 0) for _ in range(1000)]
+    assert sum(c == 2 for c in choices) == 807
+
 
 
 def test_Agent():
@@ -660,7 +710,7 @@ def test_BedMovesSimulation_init():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -670,7 +720,7 @@ def test_BedMovesSimulation_init():
 
     assert len(S.arrival_distributions) == 3
     assert len(S.los_distributions) == 3
-    assert str(S.action_chooser) == "RandomChoice"
+    assert str(S.action_chooser) == "EpsilonHard-0.0"
     assert S.next_arrivals == {0: 5, 1: 9, 2: 11}
     assert str(S.Qlearning) == "QLearning"
     assert S.prev_now == 0.0
@@ -694,7 +744,7 @@ def test_BedMovesSimulation_nextarrival():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -730,7 +780,7 @@ def test_BedMovesSimulation_nextexit():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -771,7 +821,7 @@ def test_BedMovesSimulation_inflict_cost():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -803,7 +853,7 @@ def test_BedMovesSimulation_inflict_cost():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -835,7 +885,7 @@ def test_BedMovesSimulation_arrival_and_exit():
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
@@ -909,7 +959,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
@@ -950,7 +1000,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
@@ -991,7 +1041,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
-        action_chooser=bedmoves.RandomChoice(),
+        action_chooser=bedmoves.EpsilonHard(epsilon=0.0, QLearning=None),
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
