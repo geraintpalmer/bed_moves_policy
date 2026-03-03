@@ -2,6 +2,7 @@ import numpy as np
 import ciw
 import random
 import tqdm
+import pandas as pd
 
 max_capacities = (3, 2, 2, 3, 2, 2, 1, 1, 1)
 
@@ -10,7 +11,7 @@ empty_state = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0),
         (0, 0, 0, 0, 0, 0, 0, 0, 0),
         (0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
+    ), dtype=int
 )
 
 def get_resource_use_per_time_unit(state):
@@ -258,7 +259,7 @@ class QLearning:
         """
         Returns a hashable version of the state.
         """
-        return (tuple(map(tuple, state[0])), state[1])
+        return (tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])
 
     def update_Q_values(self, next_state, next_action):
         """
@@ -270,10 +271,11 @@ class QLearning:
 
         if self.state is not None:
             if self.hash_state not in self.agents:
-                available_actions = get_available_insert_moves(state=self.state[0])
-                self.agents[self.hash_state] = {
-                    A: Agent(self.state, A, 0.0) for A in available_actions
-                }
+                self.agents[self.hash_state] = {}
+            available_actions = get_available_insert_moves(state=self.state[0])
+            for a in available_actions:
+                if a not in self.agents[self.hash_state]:
+                    self.agents[self.hash_state][a] = Agent(self.state, a, 0.0)
 
             oldQ = self.agents[self.hash_state][self.action].Q
             newQ = (
@@ -308,6 +310,32 @@ class QLearning:
         if hash_next_state in self.agents:
             return max([self.agents[hash_next_state][a].Q for a in self.agents[hash_next_state].keys()])
         return 0.0
+
+    def output_Qvalues(self):
+        """
+        Outputs the learned Qvalues as a Pandas dataframe.
+        """
+        states = []
+        actions = []
+        Qs = []
+        ns = []
+        for state in self.agents:
+            for action in self.agents[state]:
+                n = len(self.agents[state][action].Qts) - 1
+                if n > 1:
+                    states.append(str(state))
+                    actions.append(action)
+                    Qs.append(self.agents[state][action].Q)
+                    ns.append(n)
+        return pd.DataFrame(
+            {
+                'state': states,
+                'action': actions,
+                'Q': Qs,
+                'n': ns
+            }
+        )
+
 
 
 

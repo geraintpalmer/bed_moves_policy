@@ -834,3 +834,38 @@ def test_BedMovesSimulation_arrival_and_exit():
     assert S.now == 6.0
     assert np.array_equal(S.state, expected_state_before)
 
+
+def test_can_simulate_with_initial_Qvals():
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=0.2,
+        initial_Qvalues={
+            (
+                (
+                    (0, 0, 0, 0, 0, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0, 0, 0, 0)
+                ), 2
+            ): {1: 2.5}
+        }
+    )
+    S = bedmoves.BedMoveSimulation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.1),
+            ciw.dists.Exponential(0.5),
+            ciw.dists.Exponential(0.2)
+        ],
+        action_chooser=bedmoves.RandomChoice(),
+        isolation_penalty=3,
+        adjacent_move_penalty=1,
+        nonadjacent_move_penalty=2,
+        Qlearning=Q,
+        seed=0
+    )
+    S.simulate_until_max_time(500)
