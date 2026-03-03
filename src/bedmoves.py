@@ -210,7 +210,7 @@ class Agent:
 
 
 class QLearning:
-    def __init__(self, learning_rate, discount_rate, transform_parameter):
+    def __init__(self, learning_rate, discount_rate, transform_parameter, initial_Qvalues=None):
         """
         Initialises the QLearning object.
 
@@ -228,8 +228,25 @@ class QLearning:
         self.state = None
         self.action = None
 
+        if initial_Qvalues is not None:
+            self.initialise_agents(initial_Qvalues)
+
     def __repr__(self):
         return "QLearning"
+
+    def initialise_agents(self, initial_Qvalues):
+        """
+        Initialises agents with some previously learned Q-values.
+        """
+        for state in initial_Qvalues.keys():
+            self.agents[state] = {}
+            for action in initial_Qvalues[state].keys():
+                a = Agent(
+                    state=state,
+                    action=action,
+                    Q=initial_Qvalues[state][action]
+                )
+                self.agents[state][action] = a
 
     def attach_simulation(self, simulation):
         """

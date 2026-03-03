@@ -429,6 +429,68 @@ def test_QLearning_init():
     Q.attach_simulation(FS)
     assert Q.simulation == FS
 
+def test_QLearning_initial_Qvalues():
+    S1 = (
+            (
+            (1, 1, 1, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 0
+    )
+    S2 = (
+            (
+            (1, 1, 1, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 1
+    )
+    S3 = (
+            (
+            (0, 0, 0, 0, 0, 0, 0, 0, 0),
+            (0, 0, 0, 1, 1, 1, 0, 0, 0),
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ), 0
+    )
+
+    initial_Qvalues = {
+        S1: {4: 1.2, 5: 1.8},
+        S2: {4: 1.1, 5: 0.7, 6: 7.1},
+        S3: {2: 3.1}
+    }
+    Q = bedmoves.QLearning(
+        learning_rate=0.5,
+        discount_rate=0.9,
+        transform_parameter=1.0,
+        initial_Qvalues=initial_Qvalues
+        )
+
+    assert Q.learning_rate == 0.5
+    assert Q.discount_rate == 0.9
+    assert Q.transform_parameter == 1.0
+    assert Q.previous_cost == 0.0
+    assert Q.state == None
+    assert Q.action == None
+
+    assert len(Q.agents.keys()) == 3 
+    assert S1 in Q.agents
+    assert S2 in Q.agents
+    assert S3 in Q.agents
+    assert len(Q.agents[S1]) == 2
+    assert len(Q.agents[S2]) == 3
+    assert len(Q.agents[S3]) == 1
+    assert 4 in Q.agents[S1]
+    assert 5 in Q.agents[S1]
+    assert 4 in Q.agents[S2]
+    assert 5 in Q.agents[S2]
+    assert 6 in Q.agents[S2]
+    assert 2 in Q.agents[S3]
+    assert Q.agents[S1][4].Q == 1.2
+    assert Q.agents[S1][5].Q == 1.8
+    assert Q.agents[S2][4].Q == 1.1
+    assert Q.agents[S2][5].Q == 0.7
+    assert Q.agents[S2][6].Q == 7.1
+    assert Q.agents[S3][2].Q == 3.1
+
 
 def test_QLearning_hashstate():
     Q = bedmoves.QLearning(
