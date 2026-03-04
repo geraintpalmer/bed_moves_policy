@@ -4,6 +4,14 @@ import random
 import tqdm
 import pandas as pd
 
+class NullLock(object):
+    def __init__(self, dummy_resource=None):
+        self.dummy_resource = dummy_resource
+    def __enter__(self):
+        return self.dummy_resource
+    def __exit__(self, *args):
+        pass
+
 max_capacities = (3, 2, 2, 3, 2, 2, 1, 1, 1)
 
 empty_state = np.array(
@@ -160,11 +168,11 @@ def get_available_moves(state):
         and c is where they can move to.
     """
     available_moves = []
-    available_interts = get_available_insert_moves(state)
+    available_inserts = get_available_insert_moves(state)
     for patient_type in range(3):
         from_blocks = np.where(state[patient_type,:] > 0)[0]
         for from_block in from_blocks:
-            for to_block in available_interts:
+            for to_block in available_inserts:
                 if from_block + 1 != to_block:
                     available_moves.append((patient_type, from_block + 1, to_block))
     return available_moves
@@ -183,31 +191,17 @@ def combine_Qvalues(list_of_Qval_dfs):
     Returns: A combined dataframe.
     """
     concated_df = pd.concat(list_of_Qval_dfs)
-    concated_df['state-action'] = concated_df['state'] + concated_df['action'].astype(str)
     concated_df['Q x hits'] = concated_df['Q'] * concated_df['hits']
     combined_df = pd.DataFrame(
         {
-            'state': concated_df.groupby('state-action')['state'].last(),
-            'action': concated_df.groupby('state-action')['action'].last(),
-            'Q': concated_df.groupby('state-action')['Q x hits'].sum(),
-            'hits': concated_df.groupby('state-action')['hits'].sum(),
+            'Q': concated_df.groupby(concated_df.index)['Q x hits'].sum(),
+            'hits': concated_df.groupby(concated_df.index)['hits'].sum(),
         }
     )
     combined_df['Q'] = combined_df['Q'] / combined_df['hits']
-    combined_df = combined_df.reset_index()
-    del combined_df['state-action']
-    return combined_df
 
-def convert_dataframe_to_dictionary(df):
-    """
-    Converts a dataframe of Qvalues back into a dictionary of Q-values
-    """
-    Qdict = {}
-    for row in df.iterrows():
-        if row[1]['state'] not in Qdict:
-            Qdict[row[1]['state']] = {}
-        Qdict[row[1]['state']][row[1]['action']] = row[1]['Q']
-    return Qdict
+    combined_df.index.name = None
+    return combined_df
 
 
 class EpsilonHard:
@@ -233,7 +227,7 @@ class EpsilonHard:
         if len(available_blocks) == 0:
             return False
         if random.random() < self.epsilon:
-            return self.choose_best_block(state, patient_type)
+            return self.choose_best_block(state, patient_type, available_blocks)
         return self.choose_random_block(available_blocks)
 
     def choose_random_block(self, available_blocks):
@@ -248,87 +242,53 @@ class EpsilonHard:
         """
         return random.choice(available_blocks)
 
-    def choose_best_block(self, state, patient_type):
+    def choose_best_block(self, state, patient_type, available_blocks):
         """
         Chooses the best action.
         """
-        qstate = self.QLearning.get_hash_state((state, patient_type))
-        return max(
-            self.QLearning.agents[qstate].keys(),
-            key=lambda a: self.QLearning.agents[qstate][a].Q
-        )
+        next_qstates_as = [(a, self.QLearning.get_hash_state((state, patient_type), a)) for a in available_blocks]
+        next_Qs = [(qstatea[0], self.QLearning.Qvals_dict.get(qstatea[1], 0.0)) for qstatea in next_qstates_as]
+        random.shuffle(next_Qs)
+        return max(next_Qs, key=lambda x: x[1])[0]
 
     def __repr__(self):
         return f"EpsilonHard-{self.epsilon}"
 
 
-class Agent:
-    def __init__(self, state, action, Q=0.0, hits=0):
-        """
-        Initialises a Q-learning agent for a particular
-        state-action pair.
-
-        Arguments:
-          - `state`: (p, S), a tuple of arriving patient type, and system state.
-          - `action`: integer, the number block to place the patient.
-          - `Q`: an initial Q-value for this state-action pair
-        """
-        self.state = state
-        self.action = action
-        self.Q = Q
-        self.Qts = [Q]
-        self.ts = [0.0]
-        self.hits = hits
-
-    def update_Q(self, newQ, t):
-        """
-        Updates the Q-value and timestamp for its history.
-        """
-        self.Qts.append(newQ)
-        self.ts.append(t)
-        self.Q = newQ
-        self.hits += 1
-
 
 class QLearning:
-    def __init__(self, learning_rate, discount_rate, transform_parameter, initial_Qvalues=None):
+    def __init__(self, learning_rate, discount_factor, transform_parameter, initial_Qvalues=None, learn=True):
         """
         Initialises the QLearning object.
 
         Arguments:
           - `learning_rate`: the learning rate of the Q-learning algorithm (a number between 0 and 1)
-          - `discount_rate`: the discount rate of the Q-learning algorithm (a number between 0 and 1)
+          - `discount_factor`: the discount factor of the Q-learning algorithm (a number between 0 and 1)
           - `transform_parameter`: a parameter to transform costs into rewards via e^{-transform_parameter * cost}
+          - `initial_Qvalues`: a dataframe of Q-values
         """
         self.learning_rate = learning_rate
-        self.discount_rate = discount_rate
+        self.discount_factor = discount_factor
         self.transform_parameter = transform_parameter
-        self.agents = {}
-
         self.previous_cost = 0.0
-        self.state = None
-        self.action = None
-
-        if initial_Qvalues is not None:
-            self.initialise_agents(initial_Qvalues)
+        self.hash_state = None
+        self.learn = learn
+        self.initialise_df(initial_Qvalues)
+        self.Qvals_dict = self.Qvals_df['Q'].to_dict()
+        self.Qhits_dict = self.Qvals_df['hits'].to_dict()
 
     def __repr__(self):
         return "QLearning"
 
-    def initialise_agents(self, initial_Qvalues):
+    def initialise_df(self, initial_Qvalues):
         """
-        Initialises agents with some previously learned Q-values.
+        Initialises Qvals dataframe as eithe empty or with some
+        previously learned Q-values.
         """
-        for state in initial_Qvalues.keys():
-            self.agents[state] = {}
-            for action in initial_Qvalues[state].keys():
-                a = Agent(
-                    state=state,
-                    action=action,
-                    Q=initial_Qvalues[state][action],
-                    hits=1
-                )
-                self.agents[state][action] = a
+        if initial_Qvalues is None:
+            self.Qvals_df = pd.DataFrame({'Q': [], 'hits': []})
+        else:
+            self.Qvals_df = initial_Qvalues.copy()
 
     def attach_simulation(self, simulation):
         """
@@ -336,41 +296,36 @@ class QLearning:
         """
         self.simulation = simulation
 
-    def get_hash_state(self, state):
+    def get_hash_state(self, state, action):
         """
         Returns a hashable version of the state.
         """
-        return (tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])
+        return str((tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])) + '-' + str(action)
 
     def update_Q_values(self, next_state, next_action):
         """
         Updates the Q-values according to the Q-learning update:
         """
-        cost = self.simulation.overall_cost - self.previous_cost
-        self.previous_cost = self.simulation.overall_cost
-        R = self.transform_cost(cost=cost)
+        if self.learn:
+            cost = self.simulation.overall_cost - self.previous_cost
+            self.previous_cost = self.simulation.overall_cost
+            R = self.transform_cost(cost=cost)
+    
+            if self.hash_state is not None:
+                stateaction = self.hash_state
+                oldQ = self.Qvals_dict.get(stateaction, 0.0)
+                newQ = (
+                    ((1 - self.learning_rate) * oldQ)
+                    + (self.learning_rate * (
+                        R + (
+                            self.discount_factor * self.get_best_future_reward(next_state=next_state)
+                        )
+                    ))
+                )
+                self.Qvals_dict[stateaction] = newQ
+                self.Qhits_dict[stateaction] = self.Qhits_dict.get(stateaction, 0) + 1
 
-        if self.state is not None:
-            if self.hash_state not in self.agents:
-                self.agents[self.hash_state] = {}
-            available_actions = get_available_insert_moves(state=self.state[0])
-            for a in available_actions:
-                if a not in self.agents[self.hash_state]:
-                    self.agents[self.hash_state][a] = Agent(self.state, a, 0.0)
-
-            oldQ = self.agents[self.hash_state][self.action].Q
-            newQ = (
-                ((1 - self.learning_rate) * oldQ)
-                + (self.learning_rate * (
-                    R + (
-                        self.discount_rate * self.get_best_future_reward(next_state=next_state)
-                    )
-                ))
-            )
-            self.agents[self.hash_state][self.action].update_Q(newQ=newQ, t=self.simulation.now)
-        self.state = next_state
-        self.hash_state = self.get_hash_state(next_state)
-        self.action = next_action
+            self.hash_state = self.get_hash_state(next_state, next_action)
 
     def transform_cost(self, cost):
         """
@@ -387,36 +342,25 @@ class QLearning:
         Returns the maximum future reward if taking the optimal action
         when in the future state.
         """
-        hash_next_state = self.get_hash_state(next_state)
-        if hash_next_state in self.agents:
-            return max([self.agents[hash_next_state][a].Q for a in self.agents[hash_next_state].keys()])
-        return 0.0
+        available_inserts = get_available_insert_moves(state=next_state[0])
+        next_hash_states = [self.get_hash_state(next_state, a) for a in available_inserts]
+        return max(self.Qvals_dict.get(hash_state, 0.0) for hash_state in next_hash_states)
 
-    def output_Qvalues(self):
+    def update_Qvals_df(self):
         """
-        Outputs the learned Qvalues as a Pandas dataframe.
+        Updates the Qvals_df with the newly learned Qvals_dict.
         """
-        states = []
-        actions = []
         Qs = []
         hits = []
-        for state in self.agents:
-            for action in self.agents[state]:
-                if self.agents[state][action].hits > 0:
-                    states.append(str(state))
-                    actions.append(action)
-                    Qs.append(self.agents[state][action].Q)
-                    hits.append(self.agents[state][action].hits)
-        return pd.DataFrame(
-            {
-                'state': states,
-                'action': actions,
-                'Q': Qs,
-                'hits': hits
-            }
+        indices = []
+        for stateaction in self.Qvals_dict:
+            indices.append(stateaction)
+            state, action = stateaction.split('-')
+            Qs.append(self.Qvals_dict[stateaction])
+            hits.append(self.Qhits_dict[stateaction])
+        self.Qvals_df = pd.DataFrame(
+            {'Q': Qs, 'hits': hits}, index=indices
         )
-
-
 
 
 class Patient:
@@ -517,9 +461,10 @@ class BedMoveSimulation:
         )
         return next_patient.exit_date, next_patient
 
-    def simulate_until_max_time(self, max_time, progress_bar=False):
+    def simulate_until_max_time(self, max_time, lock=NullLock(), progress_bar=False, progress_bar_description=None):
         if progress_bar:
-            self.progress_bar = tqdm.tqdm(total=max_time)
+            with lock:
+                self.progress_bar = tqdm.tqdm(total=max_time, desc=progress_bar_description)
 
         while self.now < max_time:
             next_arrival, patient_type = self.find_next_arrival_date()
@@ -530,14 +475,16 @@ class BedMoveSimulation:
                 self.exit(patient=patient)
 
             if progress_bar:
-                remaining_time = max_time - self.progress_bar.n
-                time_increment = self.now- self.prev_now
-                self.progress_bar.update(min(time_increment, remaining_time))
+                with lock:
+                    remaining_time = max_time - self.progress_bar.n
+                    time_increment = self.now - self.prev_now
+                    self.progress_bar.update(min(time_increment, remaining_time))
 
         if progress_bar:
-            remaining_time = max(max_time - self.progress_bar.n, 0)
-            self.progress_bar.update(remaining_time)
-            self.progress_bar.close()
+            with lock:
+                remaining_time = max(max_time - self.progress_bar.n, 0)
+                self.progress_bar.update(remaining_time)
+                self.progress_bar.close()
 
     def arrival(self, next_arrival, patient_type):
         """

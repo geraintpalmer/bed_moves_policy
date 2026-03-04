@@ -323,42 +323,21 @@ def test_get_available_moves():
 
 def test_combine_dfs():
     A1 = pd.DataFrame({
-        'state': ['(111)', '(111)', '(222)'],
-        'action': [1, 2, 1],
         'Q': [150.0, 200.0, 300.0],
         'hits': [1, 2, 3]
-    })
+    }, index=['(111)-1', '(111)-2', '(222)-1'])
 
     A2 = pd.DataFrame({
-        'state': ['(111)', '(111)', '(222)', '(333)'],
-        'action': [1, 3, 1, 2],
         'Q': [50.0, 250.0, 500.0, 100.0],
         'hits': [1, 2, 1, 4]
-    })
+    }, index=['(111)-1', '(111)-3', '(222)-1', '(333)-2'])
 
     A = bedmoves.combine_Qvalues([A1, A2])
     expectedA = pd.DataFrame({
-        'state': ['(111)', '(111)', '(111)', '(222)', '(333)'],
-        'action': [1, 2, 3, 1, 2],
         'Q': [100.0, 200.0, 250.0, 350.0, 100.0],
         'hits': [2, 2, 2, 4, 4]
-    })
+    }, index=['(111)-1', '(111)-2', '(111)-3', '(222)-1', '(333)-2'])
     pd.testing.assert_frame_equal(A, expectedA)
-
-
-def test_convert_df_to_dict():
-    df = pd.DataFrame({
-        'state': ['(111)', '(111)', '(222)'],
-        'action': [1, 2, 1],
-        'Q': [150.0, 200.0, 300.0],
-        'hits': [1, 2, 3]
-    })
-    expected_dict = {
-        '(111)': {1: 150.0, 2: 200.0},
-        '(222)': {1: 300.0}
-    }
-    assert bedmoves.convert_dataframe_to_dictionary(df) == expected_dict
-
 
 
 def test_epsilonhard_00():
@@ -420,12 +399,21 @@ def test_epsilonhard_10():
             (0, 0, 0, 0, 0, 0, 1, 1, 1)
         )
     )
-    hashS123 = bedmoves.QLearning.get_hash_state(None, (S123, 0))
+    hashS123_1 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 1)
+    hashS123_2 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 2)
+    hashS123_3 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 3)
+    Qdf = pd.DataFrame(
+        {
+            'Q': [0.35, 1.56, 0.98],
+            'hits': [34, 12, 55]
+        },
+        index=[hashS123_1, hashS123_2, hashS123_3]
+    )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=2.0,
-        initial_Qvalues={hashS123: {1: 0.35, 2: 1.56, 3: 0.98}}
+        initial_Qvalues=Qdf
     )
     EH = bedmoves.EpsilonHard(epsilon=1.0, QLearning=Q)
     ciw.seed(0)
@@ -448,77 +436,42 @@ def test_epsilonhard_07():
             (0, 0, 0, 0, 0, 0, 1, 1, 1)
         )
     )
-    hashS123 = bedmoves.QLearning.get_hash_state(None, (S123, 0))
+    hashS123_1 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 1)
+    hashS123_2 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 2)
+    hashS123_3 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 3)
+    Qdf = pd.DataFrame(
+        {
+            'Q': [0.35, 1.56, 0.98],
+            'hits': [34, 12, 55]
+        },
+        index=[hashS123_1, hashS123_2, hashS123_3]
+    )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=2.0,
-        initial_Qvalues={hashS123: {1: 0.35, 2: 1.56, 3: 0.98}}
+        initial_Qvalues=Qdf
     )
     EH = bedmoves.EpsilonHard(epsilon=0.7, QLearning=Q)
     ciw.seed(0)
     choices = [EH.choose_arriving_block(S123, 0) for _ in range(1000)]
-    assert sum(c == 2 for c in choices) == 807
+    assert sum(c == 2 for c in choices) == 781
 
-
-
-def test_Agent():
-    S = np.array(
-        (
-            (0, 2, 0, 2, 0, 0, 0, 0, 0),
-            (1, 0, 1, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 1, 0, 1, 1, 1, 0)
-        )
-    )
-
-    A1 = bedmoves.Agent(state=S, action=1, Q=0.0)
-    A2 = bedmoves.Agent(state=S, action=9, Q=3.5)
-
-    assert np.array_equal(A1.state, S)
-    assert np.array_equal(A2.state, S)
-    assert A1.action == 1
-    assert A2.action == 9
-    assert A1.Q == 0.0
-    assert A2.Q == 3.5
-    assert A1.hits == 0
-    assert A2.hits == 0
-    assert np.array_equal(A1.Qts, [0.0])
-    assert np.array_equal(A2.Qts, [3.5])
-    assert np.array_equal(A1.ts, [0.0])
-    assert np.array_equal(A2.ts, [0.0])
-
-
-    A1.update_Q(newQ=1.5, t=0.8)
-    A2.update_Q(newQ=2.9, t=1.1)
-
-    assert np.array_equal(A1.state, S)
-    assert np.array_equal(A2.state, S)
-    assert A1.action == 1
-    assert A2.action == 9
-    assert A1.Q == 1.5
-    assert A2.Q == 2.9
-    assert A1.hits == 1
-    assert A2.hits == 1
-    assert np.array_equal(A1.Qts, [0.0, 1.5])
-    assert np.array_equal(A2.Qts, [3.5, 2.9])
-    assert np.array_equal(A1.ts, [0.0, 0.8])
-    assert np.array_equal(A2.ts, [0.0, 1.1])
 
 
 def test_QLearning_init():
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=1.0
         )
 
     assert Q.learning_rate == 0.5
-    assert Q.discount_rate == 0.9
+    assert Q.discount_factor == 0.9
     assert Q.transform_parameter == 1.0
     assert Q.previous_cost == 0.0
-    assert Q.agents == {}
-    assert Q.state == None
-    assert Q.action == None
+    assert len(Q.Qvals_df) == 0
+    assert Q.hash_state == None
 
     FS = FakeSimulation()
     Q.attach_simulation(FS)
@@ -547,50 +500,44 @@ def test_QLearning_initial_Qvalues():
         ), 0
     )
 
-    initial_Qvalues = {
-        S1: {4: 1.2, 5: 1.8},
-        S2: {4: 1.1, 5: 0.7, 6: 7.1},
-        S3: {2: 3.1}
-    }
+    Qdf = pd.DataFrame(
+        {
+            'Q': [1.2, 1.8, 1.1, 0.7, 7.1, 3.1],
+            'hits': [34, 12, 55, 2, 5, 6]
+        }, index=[str(S1) + '-4', str(S1) + '-5', str(S2) + '-4', str(S2) + '-5', str(S2) + '-6', str(S3) + '-2']
+    )
+
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=1.0,
-        initial_Qvalues=initial_Qvalues
+        initial_Qvalues=Qdf
         )
 
     assert Q.learning_rate == 0.5
-    assert Q.discount_rate == 0.9
+    assert Q.discount_factor == 0.9
     assert Q.transform_parameter == 1.0
     assert Q.previous_cost == 0.0
-    assert Q.state == None
-    assert Q.action == None
+    assert Q.hash_state == None
 
-    assert len(Q.agents.keys()) == 3 
-    assert S1 in Q.agents
-    assert S2 in Q.agents
-    assert S3 in Q.agents
-    assert len(Q.agents[S1]) == 2
-    assert len(Q.agents[S2]) == 3
-    assert len(Q.agents[S3]) == 1
-    assert 4 in Q.agents[S1]
-    assert 5 in Q.agents[S1]
-    assert 4 in Q.agents[S2]
-    assert 5 in Q.agents[S2]
-    assert 6 in Q.agents[S2]
-    assert 2 in Q.agents[S3]
-    assert Q.agents[S1][4].Q == 1.2
-    assert Q.agents[S1][5].Q == 1.8
-    assert Q.agents[S2][4].Q == 1.1
-    assert Q.agents[S2][5].Q == 0.7
-    assert Q.agents[S2][6].Q == 7.1
-    assert Q.agents[S3][2].Q == 3.1
+    assert len(Q.Qvals_df) == 6
+    assert np.array_equal(Q.Qvals_df.index, [str(S1) + '-4', str(S1) + '-5', str(S2) + '-4', str(S2) + '-5', str(S2) + '-6', str(S3) + '-2'])
+    assert np.array_equal(Q.Qvals_df['Q'], [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
+    assert np.array_equal(Q.Qvals_df['hits'], [34, 12, 55, 2, 5, 6])
+
+    # Test that changing Q values do not affect original df
+    Q.Qvals_df.loc[str(S1) + '-4', 'Q'] = 500.7
+    Q.Qvals_df.loc[str(S1) + '-4', 'hits'] += 1
+    assert Q.Qvals_df.loc[str(S1) + '-4', 'Q'] == 500.7
+    assert Q.Qvals_df.loc[str(S1) + '-4', 'hits'] == 35
+    assert Qdf.loc[str(S1) + '-4', 'Q'] == 1.2
+    assert Qdf.loc[str(S1) + '-4', 'hits'] == 34
 
 
 def test_QLearning_hashstate():
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=1.0
         )
     S = (
@@ -603,19 +550,19 @@ def test_QLearning_hashstate():
         ),
         1
     )
-    assert Q.get_hash_state(S) == (
+    assert Q.get_hash_state(S, 2) == str((
         (
             (0, 2, 0, 2, 0, 0, 0, 0, 0),
             (1, 0, 1, 0, 0, 0, 0, 0, 0),
             (0, 0, 0, 1, 0, 1, 1, 1, 0)
         ), 1
-    )
+    )) + '-2'
 
 
 def test_transform_cost():
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=1.0
         )
     cost1 = -math.log(7)
@@ -630,7 +577,7 @@ def test_transform_cost():
 def test_update_Q_values():
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=1.0
         )
     S = (np.array(
@@ -640,9 +587,7 @@ def test_update_Q_values():
             (0, 0, 0, 0, 0, 0, 0, 0, 0)
         )
     ), 0)
-    Q.state = S
-    Q.hash_state = Q.get_hash_state(Q.state)
-    Q.action = 1
+    Q.hash_state = Q.get_hash_state(S, 1)
     Q.previous_cost = 90
 
     FS = FakeSimulation()
@@ -661,15 +606,10 @@ def test_update_Q_values():
 
     Q.update_Q_values(next_state, next_action)
 
-    assert np.array_equal(Q.state[0], next_state[0])
-    assert Q.state[1], next_state[1]
-    assert Q.action == next_action
-
-    agent = Q.agents[Q.get_hash_state(S)][1]
+    assert Q.hash_state == Q.get_hash_state(next_state, 5)
     R = math.exp(-Q.transform_parameter * 10)
-    assert agent.Q == 0.5 * R
-    assert len(agent.Qts) == 2
-    assert np.array_equal(agent.ts, [0.0, 40])
+    assert Q.Qvals_dict[Q.get_hash_state(S, 1)] == 0.5 * R
+    assert Q.Qhits_dict[Q.get_hash_state(S, 1)] == 1
 
 
 def test_Patient_class():
@@ -940,13 +880,17 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 7
+    Qdf = pd.DataFrame(
+        {
+            'Q': [2.5],
+            'hits': [34]
+        }, index=[str(state) + '-' + str(action)]
+    )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues={
-            state: {action: 2.5}
-        }
+        initial_Qvalues=Qdf
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -967,9 +911,9 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.output_Qvalues()
-    state_action_paris = vals['state'] + (vals['action'].astype(str))
-    initial_state_action_pair = str(state) + str(action)
+    vals = Q.Qvals_df
+    state_action_paris = vals.index
+    initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)
 
     # Now repeat for an action I won't encounter
@@ -981,13 +925,17 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 2
+    Qdf = pd.DataFrame(
+        {
+            'Q': [2.5],
+            'hits': [34]
+        }, index=[str(state) + '-' + str(action)]
+    )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues={
-            state: {action: 2.5}
-        }
+        initial_Qvalues=Qdf
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -1008,9 +956,9 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.output_Qvalues()
-    state_action_paris = vals['state'] + (vals['action'].astype(str))
-    initial_state_action_pair = str(state) + str(action)
+    vals = Q.Qvals_df
+    state_action_paris = vals.index
+    initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)
 
     # Now repeat for an state I won't encounter
@@ -1022,13 +970,17 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 2
+    Qdf = pd.DataFrame(
+        {
+            'Q': [2.5],
+            'hits': [34]
+        }, index=[str(state) + '-' + str(action)]
+    )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
-        discount_rate=0.9,
+        discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues={
-            state: {action: 2.5}
-        }
+        initial_Qvalues=Qdf
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -1049,7 +1001,7 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.output_Qvalues()
-    state_action_paris = vals['state'] + (vals['action'].astype(str))
-    initial_state_action_pair = str(state) + str(action)
+    vals = Q.Qvals_df
+    state_action_paris = vals.index
+    initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)
