@@ -303,7 +303,6 @@ class QLearning:
         Returns a hashable version of the state.
         """
         return "((" + ",".join(["(" + ",".join(map(str, state_row)) + ")" for state_row in state[0]]) + ")," + str(state[1]) + ")-" + str(action)
-        # return (str((tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])) + '-' + str(action)).replace(" ", "")
 
     def update_Q_values(self, next_state, next_action):
         """
@@ -336,7 +335,7 @@ class QLearning:
 
         R = e^{-p * C}
 
-        where p is thr transform parameter.
+        where p is the transform parameter.
         """
         return np.exp(-self.transform_parameter * cost)
 

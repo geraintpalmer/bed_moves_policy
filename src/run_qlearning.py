@@ -76,8 +76,6 @@ if __name__ == '__main__':
     epsilon_step = 1.0 / (n_stages - 1)
     epsilons = [(i * epsilon_step) for i in range(n_stages)]
     seed = 0
-
-    tstart = time.time()
     
     initial_Qvalues = None
     for stage in range(1, n_stages+1):
@@ -97,8 +95,3 @@ if __name__ == '__main__':
         initial_Qvalues = bedmoves.combine_Qvalues(stage_dfs)
         initial_Qvalues.to_csv(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv", index=True)
         seed += n_stages
-
-    tend = time.time()
-
-    print(tstart - tend)
-
