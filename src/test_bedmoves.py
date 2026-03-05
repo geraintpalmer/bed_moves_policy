@@ -334,8 +334,7 @@ def test_combine_dfs():
 
     A = bedmoves.combine_Qvalues([A1, A2])
     expectedA = pd.DataFrame({
-        'Q': [100.0, 200.0, 250.0, 350.0, 100.0],
-        'hits': [2, 2, 2, 4, 4]
+        'Q': [100.0, 200.0, 250.0, 350.0, 100.0]
     }, index=['(111)-1', '(111)-2', '(111)-3', '(222)-1', '(333)-2'])
     pd.testing.assert_frame_equal(A, expectedA)
 
@@ -504,7 +503,7 @@ def test_QLearning_initial_Qvalues():
         {
             'Q': [1.2, 1.8, 1.1, 0.7, 7.1, 3.1],
             'hits': [34, 12, 55, 2, 5, 6]
-        }, index=[str(S1) + '-4', str(S1) + '-5', str(S2) + '-4', str(S2) + '-5', str(S2) + '-6', str(S3) + '-2']
+        }, index=[str(S1).replace(" ", "") + '-4', str(S1).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-4', str(S2).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-6', str(S3).replace(" ", "") + '-2']
     )
 
     Q = bedmoves.QLearning(
@@ -521,17 +520,17 @@ def test_QLearning_initial_Qvalues():
     assert Q.hash_state == None
 
     assert len(Q.Qvals_df) == 6
-    assert np.array_equal(Q.Qvals_df.index, [str(S1) + '-4', str(S1) + '-5', str(S2) + '-4', str(S2) + '-5', str(S2) + '-6', str(S3) + '-2'])
+    assert np.array_equal(Q.Qvals_df.index, [str(S1).replace(" ", "") + '-4', str(S1).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-4', str(S2).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-6', str(S3).replace(" ", "") + '-2'])
     assert np.array_equal(Q.Qvals_df['Q'], [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
-    assert np.array_equal(Q.Qvals_df['hits'], [34, 12, 55, 2, 5, 6])
+    assert np.array_equal(Q.Qvals_df['hits'], [0, 0, 0, 0, 0, 0])
 
     # Test that changing Q values do not affect original df
-    Q.Qvals_df.loc[str(S1) + '-4', 'Q'] = 500.7
-    Q.Qvals_df.loc[str(S1) + '-4', 'hits'] += 1
-    assert Q.Qvals_df.loc[str(S1) + '-4', 'Q'] == 500.7
-    assert Q.Qvals_df.loc[str(S1) + '-4', 'hits'] == 35
-    assert Qdf.loc[str(S1) + '-4', 'Q'] == 1.2
-    assert Qdf.loc[str(S1) + '-4', 'hits'] == 34
+    Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'Q'] = 500.7
+    Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'hits'] += 1
+    assert Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'Q'] == 500.7
+    assert Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'hits'] == 1
+    assert Qdf.loc[str(S1).replace(" ", "") + '-4', 'Q'] == 1.2
+    assert Qdf.loc[str(S1).replace(" ", "") + '-4', 'hits'] == 34
 
 
 def test_QLearning_hashstate():
@@ -550,13 +549,7 @@ def test_QLearning_hashstate():
         ),
         1
     )
-    assert Q.get_hash_state(S, 2) == str((
-        (
-            (0, 2, 0, 2, 0, 0, 0, 0, 0),
-            (1, 0, 1, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 1, 0, 1, 1, 1, 0)
-        ), 1
-    )) + '-2'
+    assert Q.get_hash_state(S, 2) == "(((0,2,0,2,0,0,0,0,0),(1,0,1,0,0,0,0,0,0),(0,0,0,1,0,1,1,1,0)),1)-2"
 
 
 def test_transform_cost():

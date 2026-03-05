@@ -191,14 +191,15 @@ def combine_Qvalues(list_of_Qval_dfs):
     Returns: A combined dataframe.
     """
     concated_df = pd.concat(list_of_Qval_dfs)
-    concated_df['Q x hits'] = concated_df['Q'] * concated_df['hits']
+    concated_df['Q x hits'] = concated_df['Q'] * concated_df['hits'].clip(lower=1)
     combined_df = pd.DataFrame(
         {
             'Q': concated_df.groupby(concated_df.index)['Q x hits'].sum(),
             'hits': concated_df.groupby(concated_df.index)['hits'].sum(),
         }
     )
-    combined_df['Q'] = combined_df['Q'] / combined_df['hits']
+    combined_df['Q'] = combined_df['Q'] / combined_df['hits'].clip(lower=1)
+    del combined_df['hits']
 
     combined_df.index.name = None
     return combined_df
@@ -282,13 +283,14 @@ class QLearning:
 
     def initialise_df(self, initial_Qvalues):
         """
-        Initialises Qvals dataframe as eithe empty or with some
+        Initialises Qvals dataframe as either empty or with some
         previously learned Q-values.
         """
         if initial_Qvalues is None:
             self.Qvals_df = pd.DataFrame({'Q': [], 'hits': []})
         else:
             self.Qvals_df = initial_Qvalues.copy()
+            self.Qvals_df['hits'] = 0
 
     def attach_simulation(self, simulation):
         """
@@ -300,7 +302,8 @@ class QLearning:
         """
         Returns a hashable version of the state.
         """
-        return str((tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])) + '-' + str(action)
+        return "((" + ",".join(["(" + ",".join(map(str, state_row)) + ")" for state_row in state[0]]) + ")," + str(state[1]) + ")-" + str(action)
+        # return (str((tuple(tuple(map(int, state[0][i])) for i in range(3)), state[1])) + '-' + str(action)).replace(" ", "")
 
     def update_Q_values(self, next_state, next_action):
         """
@@ -355,7 +358,6 @@ class QLearning:
         indices = []
         for stateaction in self.Qvals_dict:
             indices.append(stateaction)
-            state, action = stateaction.split('-')
             Qs.append(self.Qvals_dict[stateaction])
             hits.append(self.Qhits_dict[stateaction])
         self.Qvals_df = pd.DataFrame(
