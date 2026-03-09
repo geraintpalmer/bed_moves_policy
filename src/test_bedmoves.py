@@ -647,7 +647,7 @@ def test_BedMovesSimulation_init():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
 
@@ -655,7 +655,7 @@ def test_BedMovesSimulation_init():
     assert len(S.los_distributions) == 3
     assert str(S.action_chooser) == "EpsilonHard-0.0"
     assert S.next_arrivals == {0: 5, 1: 9, 2: 11}
-    assert str(S.Qlearning) == "QLearning"
+    assert str(S.QLearning) == "QLearning"
     assert S.prev_now == 0.0
     assert S.now == 0.0
     assert S.overall_cost == 0.0
@@ -681,7 +681,7 @@ def test_BedMovesSimulation_nextarrival():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
 
@@ -717,7 +717,7 @@ def test_BedMovesSimulation_nextexit():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
 
@@ -758,7 +758,7 @@ def test_BedMovesSimulation_inflict_cost():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
     S.state = np.array(
@@ -790,7 +790,7 @@ def test_BedMovesSimulation_inflict_cost():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
     S.state = np.array(
@@ -822,7 +822,7 @@ def test_BedMovesSimulation_arrival_and_exit():
         isolation_penalty=2.0,
         adjacent_move_penalty=2.0,
         nonadjacent_move_penalty=2.0,
-        Qlearning=bedmoves.QLearning(0.5, 0.9, 1.0),
+        QLearning=bedmoves.QLearning(0.5, 0.9, 1.0),
         seed=0
     )
     expected_state_before = np.array(
@@ -900,7 +900,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
-        Qlearning=Q,
+        QLearning=Q,
         seed=0
     )
     S.simulate_until_max_time(2)
@@ -945,7 +945,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
-        Qlearning=Q,
+        QLearning=Q,
         seed=0
     )
     S.simulate_until_max_time(2)
@@ -990,7 +990,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
-        Qlearning=Q,
+        QLearning=Q,
         seed=0
     )
     S.simulate_until_max_time(2)

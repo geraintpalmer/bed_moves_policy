@@ -5,6 +5,11 @@ import tqdm
 import pandas as pd
 
 class NullLock(object):
+    """
+    A null context to stand in for the parallel 'lock' thread context
+    required for parallel processing. Used as default when not
+    processing in parallel.
+    """
     def __init__(self, dummy_resource=None):
         self.dummy_resource = dummy_resource
     def __enter__(self):
@@ -26,12 +31,12 @@ def get_resource_use_per_time_unit(state):
     """
     Calculates the resource use for a given state per time unit
 
-    - One FTE per block containing at least one green patient
-    - One FTE per amber patient
-    - One FTE per red patient
+    + One FTE per block containing at least one green patient
+    + One FTE per amber patient
+    + One FTE per red patient
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
 
     Returns: and integer number of resources used per time unit.
@@ -48,9 +53,9 @@ def get_penalty_per_time_unit(state, isolation_penalty):
     general block
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
-      - `isolation_penalty`: the numerical penalty patient per
+      + `isolation_penalty`: the numerical penalty patient per
          time unit of not being in an isolation ward.
 
     Returns: a numerical penalty per time unit for the given state.
@@ -64,12 +69,12 @@ def get_move_penalty(from_block, to_block, b1, b2):
     Calculates the instantaneous penalty associated with a bed move.
 
     Arguments:
-      - `from_block`: the block the patient was moved from
-      - `to_block`: the block the patient is moved to
-      - `b1`: the penalty for moving to an adjacent block
+      + `from_block`: the block the patient was moved from
+      + `to_block`: the block the patient is moved to
+      + `b1`: the penalty for moving to an adjacent block
               (representing not a move, but a penalty for
               stretching resources across blocks)
-      - `b2`: the penalty for moving to a non-adjacent block
+      + `b2`: the penalty for moving to a non-adjacent block
 
     Returns: a numerical penalty for a bed move.
     """
@@ -92,12 +97,14 @@ def move_patient(state, patient_type, from_block, to_block):
     Returns the state that results from moving a patient.
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
-      - `patient_type`: the type of the patient being moved, either
+      + `patient_type`: the type of the patient being moved, either
          2: 'red', 1: 'amber', or 0: 'green'
-      - `from_block`: the block the patient was moved from
-      - `to_block`: the block the patient is moved to
+      + `from_block`: the block the patient was moved from
+      + `to_block`: the block the patient is moved to
+
+    Returns: a numpy array representing the state after the move.
     """
     new_state = state.copy()
     new_state[patient_type, from_block - 1] -= 1
@@ -110,11 +117,13 @@ def insert_patient(state, patient_type, to_block):
     Returns the state that results from inserting a patient.
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
-      - `patient_type`: the type of the patient being moved, either
+      + `patient_type`: the type of the patient being moved, either
          2: 'red', 1: 'amber', or 0: 'green'
-      - `to_block`: the block the patient is moved to
+      + `to_block`: the block the patient is moved to
+
+    Returns: a numpy array representing the state after the insert.
     """
     new_state = state.copy()
     new_state[patient_type, to_block - 1] += 1
@@ -126,11 +135,14 @@ def remove_patient(state, patient_type, from_block):
     Returns the state that results from removing a patient.
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
-      - `patient_type`: the type of the patient being moved, either
+      + `patient_type`: the type of the patient being moved, either
          2: 'red', 1: 'amber', or 0: 'green'
-      - `from_block`: the block the patient was moved from
+      + `from_block`: the block the patient was moved from
+
+    Returns: a numpy array representing the state after removing the
+    patient.
     """
     new_state = state.copy()
     new_state[patient_type, from_block - 1] -= 1
@@ -142,7 +154,7 @@ def get_available_insert_moves(state):
     Lists all available places where a patient can be inserted.
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
 
     Returns: a list of blocks that the patient can be inserted.    
@@ -160,7 +172,7 @@ def get_available_moves(state):
     Lists all available bed moves possible.
 
     Arguments:
-      - `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
          the state of the ward.
 
     Returns: a list of possible moves, that is tuples (a, b, c),
@@ -168,41 +180,43 @@ def get_available_moves(state):
         and c is where they can move to.
     """
     available_moves = []
-    available_inserts = get_available_insert_moves(state)
+    available_inserts = get_available_insert_moves(state=state)
     for patient_type in range(3):
         from_blocks = np.where(state[patient_type,:] > 0)[0]
         for from_block in from_blocks:
             for to_block in available_inserts:
                 if from_block + 1 != to_block:
-                    available_moves.append((patient_type, from_block + 1, to_block))
+                    available_moves.append(
+                        (patient_type, from_block + 1, to_block)
+                    )
     return available_moves
 
 
 def combine_Qvalues(list_of_Qval_dfs):
     """
-    Combines many dataframes of Qvales (the output of Q.output_Q_values),
-    such that the resulting Qvalues are the weighted average of the
-    Qvalues across all dataframes (weighted by number of hits), and the
-    number of hits are summed.
+    Combines many dataframes of Qvalues (the output of
+    Q.output_Q_values), such that the resulting Qvalues are the weighted
+    average of the Qvalues across all dataframes (weighted by number of
+    hits), and the number of hits are summed.
 
     Arguments:
       + `list_of_Qval_dfs`: a list of dataframes to be combined
 
     Returns: A combined dataframe.
     """
-    concated_df = pd.concat(list_of_Qval_dfs)
-    concated_df['Q x hits'] = concated_df['Q'] * concated_df['hits'].clip(lower=1)
-    combined_df = pd.DataFrame(
+    cat_df = pd.concat(list_of_Qval_dfs)
+    cat_df['Q x hits'] = cat_df['Q'] * cat_df['hits'].clip(lower=1)
+    comb_df = pd.DataFrame(
         {
-            'Q': concated_df.groupby(concated_df.index)['Q x hits'].sum(),
-            'hits': concated_df.groupby(concated_df.index)['hits'].sum(),
+            'Q': cat_df.groupby(cat_df.index)['Q x hits'].sum(),
+            'hits': cat_df.groupby(cat_df.index)['hits'].sum(),
         }
     )
-    combined_df['Q'] = combined_df['Q'] / combined_df['hits'].clip(lower=1)
-    del combined_df['hits']
+    comb_df['Q'] = comb_df['Q'] / comb_df['hits'].clip(lower=1)
+    del comb_df['hits']
 
-    combined_df.index.name = None
-    return combined_df
+    comb_df.index.name = None
+    return comb_df
 
 
 class EpsilonHard:
@@ -213,8 +227,9 @@ class EpsilonHard:
         randomly otherwise.
 
         Arguments:
-          + `epsilon`: a probability (low: explore more, high: exploit more)
-          + `QLearning`: a Qlearning object.
+          + `epsilon`: a probability, float between 0 and 1
+                       (low: explore more, high: exploit more)
+          + `QLearning`: a QLearning object.
         """
         self.epsilon = epsilon
         self.QLearning = QLearning
@@ -223,13 +238,27 @@ class EpsilonHard:
         """
         Randomly chooses a block for an arriving patient 1-epsilon
         of the time. Otherwise chooses the best.
+
+        Arguments:
+          + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+             the state of the ward.
+          + `patient_type`: the type of the patient arriving, either
+             2: 'red', 1: 'amber', or 0: 'green'
+
+        Returns: a block to place the arriving patient.
         """
-        available_blocks = get_available_insert_moves(state)
+        available_blocks = get_available_insert_moves(state=state)
         if len(available_blocks) == 0:
             return False
         if random.random() < self.epsilon:
-            return self.choose_best_block(state, patient_type, available_blocks)
-        return self.choose_random_block(available_blocks)
+            return self.choose_best_block(
+                state=state,
+                patient_type=patient_type,
+                available_blocks=available_blocks
+            )
+        return self.choose_random_block(
+            available_blocks=available_blocks
+        )
 
     def choose_random_block(self, available_blocks):
         """
@@ -239,34 +268,71 @@ class EpsilonHard:
           + `available_blocks`: a list of available blocks to
              insert a patient to.
 
-        Returns: a block.
+        Returns: a block to place the arriving patient.
         """
         return random.choice(available_blocks)
 
     def choose_best_block(self, state, patient_type, available_blocks):
         """
         Chooses the best action.
+
+        Arguments:
+          + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+             the state of the ward.
+          + `patient_type`: the type of the patient arriving, either
+             2: 'red', 1: 'amber', or 0: 'green'
+          + `available_blocks`: a list of available blocks to
+             insert a patient to.
+
+        Returns: a block to place the arriving patient.
         """
-        next_qstates_as = [(a, self.QLearning.get_hash_state((state, patient_type), a)) for a in available_blocks]
-        next_Qs = [(qstatea[0], self.QLearning.Qvals_dict.get(qstatea[1], 0.0)) for qstatea in next_qstates_as]
+        next_qstates_as = [
+            (
+                a,
+                self.QLearning.get_hash_state(
+                    state=(state, patient_type),
+                    action=a
+                )
+            )
+            for a in available_blocks
+        ]
+        next_Qs = [
+            (qstatea[0], self.QLearning.Qvals_dict.get(qstatea[1], 0.0))
+            for qstatea in next_qstates_as
+        ]
         random.shuffle(next_Qs)
         return max(next_Qs, key=lambda x: x[1])[0]
 
     def __repr__(self):
+        """
+        Returns a string representation of the object.
+        """
         return f"EpsilonHard-{self.epsilon}"
 
 
 
 class QLearning:
-    def __init__(self, learning_rate, discount_factor, transform_parameter, initial_Qvalues=None, learn=True):
+    def __init__(
+        self,
+        learning_rate,
+        discount_factor,
+        transform_parameter,
+        initial_Qvalues=None,
+        learn=True
+    ):
         """
         Initialises the QLearning object.
 
         Arguments:
-          - `learning_rate`: the learning rate of the Q-learning algorithm (a number between 0 and 1)
-          - `discount_factor`: the discount factor of the Q-learning algorithm (a number between 0 and 1)
-          - `transform_parameter`: a parameter to transform costs into rewards via e^{-transform_parameter * cost}
-          - `initial_Qvalues`: a dataframe of Q-values
+          + `learning_rate`: the learning rate of the Q-learning
+               algorithm (a number between 0 and 1)
+          + `discount_factor`: the discount factor of the Q-learning
+               algorithm (a number between 0 and 1)
+          + `transform_parameter`: a parameter to transform costs into
+               rewards via e^{-transform_parameter * cost}
+          + `initial_Qvalues`: a dataframe of Q-values
+          + `learn`: a Boolean, indicating if the object should carry
+             out learning on this run of the simulation or not.
         """
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
@@ -274,7 +340,7 @@ class QLearning:
         self.previous_cost = 0.0
         self.hash_state = None
         self.learn = learn
-        self.initialise_df(initial_Qvalues)
+        self.initialise_df(initial_Qvalues=initial_Qvalues)
         self.Qvals_dict = self.Qvals_df['Q'].to_dict()
         self.Qhits_dict = self.Qvals_df['hits'].to_dict()
 
@@ -285,6 +351,9 @@ class QLearning:
         """
         Initialises Qvals dataframe as either empty or with some
         previously learned Q-values.
+
+        Arguments:
+          + `initial_Qvalues`: a dataframe of Q-values
         """
         if initial_Qvalues is None:
             self.Qvals_df = pd.DataFrame({'Q': [], 'hits': []})
@@ -295,18 +364,39 @@ class QLearning:
     def attach_simulation(self, simulation):
         """
         Attaches the simulation object to the QLearning object
+
+        Arguments:
+          + `simulation`: a BedMovesSimulation object.
         """
         self.simulation = simulation
 
     def get_hash_state(self, state, action):
         """
         Returns a hashable version of the state.
+
+        Arguments:
+          + `state`: a tuple with first element a numpy array
+              representing the state of the system, and second element
+              an integer representing the arriving customer type.
+          + `action`: the block to insert a patient.
+
+        Returns: a string representation of the state-action pair.
         """
-        return "((" + ",".join(["(" + ",".join(map(str, state_row)) + ")" for state_row in state[0]]) + ")," + str(state[1]) + ")-" + str(action)
+        return "((" + ",".join([
+            "(" + ",".join(map(str, state_row)) + ")"
+            for state_row in state[0]
+        ]) + ")," + str(state[1]) + ")-" + str(action)
 
     def update_Q_values(self, next_state, next_action):
         """
         Updates the Q-values according to the Q-learning update:
+
+        Arguments:
+          + `next_state`: a tuple with first element a numpy array
+              representing the state the system has just reached, and
+              second element an integer representing the arriving
+              customer type.
+          + `next_action`: the next action that has been chosen.
         """
         if self.learn:
             cost = self.simulation.overall_cost - self.previous_cost
@@ -315,27 +405,36 @@ class QLearning:
     
             if self.hash_state is not None:
                 stateaction = self.hash_state
+                best_future_reward = self.get_best_future_reward(
+                    next_state=next_state
+                )
                 oldQ = self.Qvals_dict.get(stateaction, 0.0)
                 newQ = (
                     ((1 - self.learning_rate) * oldQ)
                     + (self.learning_rate * (
                         R + (
-                            self.discount_factor * self.get_best_future_reward(next_state=next_state)
+                            self.discount_factor * best_future_reward
                         )
                     ))
                 )
                 self.Qvals_dict[stateaction] = newQ
-                self.Qhits_dict[stateaction] = self.Qhits_dict.get(stateaction, 0) + 1
+                current_hit = self.Qhits_dict.get(stateaction, 0)
+                self.Qhits_dict[stateaction] = current_hit + 1
 
-            self.hash_state = self.get_hash_state(next_state, next_action)
+            self.hash_state = self.get_hash_state(
+                state=next_state,
+                action=next_action
+            )
 
     def transform_cost(self, cost):
         """
-        Transforms the cost (C) into a reward (R) via:
-
-        R = e^{-p * C}
-
+        Transforms the cost (C) into a reward (R) via: R = e^{-p * C}
         where p is the transform parameter.
+
+        Arguments:
+          + `cost` the cost since the last timestamp
+
+        Returns: a reward.
         """
         return np.exp(-self.transform_parameter * cost)
 
@@ -343,10 +442,27 @@ class QLearning:
         """
         Returns the maximum future reward if taking the optimal action
         when in the future state.
+
+        Arguments:
+          + `next_state`: a tuple with first element a numpy array
+              representing the state the system has just reached, and
+              second element an integer representing the arriving
+              customer type.
+
+        Returns: the maximum epected future reward from following the
+          best actions from this state onwards.
         """
-        available_inserts = get_available_insert_moves(state=next_state[0])
-        next_hash_states = [self.get_hash_state(next_state, a) for a in available_inserts]
-        return max(self.Qvals_dict.get(hash_state, 0.0) for hash_state in next_hash_states)
+        available_as = get_available_insert_moves(state=next_state[0])
+        next_hash_states = [
+            self.get_hash_state(
+                state=next_state,
+                action=a
+            ) for a in available_as
+        ]
+        return max(
+            self.Qvals_dict.get(hash_state, 0.0)
+            for hash_state in next_hash_states
+        )
 
     def update_Qvals_df(self):
         """
@@ -392,7 +508,7 @@ class BedMoveSimulation:
         isolation_penalty,
         adjacent_move_penalty,
         nonadjacent_move_penalty,
-        Qlearning,
+        QLearning,
         seed
     ):
         """
@@ -400,26 +516,29 @@ class BedMoveSimulation:
 
         Arguments:
           + `arrival_distributions`: a list of Ciw distribution objects
-             representing the inter-arrival times of the green, amber,
-             and red patients.
+               representing the inter-arrival times of the green, amber,
+               and red patients.
           + `los_distributions`: a list of Ciw distribution objects
-             representing the length of stay times of the green, amber,
-             and red patients.
-          + `action_chooser`: an object that governs the choice fo actions.
-          + `seed`: the random seed for the pseudorandom number generator.
+               representing the length of stay times of the green,
+               amber, and red patients.
+          + `action_chooser`: an object that governs the choice of
+               actions.
           + `isolation_penalty`: the numerical penalty patient per time
-             unit of not being in an isolation ward.
-          + `adjacent_move_penalty`: the penalty for moving to an adjacent
-             block (representing not a move, but a penalty for stretching
-             resources across blocks)
+               unit of not being in an isolation ward.
+          + `adjacent_move_penalty`: the penalty for moving to an
+               adjacent block (representing not a move, but a penalty
+               for stretching resources across blocks)
           + `nonadjacent_move_penalty`: the penalty for moving to a
-             non-adjacent block
+               non-adjacent block
+          + `QLearning`: a QLearning object that performs the q-learning
+          + `seed`: the random seed for the pseudorandom number
+               generator.
         """
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
         self.action_chooser = action_chooser
-        self.Qlearning = Qlearning
-        self.Qlearning.attach_simulation(simulation=self)
+        self.QLearning = QLearning
+        self.QLearning.attach_simulation(simulation=self)
         
         self.prev_now = 0.0
         self.now = 0.0
@@ -462,16 +581,39 @@ class BedMoveSimulation:
         )
         return next_patient.exit_date, next_patient
 
-    def simulate_until_max_time(self, max_time, lock=NullLock(), progress_bar=False, progress_bar_description=None):
+    def simulate_until_max_time(
+        self,
+        max_time,
+        lock=NullLock(),
+        progress_bar=False,
+        progress_bar_description=None
+    ):
+        """
+        Simulates the ward for a given amount of time.
+
+        Arguments:
+          + `max_time`: the time to stop the simulation (positive float)
+          + `lock`: a context manager used for parallel processing
+          + `progress_bar`: A boolean indicating if a tqdm progress bar
+               should be displayed.
+          + `progress_bar_description`: The string description for the
+             progress bar.
+        """
         if progress_bar:
             with lock:
-                self.progress_bar = tqdm.tqdm(total=max_time, desc=progress_bar_description)
+                self.progress_bar = tqdm.tqdm(
+                    total=max_time,
+                    desc=progress_bar_description
+                )
 
         while self.now < max_time:
             next_arrival, patient_type = self.find_next_arrival_date()
             next_exit, patient = self.find_next_exit_date()
             if next_arrival < next_exit:
-                self.arrival(next_arrival=next_arrival, patient_type=patient_type)
+                self.arrival(
+                    next_arrival=next_arrival,
+                    patient_type=patient_type
+                )
             else:
                 self.exit(patient=patient)
 
@@ -479,7 +621,9 @@ class BedMoveSimulation:
                 with lock:
                     remaining_time = max_time - self.progress_bar.n
                     time_increment = self.now - self.prev_now
-                    self.progress_bar.update(min(time_increment, remaining_time))
+                    self.progress_bar.update(
+                        min(time_increment, remaining_time)
+                    )
 
         if progress_bar:
             with lock:
@@ -490,35 +634,69 @@ class BedMoveSimulation:
     def arrival(self, next_arrival, patient_type):
         """
         Generates a patient and decides where the patient should go.
+
+        Arguments:
+          + `next_arrival`: the date of the next arrival
+          + `patient_type`: the type of patient that the next arrival
+               will be.
         """
-        self.next_arrivals[patient_type] += self.arrival_distributions[patient_type].sample()
+        interarrival = self.arrival_distributions[patient_type].sample()
+        self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
-        to_block = self.action_chooser.choose_arriving_block(state=self.state, patient_type=patient_type)
+        to_block = self.action_chooser.choose_arriving_block(
+            state=self.state,
+            patient_type=patient_type
+        )
         if to_block is not False:
             self.inflict_cost(update_time=next_arrival)
             self.prev_now = self.now
             self.now = next_arrival
-            self.Qlearning.update_Q_values(next_state=(self.state, patient_type), next_action=to_block)
-            arriving_patient = Patient(patient_type=patient_type, los=los, arrival_date=self.now, block=to_block)
+            self.QLearning.update_Q_values(
+                next_state=(self.state, patient_type),
+                next_action=to_block
+            )
+            arriving_patient = Patient(
+                patient_type=patient_type,
+                los=los,
+                arrival_date=self.now,
+                block=to_block
+            )
             self.patients.append(arriving_patient)
-            self.state = insert_patient(state=self.state, patient_type=patient_type, to_block=to_block)
+            self.state = insert_patient(
+                state=self.state,
+                patient_type=patient_type,
+                to_block=to_block
+            )
 
     def exit(self, patient):
         """
         Removes a patient from the ward.
+
+        Arguments:
+          + `patient`: The Patient object to remove.
         """
         self.inflict_cost(update_time=patient.exit_date)
         self.prev_now = self.now
         self.now = patient.exit_date
-        self.state = remove_patient(state=self.state, patient_type=patient.patient_type, from_block=patient.block)
+        self.state = remove_patient(
+            state=self.state,
+            patient_type=patient.patient_type,
+            from_block=patient.block
+        )
         self.patients.remove(patient)
 
     def inflict_cost(self, update_time):
         """
         Updates the overall cost, and returns the transofrmed reward.
+
+        Arguments:
+          + `update_time`: the time that the cost should be inflicted.
         """
         resource_use = get_resource_use_per_time_unit(state=self.state)
-        penalty = get_penalty_per_time_unit(state=self.state, isolation_penalty=self.isolation_penalty)
-        time_since_last = update_time - self.now
-        self.overall_cost += (time_since_last * (resource_use + penalty))
+        penalty = get_penalty_per_time_unit(
+            state=self.state,
+            isolation_penalty=self.isolation_penalty
+        )
+        time_since = update_time - self.now
+        self.overall_cost += (time_since * (resource_use + penalty))
 
