@@ -48,7 +48,7 @@ def get_Qs(
         isolation_penalty=8,
         adjacent_move_penalty=1,
         nonadjacent_move_penalty=2,
-        Qlearning=Q,
+        QLearning=Q,
         seed=seed
     )
     S.simulate_until_max_time(max_time=max_time, lock=lock, progress_bar=True, progress_bar_description=progress_bar_description)

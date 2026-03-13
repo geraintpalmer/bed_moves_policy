@@ -7,3 +7,4 @@
 *.out
 *.fls
 *.fdb_latexmk
+*bedmoves/*
