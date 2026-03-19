@@ -469,7 +469,7 @@ def test_QLearning_init():
     assert Q.discount_factor == 0.9
     assert Q.transform_parameter == 1.0
     assert Q.previous_cost == 0.0
-    assert len(Q.Qvals_df) == 0
+    assert len(Q.Qvals) == 0
     assert Q.hash_state == None
 
     FS = FakeSimulation()
@@ -477,33 +477,16 @@ def test_QLearning_init():
     assert Q.simulation == FS
 
 def test_QLearning_initial_Qvalues():
-    S1 = (
-            (
-            (1, 1, 1, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 0, 0, 0)
-        ), 0
-    )
-    S2 = (
-            (
-            (1, 1, 1, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 0, 0, 0)
-        ), 1
-    )
-    S3 = (
-            (
-            (0, 0, 0, 0, 0, 0, 0, 0, 0),
-            (0, 0, 0, 1, 1, 1, 0, 0, 0),
-            (0, 0, 0, 0, 0, 0, 0, 0, 0)
-        ), 0
-    )
+    S1 = 91110000000000000000000000000
+    S2 = 91110000000000000000000000001
+    S3 = 90000000000001110000000000000
+    states = [int(str(S1) + '4'), int(str(S1) + '5'), int(str(S2) + '4'), int(str(S1) + '5'), int(str(S2) + '6'), int(str(S3) + '2')]
 
     Qdf = pd.DataFrame(
         {
             'Q': [1.2, 1.8, 1.1, 0.7, 7.1, 3.1],
             'hits': [34, 12, 55, 2, 5, 6]
-        }, index=[str(S1).replace(" ", "") + '-4', str(S1).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-4', str(S2).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-6', str(S3).replace(" ", "") + '-2']
+        }, index=states
     )
 
     Q = bedmoves.QLearning(
@@ -519,18 +502,10 @@ def test_QLearning_initial_Qvalues():
     assert Q.previous_cost == 0.0
     assert Q.hash_state == None
 
-    assert len(Q.Qvals_df) == 6
-    assert np.array_equal(Q.Qvals_df.index, [str(S1).replace(" ", "") + '-4', str(S1).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-4', str(S2).replace(" ", "") + '-5', str(S2).replace(" ", "") + '-6', str(S3).replace(" ", "") + '-2'])
-    assert np.array_equal(Q.Qvals_df['Q'], [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
-    assert np.array_equal(Q.Qvals_df['hits'], [0, 0, 0, 0, 0, 0])
-
-    # Test that changing Q values do not affect original df
-    Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'Q'] = 500.7
-    Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'hits'] += 1
-    assert Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'Q'] == 500.7
-    assert Q.Qvals_df.loc[str(S1).replace(" ", "") + '-4', 'hits'] == 1
-    assert Qdf.loc[str(S1).replace(" ", "") + '-4', 'Q'] == 1.2
-    assert Qdf.loc[str(S1).replace(" ", "") + '-4', 'hits'] == 34
+    assert len(Q.Qvals) == 6
+    assert np.array_equal(Q.Qvals.index, states)
+    assert np.array_equal(Q.Qvals['Q'], [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
+    assert np.array_equal(Q.Qvals['hits'], [0, 0, 0, 0, 0, 0])
 
 
 def test_QLearning_hashstate():
@@ -549,7 +524,7 @@ def test_QLearning_hashstate():
         ),
         1
     )
-    assert Q.get_hash_state(S, 2) == "(((0,2,0,2,0,0,0,0,0),(1,0,1,0,0,0,0,0,0),(0,0,0,1,0,1,1,1,0)),1)-2"
+    assert Q.get_hash_state(S, 2) == 902020000010100000000010111012
 
 
 def test_transform_cost():
@@ -601,8 +576,8 @@ def test_update_Q_values():
 
     assert Q.hash_state == Q.get_hash_state(next_state, 5)
     R = math.exp(-Q.transform_parameter * 10)
-    assert Q.Qvals_dict[Q.get_hash_state(S, 1)] == 0.5 * R
-    assert Q.Qhits_dict[Q.get_hash_state(S, 1)] == 1
+    assert Q.newQvals[Q.get_hash_state(S, 1)].Q == 0.5 * R
+    assert Q.newQvals[Q.get_hash_state(S, 1)].hits == 1
 
 
 def test_Patient_class():
@@ -904,7 +879,7 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals_df
+    vals = Q.Qvals
     state_action_paris = vals.index
     initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)
@@ -949,7 +924,7 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals_df
+    vals = Q.Qvals
     state_action_paris = vals.index
     initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)
@@ -994,7 +969,7 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals_df
+    vals = Q.Qvals
     state_action_paris = vals.index
     initial_state_action_pair = str(state) + '-' + str(action)
     assert any(state_action_paris == initial_state_action_pair)

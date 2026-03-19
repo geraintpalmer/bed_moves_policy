@@ -3,6 +3,9 @@ import ciw
 import random
 import tqdm
 import pandas as pd
+from collections import namedtuple
+
+Qtuple = namedtuple('Qtuple', 'Q hits')
 
 class NullLock(object):
     """
@@ -297,7 +300,7 @@ class EpsilonHard:
             for a in available_blocks
         ]
         next_Qs = [
-            (qstatea[0], self.QLearning.Qvals_dict.get(qstatea[1], 0.0))
+            (qstatea[0], self.QLearning.getQ(qstatea[1]))
             for qstatea in next_qstates_as
         ]
         random.shuffle(next_Qs)
@@ -341,8 +344,6 @@ class QLearning:
         self.hash_state = None
         self.learn = learn
         self.initialise_df(initial_Qvalues=initial_Qvalues)
-        self.Qvals_dict = self.Qvals_df['Q'].to_dict()
-        self.Qhits_dict = self.Qvals_df['hits'].to_dict()
 
     def __repr__(self):
         return "QLearning"
@@ -356,10 +357,12 @@ class QLearning:
           + `initial_Qvalues`: a dataframe of Q-values
         """
         if initial_Qvalues is None:
-            self.Qvals_df = pd.DataFrame({'Q': [], 'hits': []})
+            self.Qvals = pd.DataFrame({'Q': [], 'hits': []})
         else:
-            self.Qvals_df = initial_Qvalues.copy()
-            self.Qvals_df['hits'] = 0
+            self.Qvals = initial_Qvalues.copy()
+            self.Qvals['hits'] = 0
+        self.newQvals = {}
+        self.defaultQtuple = Qtuple(Q=0.0, hits=0)
 
     def attach_simulation(self, simulation):
         """
@@ -380,12 +383,39 @@ class QLearning:
               an integer representing the arriving customer type.
           + `action`: the block to insert a patient.
 
-        Returns: a string representation of the state-action pair.
+        Returns: an integer representation of the state-action pair.
         """
-        return "((" + ",".join([
-            "(" + ",".join(map(str, state_row)) + ")"
-            for state_row in state[0]
-        ]) + ")," + str(state[1]) + ")-" + str(action)
+        return int(
+            '9' + ''.join(
+                [''.join(map(str, state_row)) for state_row in state[0]]
+            ) + str(state[1]) + str(action)
+        )
+
+    def getQ(self, stateaction):
+        """
+        Returns the Q-value for a particular state-action pair
+        """
+        qcol = self.Qvals['Q']
+        Q = qcol.get(stateaction)
+        if Q is not None:
+            return Q
+        return self.newQvals.get(stateaction, self.defaultQtuple).Q
+
+    def store_Qval(self, stateaction, newQ):
+        """
+        Stores the new Qvalue
+        """
+        qcol = self.Qvals['Q']
+        indf = qcol.get(stateaction)
+        if indf is not None:
+            self.Qvals.at[stateaction, 'Q'] = newQ
+            self.Qvals.at[stateaction, 'hits'] += 1
+        elif stateaction in self.newQvals:
+            oldhits = self.newQvals[stateaction].hits
+            self.newQvals[stateaction] = Qtuple(Q=newQ, hits=oldhits+1)
+        else:
+            self.newQvals[stateaction] = Qtuple(Q=newQ, hits=1)
+
 
     def update_Q_values(self, next_state, next_action):
         """
@@ -408,7 +438,7 @@ class QLearning:
                 best_future_reward = self.get_best_future_reward(
                     next_state=next_state
                 )
-                oldQ = self.Qvals_dict.get(stateaction, 0.0)
+                oldQ = self.getQ(stateaction)
                 newQ = (
                     ((1 - self.learning_rate) * oldQ)
                     + (self.learning_rate * (
@@ -417,9 +447,7 @@ class QLearning:
                         )
                     ))
                 )
-                self.Qvals_dict[stateaction] = newQ
-                current_hit = self.Qhits_dict.get(stateaction, 0)
-                self.Qhits_dict[stateaction] = current_hit + 1
+                self.store_Qval(stateaction, newQ)
 
             self.hash_state = self.get_hash_state(
                 state=next_state,
@@ -460,8 +488,7 @@ class QLearning:
             ) for a in available_as
         ]
         return max(
-            self.Qvals_dict.get(hash_state, 0.0)
-            for hash_state in next_hash_states
+            self.getQ(hash_state) for hash_state in next_hash_states
         )
 
     def update_Qvals_df(self):
@@ -471,13 +498,12 @@ class QLearning:
         Qs = []
         hits = []
         indices = []
-        for stateaction in self.Qvals_dict:
+        for stateaction in self.newQvals:
             indices.append(stateaction)
-            Qs.append(self.Qvals_dict[stateaction])
-            hits.append(self.Qhits_dict[stateaction])
-        self.Qvals_df = pd.DataFrame(
-            {'Q': Qs, 'hits': hits}, index=indices
-        )
+            Qs.append(self.newQvals[stateaction].Q)
+            hits.append(self.newQvals[stateaction].hits)
+        combined_df = combine_Qvalues([self.Qvals, Qs])
+        self.Qvals = combined_df
 
 
 class Patient:
