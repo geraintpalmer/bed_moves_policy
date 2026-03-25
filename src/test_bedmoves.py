@@ -160,7 +160,7 @@ def test_move_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.move_patient(S, 0, 2, 3)
+    newS = bedmoves.move_patient(S, 0, 1, 2)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -170,7 +170,7 @@ def test_move_patient():
             (1, 0, 0, 0, 0, 1, 1, 0, 0)
         )
     )
-    newS = bedmoves.move_patient(S, 2, 8, 1)
+    newS = bedmoves.move_patient(S, 2, 7, 0)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -180,7 +180,7 @@ def test_move_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.move_patient(S, 1, 4, 2)
+    newS = bedmoves.move_patient(S, 1, 3, 1)
     assert np.array_equal(newS, expected_newS)
 
 
@@ -199,7 +199,7 @@ def test_insert_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.insert_patient(S, 0, 2)
+    newS = bedmoves.insert_patient(S, 0, 1)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -209,7 +209,7 @@ def test_insert_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 1)
         )
     )
-    newS = bedmoves.insert_patient(S, 2, 9)
+    newS = bedmoves.insert_patient(S, 2, 8)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -219,7 +219,7 @@ def test_insert_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.insert_patient(S, 1, 3)
+    newS = bedmoves.insert_patient(S, 1, 2)
     assert np.array_equal(newS, expected_newS)
 
 
@@ -238,7 +238,7 @@ def test_remove_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.remove_patient(S, 0, 2)
+    newS = bedmoves.remove_patient(S, 0, 1)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -248,7 +248,7 @@ def test_remove_patient():
             (0, 0, 0, 0, 0, 1, 1, 0, 0)
         )
     )
-    newS = bedmoves.remove_patient(S, 2, 8)
+    newS = bedmoves.remove_patient(S, 2, 7)
     assert np.array_equal(newS, expected_newS)
 
     expected_newS = np.array(
@@ -258,7 +258,7 @@ def test_remove_patient():
             (0, 0, 0, 0, 0, 1, 1, 1, 0)
         )
     )
-    newS = bedmoves.remove_patient(S, 1, 4)
+    newS = bedmoves.remove_patient(S, 1, 3)
     assert np.array_equal(newS, expected_newS)
 
 
@@ -270,9 +270,9 @@ def test_get_available_insert_moves():
             (0, 0, 0, 0, 0, 0, 0, 0, 0)
         )
     )
-    expected_moves = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    expected_moves = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     available_moves = bedmoves.get_available_insert_moves(S)
-    assert expected_moves == available_moves
+    assert np.array_equal(expected_moves, available_moves)
 
     S = np.array(
         (
@@ -281,9 +281,9 @@ def test_get_available_insert_moves():
             (0, 0, 0, 0, 0, 0, 1, 1, 0)
         )
     )
-    expected_moves = [2, 4, 5, 6, 9]
+    expected_moves = [1, 3, 4, 5, 8]
     available_moves = bedmoves.get_available_insert_moves(S)
-    assert expected_moves == available_moves
+    assert np.array_equal(expected_moves, available_moves)
 
 
 
@@ -296,14 +296,14 @@ def test_get_available_moves():
         )
     )
     expected_moves = [
-        (0, 2, 1), (0, 2, 3), (0, 2, 5), (0, 2, 6), (0, 2, 9),
-        (0, 4, 1), (0, 4, 3), (0, 4, 5), (0, 4, 6), (0, 4, 9),
-        (1, 1, 3), (1, 1, 5), (1, 1, 6), (1, 1, 9),
-        (1, 3, 1), (1, 3, 5), (1, 3, 6), (1, 3, 9),
-        (2, 4, 1), (2, 4, 3), (2, 4, 5), (2, 4, 6), (2, 4, 9),
-        (2, 6, 1), (2, 6, 3), (2, 6, 5), (2, 6, 9),
-        (2, 7, 1), (2, 7, 3), (2, 7, 5), (2, 7, 6), (2, 7, 9),
-        (2, 8, 1), (2, 8, 3), (2, 8, 5), (2, 8, 6), (2, 8, 9)
+        (0, 1, 0), (0, 1, 2), (0, 1, 4), (0, 1, 5), (0, 1, 8),
+        (0, 3, 0), (0, 3, 2), (0, 3, 4), (0, 3, 5), (0, 3, 8),
+        (1, 0, 2), (1, 0, 4), (1, 0, 5), (1, 0, 8),
+        (1, 2, 0), (1, 2, 4), (1, 2, 5), (1, 2, 8),
+        (2, 3, 0), (2, 3, 2), (2, 3, 4), (2, 3, 5), (2, 3, 8),
+        (2, 5, 0), (2, 5, 2), (2, 5, 4), (2, 5, 8),
+        (2, 6, 0), (2, 6, 2), (2, 6, 4), (2, 6, 5), (2, 6, 8),
+        (2, 7, 0), (2, 7, 2), (2, 7, 4), (2, 7, 5), (2, 7, 8)
     ]
 
     available_moves = bedmoves.get_available_moves(S)
@@ -321,22 +321,26 @@ def test_get_available_moves():
     assert available_moves == []
 
 
-def test_combine_dfs():
-    A1 = pd.DataFrame({
-        'Q': [150.0, 200.0, 300.0],
-        'hits': [1, 2, 3]
-    }, index=['(111)-1', '(111)-2', '(222)-1'])
+def test_combine_arrays():
+    keys1 = [1111, 1112, 2221]
+    qval1 = [150.0, 200.0, 300.0]
+    hits1 = [1, 2, 3]
 
-    A2 = pd.DataFrame({
-        'Q': [50.0, 250.0, 500.0, 100.0],
-        'hits': [1, 2, 1, 4]
-    }, index=['(111)-1', '(111)-3', '(222)-1', '(333)-2'])
+    keys2 = [1111, 1113, 2221, 3332]
+    qval2 = [50.0, 250.0, 500.0, 100.0]
+    hits2 = [1, 2, 1, 4]
 
-    A = bedmoves.combine_Qvalues([A1, A2])
-    expectedA = pd.DataFrame({
-        'Q': [100.0, 200.0, 250.0, 350.0, 100.0]
-    }, index=['(111)-1', '(111)-2', '(111)-3', '(222)-1', '(333)-2'])
-    pd.testing.assert_frame_equal(A, expectedA)
+
+    keys, qval, hits = bedmoves.combine_arrays(
+        [keys1, keys2], [qval1, qval2], [hits1, hits2]
+    )
+    expected_keys = [1111, 1112, 1113, 2221, 3332]
+    expected_qval = [100.0, 200.0, 250.0, 350.0, 100.0]
+    expected_hits = [2, 2, 2, 4, 4]
+
+    assert np.array_equal(keys, expected_keys)
+    assert np.array_equal(qval, expected_qval)
+    assert np.array_equal(hits, expected_hits)
 
 
 def test_epsilonhard_00():
@@ -366,28 +370,28 @@ def test_epsilonhard_00():
     )
 
     ciw.seed(0)
-    assert RC.choose_arriving_block(S9, 0) == 9
-    assert RC.choose_arriving_block(S9, 0) == 9
-    assert RC.choose_arriving_block(S9, 0) == 9
-    assert RC.choose_arriving_block(S9, 0) == 9
-    assert RC.choose_arriving_block(S9, 0) == 9
-    assert RC.choose_arriving_block(S9, 0) == 9
+    assert RC.choose_arriving_block(S9, 0) == 8
+    assert RC.choose_arriving_block(S9, 0) == 8
+    assert RC.choose_arriving_block(S9, 0) == 8
+    assert RC.choose_arriving_block(S9, 0) == 8
+    assert RC.choose_arriving_block(S9, 0) == 8
+    assert RC.choose_arriving_block(S9, 0) == 8
 
     ciw.seed(0)
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
-    assert RC.choose_arriving_block(S123, 0) in [1, 2, 3]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
+    assert RC.choose_arriving_block(S123, 0) in [0, 1, 2]
 
     ciw.seed(0)
-    assert RC.choose_arriving_block(Sfull, 0) == False
-    assert RC.choose_arriving_block(Sfull, 0) == False
-    assert RC.choose_arriving_block(Sfull, 0) == False
-    assert RC.choose_arriving_block(Sfull, 0) == False
-    assert RC.choose_arriving_block(Sfull, 0) == False
-    assert RC.choose_arriving_block(Sfull, 0) == False
+    assert RC.choose_arriving_block(Sfull, 0) == None
+    assert RC.choose_arriving_block(Sfull, 0) == None
+    assert RC.choose_arriving_block(Sfull, 0) == None
+    assert RC.choose_arriving_block(Sfull, 0) == None
+    assert RC.choose_arriving_block(Sfull, 0) == None
+    assert RC.choose_arriving_block(Sfull, 0) == None
 
 
 def test_epsilonhard_10():
@@ -398,30 +402,28 @@ def test_epsilonhard_10():
             (0, 0, 0, 0, 0, 0, 1, 1, 1)
         )
     )
-    hashS123_1 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 1)
-    hashS123_2 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 2)
-    hashS123_3 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 3)
-    Qdf = pd.DataFrame(
-        {
-            'Q': [0.35, 1.56, 0.98],
-            'hits': [34, 12, 55]
-        },
-        index=[hashS123_1, hashS123_2, hashS123_3]
+    hashS123_1 = bedmoves.get_hash_state((S123, 0), 0)
+    hashS123_2 = bedmoves.get_hash_state((S123, 0), 1)
+    hashS123_3 = bedmoves.get_hash_state((S123, 0), 2)
+    initial_qvals = (
+        np.array([hashS123_1, hashS123_2, hashS123_3]),
+        np.array([0.35, 1.56, 0.98]),
+        np.array([34, 12, 55])
     )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=2.0,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
     )
     EH = bedmoves.EpsilonHard(epsilon=1.0, QLearning=Q)
     ciw.seed(0)
-    assert EH.choose_arriving_block(S123, 0) == 2
-    assert EH.choose_arriving_block(S123, 0) == 2
-    assert EH.choose_arriving_block(S123, 0) == 2
-    assert EH.choose_arriving_block(S123, 0) == 2
-    assert EH.choose_arriving_block(S123, 0) == 2
-    assert EH.choose_arriving_block(S123, 0) == 2
+    assert EH.choose_arriving_block(S123, 0) == 1
+    assert EH.choose_arriving_block(S123, 0) == 1
+    assert EH.choose_arriving_block(S123, 0) == 1
+    assert EH.choose_arriving_block(S123, 0) == 1
+    assert EH.choose_arriving_block(S123, 0) == 1
+    assert EH.choose_arriving_block(S123, 0) == 1
 
 
 def test_epsilonhard_07():
@@ -435,26 +437,25 @@ def test_epsilonhard_07():
             (0, 0, 0, 0, 0, 0, 1, 1, 1)
         )
     )
-    hashS123_1 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 1)
-    hashS123_2 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 2)
-    hashS123_3 = bedmoves.QLearning.get_hash_state(None, (S123, 0), 3)
-    Qdf = pd.DataFrame(
-        {
-            'Q': [0.35, 1.56, 0.98],
-            'hits': [34, 12, 55]
-        },
-        index=[hashS123_1, hashS123_2, hashS123_3]
+    hashS123_1 = bedmoves.get_hash_state((S123, 0), 0)
+    hashS123_2 = bedmoves.get_hash_state((S123, 0), 1)
+    hashS123_3 = bedmoves.get_hash_state((S123, 0), 2)
+
+    initial_qvals = (
+        np.array([hashS123_1, hashS123_2, hashS123_3]),
+        np.array([0.35, 1.56, 0.98]),
+        np.array([34, 12, 55])
     )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=2.0,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
     )
     EH = bedmoves.EpsilonHard(epsilon=0.7, QLearning=Q)
     ciw.seed(0)
     choices = [EH.choose_arriving_block(S123, 0) for _ in range(1000)]
-    assert sum(c == 2 for c in choices) == 781
+    assert sum(c == 1 for c in choices) == 807
 
 
 
@@ -469,7 +470,9 @@ def test_QLearning_init():
     assert Q.discount_factor == 0.9
     assert Q.transform_parameter == 1.0
     assert Q.previous_cost == 0.0
-    assert len(Q.Qvals) == 0
+    assert len(Q.keys) == 0
+    assert len(Q.qvals) == 0
+    assert len(Q.hits) == 0
     assert Q.hash_state == None
 
     FS = FakeSimulation()
@@ -482,18 +485,17 @@ def test_QLearning_initial_Qvalues():
     S3 = 90000000000001110000000000000
     states = [int(str(S1) + '4'), int(str(S1) + '5'), int(str(S2) + '4'), int(str(S1) + '5'), int(str(S2) + '6'), int(str(S3) + '2')]
 
-    Qdf = pd.DataFrame(
-        {
-            'Q': [1.2, 1.8, 1.1, 0.7, 7.1, 3.1],
-            'hits': [34, 12, 55, 2, 5, 6]
-        }, index=states
+    initial_qvals = (
+        np.array(states),
+        np.array([1.2, 1.8, 1.1, 0.7, 7.1, 3.1]),
+        np.array([34, 12, 55, 2, 5, 6])
     )
 
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=1.0,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
         )
 
     assert Q.learning_rate == 0.5
@@ -502,18 +504,15 @@ def test_QLearning_initial_Qvalues():
     assert Q.previous_cost == 0.0
     assert Q.hash_state == None
 
-    assert len(Q.Qvals) == 6
-    assert np.array_equal(Q.Qvals.index, states)
-    assert np.array_equal(Q.Qvals['Q'], [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
-    assert np.array_equal(Q.Qvals['hits'], [0, 0, 0, 0, 0, 0])
+    assert len(Q.keys) == 6
+    assert len(Q.qvals) == 6
+    assert len(Q.hits) == 6
+    assert np.array_equal(Q.keys, states)
+    assert np.array_equal(Q.qvals, [1.2, 1.8, 1.1, 0.7, 7.1, 3.1])
+    assert np.array_equal(Q.hits, [0, 0, 0, 0, 0, 0])
 
 
 def test_QLearning_hashstate():
-    Q = bedmoves.QLearning(
-        learning_rate=0.5,
-        discount_factor=0.9,
-        transform_parameter=1.0
-        )
     S = (
         np.array(
             (
@@ -524,7 +523,7 @@ def test_QLearning_hashstate():
         ),
         1
     )
-    assert Q.get_hash_state(S, 2) == 902020000010100000000010111012
+    assert bedmoves.get_hash_state(S, 2) == 54893300107212
 
 
 def test_transform_cost():
@@ -555,7 +554,7 @@ def test_update_Q_values():
             (0, 0, 0, 0, 0, 0, 0, 0, 0)
         )
     ), 0)
-    Q.hash_state = Q.get_hash_state(S, 1)
+    Q.hash_state = bedmoves.get_hash_state(S, 1)
     Q.previous_cost = 90
 
     FS = FakeSimulation()
@@ -574,36 +573,10 @@ def test_update_Q_values():
 
     Q.update_Q_values(next_state, next_action)
 
-    assert Q.hash_state == Q.get_hash_state(next_state, 5)
+    assert Q.hash_state == bedmoves.get_hash_state(next_state, 5)
     R = math.exp(-Q.transform_parameter * 10)
-    assert Q.newQvals[Q.get_hash_state(S, 1)].Q == 0.5 * R
-    assert Q.newQvals[Q.get_hash_state(S, 1)].hits == 1
-
-
-def test_Patient_class():
-    P = bedmoves.Patient(
-        patient_type=0,
-        los=12.3,
-        arrival_date=4.8,
-        block=4
-    )
-    assert P.patient_type == 0
-    assert P.los == 12.3
-    assert P.arrival_date == 4.8
-    assert P.exit_date == 17.1
-    assert P.block == 4
-
-    P = bedmoves.Patient(
-        patient_type=1,
-        los=0.3674,
-        arrival_date=674.2119,
-        block=9
-    )
-    assert P.patient_type == 1
-    assert P.los == 0.3674
-    assert P.arrival_date == 674.2119
-    assert P.exit_date == 674.5793
-    assert P.block == 9
+    assert Q.newQvals[bedmoves.get_hash_state(S, 1)].Q == 0.5 * R
+    assert Q.newQvals[bedmoves.get_hash_state(S, 1)].hits == 1
 
 
 def test_BedMovesSimulation_init():
@@ -637,7 +610,18 @@ def test_BedMovesSimulation_init():
     assert S.isolation_penalty == 2.0
     assert S.adjacent_move_penalty == 2.0
     assert S.nonadjacent_move_penalty == 2.0
-    assert len(S.patients) == 0
+    assert len(S.patients.patient_types) == 17
+    assert len(S.patients.los) == 17
+    assert len(S.patients.exit_dates) == 17
+    assert len(S.patients.blocks) == 17
+    assert np.min(S.patients.patient_types) == -1
+    assert np.max(S.patients.patient_types) == -1
+    assert np.min(S.patients.blocks) == -1
+    assert np.max(S.patients.blocks) == -1
+    assert np.min(S.patients.los) == np.inf
+    assert np.max(S.patients.los) == np.inf
+    assert np.min(S.patients.exit_dates) == np.inf
+    assert np.max(S.patients.exit_dates) == np.inf
 
 
 def test_BedMovesSimulation_nextarrival():
@@ -696,24 +680,21 @@ def test_BedMovesSimulation_nextexit():
         seed=0
     )
 
-    next_exit, next_patient = S.find_next_exit_date()
+    next_exit, next_patient_idx = S.find_next_exit_date()
     assert next_exit == float('inf')
-    assert next_patient == None
+    assert next_patient_idx == None
 
-    S.patients = [
-        bedmoves.Patient(patient_type=0, los=31.5, arrival_date=2.4, block=1),
-        bedmoves.Patient(patient_type=0, los=5.6, arrival_date=6.1, block=1),
-        bedmoves.Patient(patient_type=2, los=22.2, arrival_date=1.2, block=7),
-        bedmoves.Patient(patient_type=1, los=9.6, arrival_date=7.3, block=4),
-    ]
+    S.patients = bedmoves.Patients(
+        patient_types=np.array([0, 0, 2, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]),
+        los=np.array([31.5, 5.6, 22.2, 9.6, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]),
+        exit_dates=np.array([33.9, 11.7, 23.3, 16.9, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]),
+        blocks=np.array([1, 1, 7, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]),
 
-    next_exit, next_patient = S.find_next_exit_date()
+    )
+
+    next_exit, next_patient_idx = S.find_next_exit_date()
     assert next_exit == 11.7
-    assert next_patient.patient_type == 0
-    assert next_patient.los == 5.6
-    assert next_patient.arrival_date == 6.1
-    assert next_patient.exit_date == 11.7
-    assert next_patient.block == 1
+    assert next_patient_idx == 1
 
 
 def test_BedMovesSimulation_inflict_cost():
@@ -815,25 +796,54 @@ def test_BedMovesSimulation_arrival_and_exit():
         )
     )
     assert S.next_arrivals == {0: 5, 1: 9, 2: 11}
-    assert len(S.patients) == 0
+    assert len(S.patients.patient_types) == 17
+    assert len(S.patients.los) == 17
+    assert len(S.patients.exit_dates) == 17
+    assert len(S.patients.blocks) == 17
+    assert np.min(S.patients.patient_types) == -1
+    assert np.max(S.patients.patient_types) == -1
+    assert np.min(S.patients.blocks) == -1
+    assert np.max(S.patients.blocks) == -1
+    assert np.min(S.patients.los) == np.inf
+    assert np.max(S.patients.los) == np.inf
+    assert np.min(S.patients.exit_dates) == np.inf
+    assert np.max(S.patients.exit_dates) == np.inf
     assert S.now == 0.0
     assert np.array_equal(S.state, expected_state_before)
 
     S.arrival(5, 0)
 
     assert S.next_arrivals == {0: 10, 1: 9, 2: 11}
-    assert len(S.patients) == 1
     assert S.now == 5.0
     assert np.array_equal(S.state, expected_state_after)
-    assert S.patients[0].patient_type == 0
-    assert S.patients[0].arrival_date == 5.0
-    assert S.patients[0].los == 1.0
-    assert S.patients[0].exit_date == 6.0
+    assert len(S.patients.patient_types) == 17
+    assert len(S.patients.los) == 17
+    assert len(S.patients.exit_dates) == 17
+    assert len(S.patients.blocks) == 17
+    assert np.min(S.patients.patient_types) == -1
+    assert np.max(S.patients.patient_types) == 0
+    assert np.min(S.patients.blocks) == -1
+    assert np.max(S.patients.blocks) == 6
+    assert np.min(S.patients.los) == 1.0
+    assert np.max(S.patients.los) == np.inf
+    assert np.min(S.patients.exit_dates) == 6.0
+    assert np.max(S.patients.exit_dates) == np.inf
 
-    S.exit(S.patients[0])
+    S.exit(0)
 
     assert S.next_arrivals == {0: 10, 1: 9, 2: 11}
-    assert len(S.patients) == 0
+    assert len(S.patients.patient_types) == 17
+    assert len(S.patients.los) == 17
+    assert len(S.patients.exit_dates) == 17
+    assert len(S.patients.blocks) == 17
+    assert np.min(S.patients.patient_types) == -1
+    assert np.max(S.patients.patient_types) == -1
+    assert np.min(S.patients.blocks) == -1
+    assert np.max(S.patients.blocks) == -1
+    assert np.min(S.patients.los) == np.inf
+    assert np.max(S.patients.los) == np.inf
+    assert np.min(S.patients.exit_dates) == np.inf
+    assert np.max(S.patients.exit_dates) == np.inf
     assert S.now == 6.0
     assert np.array_equal(S.state, expected_state_before)
 
@@ -848,17 +858,16 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 7
-    Qdf = pd.DataFrame(
-        {
-            'Q': [2.5],
-            'hits': [34]
-        }, index=[str(state) + '-' + str(action)]
+    initial_qvals = (
+        np.array([900000000000000000000000000027]),
+        np.array([2.5]),
+        np.array([34])
     )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -879,10 +888,8 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals
-    state_action_paris = vals.index
-    initial_state_action_pair = str(state) + '-' + str(action)
-    assert any(state_action_paris == initial_state_action_pair)
+    initial_state_action_pair = 900000000000000000000000000027
+    assert any(Q.keys == initial_state_action_pair)
 
     # Now repeat for an action I won't encounter
     state = (
@@ -893,17 +900,16 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 2
-    Qdf = pd.DataFrame(
-        {
-            'Q': [2.5],
-            'hits': [34]
-        }, index=[str(state) + '-' + str(action)]
+    initial_qvals = (
+        np.array([900000000000000000000000000022]),
+        np.array([2.5]),
+        np.array([34])
     )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -924,12 +930,10 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals
-    state_action_paris = vals.index
-    initial_state_action_pair = str(state) + '-' + str(action)
-    assert any(state_action_paris == initial_state_action_pair)
+    initial_state_action_pair = 900000000000000000000000000022
+    assert any(Q.keys == initial_state_action_pair)
 
-    # Now repeat for an state I won't encounter
+    # Now repeat for a state I won't encounter
     state = (
         (
             (1, 1, 1, 1, 1, 1, 1, 1, 1),
@@ -938,17 +942,16 @@ def test_can_simulate_with_initial_Qvals():
         ), 2
     )
     action = 2
-    Qdf = pd.DataFrame(
-        {
-            'Q': [2.5],
-            'hits': [34]
-        }, index=[str(state) + '-' + str(action)]
+    initial_qvals = (
+        np.array([911111111100000000000000000022]),
+        np.array([2.5]),
+        np.array([34])
     )
     Q = bedmoves.QLearning(
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        initial_Qvalues=Qdf
+        initial_Qvalues=initial_qvals
     )
     S = bedmoves.BedMoveSimulation(
         arrival_distributions=[
@@ -969,7 +972,5 @@ def test_can_simulate_with_initial_Qvals():
         seed=0
     )
     S.simulate_until_max_time(2)
-    vals = Q.Qvals
-    state_action_paris = vals.index
-    initial_state_action_pair = str(state) + '-' + str(action)
-    assert any(state_action_paris == initial_state_action_pair)
+    initial_state_action_pair = 911111111100000000000000000022
+    assert any(Q.keys == initial_state_action_pair)

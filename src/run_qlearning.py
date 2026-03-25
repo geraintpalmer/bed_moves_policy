@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 import argparse
 import time
+import numpy as np
 
 def get_Qs(
     max_time,
@@ -51,9 +52,14 @@ def get_Qs(
         QLearning=Q,
         seed=seed
     )
-    S.simulate_until_max_time(max_time=max_time, lock=lock, progress_bar=True, progress_bar_description=progress_bar_description)
-    Q.update_Qvals_df()
-    return Q.Qvals_df
+    S.simulate_until_max_time(
+        max_time=max_time,
+        lock=lock,
+        progress_bar=True,
+        progress_bar_description=progress_bar_description
+    )
+    Q.merge_qvals()
+    return (Q.keys, Q.qvals, Q.hits)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -88,10 +94,17 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
 
-        stage_dfs = [res.get() for res in results]
-        stage_dfs_concat = pd.concat(stage_dfs, axis=1, keys=[f'Trial {i}' for i in range(trials_per_stage)])
-        if write_trials_data:
-            stage_dfs_concat.to_csv(f"{args.experiment}/results/stage_{stage}_trials_epsilon_{round(epsilons[stage-1], 3)}.csv", index=True)
-        initial_Qvalues = bedmoves.combine_Qvalues(stage_dfs)
-        initial_Qvalues.to_csv(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv", index=True)
+        stage_results = [res.get() for res in results]
+        keys_set = [res[0] for res in stage_results]
+        qval_set = [res[1] for res in stage_results]
+        hits_set = [res[2] for res in stage_results]
+        initial_Qvalues = bedmoves.combine_arrays(keys_set, qval_set, hits_set)
+        combined = np.vstack(initial_Qvalues).T
+        np.savetxt(
+            f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv",
+            combined,
+            delimiter=",",
+            header="Key,Q,Hits",
+            fmt=['%d', '%.32f', '%d']
+        )
         seed += n_stages

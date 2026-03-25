@@ -4,8 +4,10 @@ import random
 import tqdm
 import pandas as pd
 from collections import namedtuple
+from functools import lru_cache
 
 Qtuple = namedtuple('Qtuple', 'Q hits')
+Patients = namedtuple('Patients', 'patient_types los exit_dates blocks')
 
 class NullLock(object):
     """
@@ -20,7 +22,7 @@ class NullLock(object):
     def __exit__(self, *args):
         pass
 
-max_capacities = (3, 2, 2, 3, 2, 2, 1, 1, 1)
+max_capacities = np.array([3, 2, 2, 3, 2, 2, 1, 1, 1])
 
 empty_state = np.array(
     (
@@ -29,6 +31,38 @@ empty_state = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0)
     ), dtype=int
 )
+
+def get_hash_state(state, action):
+    """
+    Returns a hashable version of the state.
+
+    Arguments:
+      + `state`: a tuple with first element a numpy array
+          representing the state of the system, and second element
+          an integer representing the arriving customer type.
+      + `action`: the block to insert a patient.
+
+    Returns: an integer representation of the state-action pair.
+    """
+    s0 = state[0][0]
+    s1 = state[0][1]
+    s2 = state[0][2]
+    p = state[1]
+    
+    A = (s0[0] * 16) + (s1[0] * 4) + s1[0]
+    B = (s0[1] * 243) + (s1[1] * 81) + (s2[1] * 27) + (s0[2] * 9) + (s1[2] * 3) + s2[2]
+    D = (s0[3] * 16) + (s1[3] * 4) + s2[3]
+    E = (s0[4] * 243) + (s1[4] * 81) + (s2[4] * 27) + (s0[5] * 9) + (s1[5] * 3) + s2[5]
+    G = (s0[6] * 256) + (s1[6] * 128) + (s2[6] * 64) + (s0[7] * 32) + (s1[7] * 16) + (s2[7] * 8) + (s0[8] * 4) + (s1[8] * 2) + s2[8]
+
+    k = A
+    k = (k * 1000) + B
+    k = (k * 100) + D
+    k = (k * 1000) + E
+    k = (k * 1000) + G
+    k = (k * 10) + state[1]
+    k = (k * 10) + action
+    return k
 
 def get_resource_use_per_time_unit(state):
     """
@@ -92,7 +126,7 @@ def get_move_penalty(from_block, to_block, b1, b2):
         [b2, b2, b2, b2, b2, b2, b2, 0, b2],
         [b2, b2, b2, b2, b2, b2, b2, b2, 0]
     ]
-    return A[from_block - 1][to_block - 1]
+    return A[from_block][to_block]
 
 
 def move_patient(state, patient_type, from_block, to_block):
@@ -110,8 +144,8 @@ def move_patient(state, patient_type, from_block, to_block):
     Returns: a numpy array representing the state after the move.
     """
     new_state = state.copy()
-    new_state[patient_type, from_block - 1] -= 1
-    new_state[patient_type, to_block - 1] += 1
+    new_state[patient_type, from_block] -= 1
+    new_state[patient_type, to_block] += 1
     return new_state
 
 
@@ -129,7 +163,7 @@ def insert_patient(state, patient_type, to_block):
     Returns: a numpy array representing the state after the insert.
     """
     new_state = state.copy()
-    new_state[patient_type, to_block - 1] += 1
+    new_state[patient_type, to_block] += 1
     return new_state
 
 
@@ -148,7 +182,7 @@ def remove_patient(state, patient_type, from_block):
     patient.
     """
     new_state = state.copy()
-    new_state[patient_type, from_block - 1] -= 1
+    new_state[patient_type, from_block] -= 1
     return new_state
 
 
@@ -162,12 +196,7 @@ def get_available_insert_moves(state):
 
     Returns: a list of blocks that the patient can be inserted.    
     """
-    available_moves = []
-    for i, capacity in enumerate(max_capacities):
-        free_beds = capacity - state[:,i].sum()
-        if free_beds > 0:
-            available_moves.append(i + 1)
-    return available_moves
+    return np.flatnonzero(max_capacities - state.sum(axis=0) > 0)
 
 
 def get_available_moves(state):
@@ -188,38 +217,57 @@ def get_available_moves(state):
         from_blocks = np.where(state[patient_type,:] > 0)[0]
         for from_block in from_blocks:
             for to_block in available_inserts:
-                if from_block + 1 != to_block:
+                if from_block != to_block:
                     available_moves.append(
-                        (patient_type, from_block + 1, to_block)
+                        (patient_type, from_block, to_block)
                     )
     return available_moves
 
 
-def combine_Qvalues(list_of_Qval_dfs):
+def sort_arrays(keys, vals, hits):
     """
-    Combines many dataframes of Qvalues (the output of
-    Q.output_Q_values), such that the resulting Qvalues are the weighted
-    average of the Qvalues across all dataframes (weighted by number of
+    Sorts the three arrays based on the `keys` array.
+
+    Arguments
+      - `keys` a numpy array of int64, the state-action pairs on which to sort
+      - `vals` a numpy array of float64, the Q-values associated with the state-action pairs
+      - `hits` a numpy array of int64, the number of hits per state-action pair
+
+    Returns: the same three arrays sorted.
+    """
+    sort_indices = keys.argsort()
+    sorted_keys = keys[sort_indices]
+    sorted_vals = vals[sort_indices]
+    sorted_hits = hits[sort_indices]
+    return sorted_keys, sorted_vals, sorted_hits
+
+
+
+def combine_arrays(keys_set, vals_set, hits_set):
+    """
+    Combines sets of keys, vals, and hits, such that the resulting
+    vals are the weighted average of the vals across all sets (weighted by
     hits), and the number of hits are summed.
 
-    Arguments:
-      + `list_of_Qval_dfs`: a list of dataframes to be combined
+    Arguments
+      - `keys_set` a list of numpy arrays of int64, the state-action pairs
+      - `vals_set` a list of numpy array of float64, the Q-values associated with the state-action pairs
+      - `hits_set` a list of numpy array of int64, the number of hits per state-action pair
 
-    Returns: A combined dataframe.
+    Returns: the combined list of keys, vals, and hits.
     """
-    cat_df = pd.concat(list_of_Qval_dfs)
-    cat_df['Q x hits'] = cat_df['Q'] * cat_df['hits'].clip(lower=1)
-    comb_df = pd.DataFrame(
-        {
-            'Q': cat_df.groupby(cat_df.index)['Q x hits'].sum(),
-            'hits': cat_df.groupby(cat_df.index)['hits'].sum(),
-        }
-    )
-    comb_df['Q'] = comb_df['Q'] / comb_df['hits'].clip(lower=1)
-    del comb_df['hits']
+    all_keys = np.concatenate(keys_set)
+    all_hits = np.concatenate(hits_set)
+    all_hitsvals = np.concatenate(vals_set) * all_hits
+    sort_idx = all_keys.argsort()
+    sorted_all_keys = all_keys[sort_idx]
+    sorted_all_hits = all_hits[sort_idx]
+    sorted_all_hitsvals = all_hitsvals[sort_idx]
+    combined_keys, jump_indices = np.unique(sorted_all_keys, return_index=True)
+    combined_hits = np.maximum(np.add.reduceat(sorted_all_hits, jump_indices), 1)
+    combined_vals = np.add.reduceat(sorted_all_hitsvals, jump_indices) / combined_hits
+    return combined_keys, combined_vals, combined_hits
 
-    comb_df.index.name = None
-    return comb_df
 
 
 class EpsilonHard:
@@ -251,8 +299,8 @@ class EpsilonHard:
         Returns: a block to place the arriving patient.
         """
         available_blocks = get_available_insert_moves(state=state)
-        if len(available_blocks) == 0:
-            return False
+        if available_blocks.size == 0:
+            return None
         if random.random() < self.epsilon:
             return self.choose_best_block(
                 state=state,
@@ -289,22 +337,18 @@ class EpsilonHard:
 
         Returns: a block to place the arriving patient.
         """
-        next_qstates_as = [
-            (
-                a,
-                self.QLearning.get_hash_state(
-                    state=(state, patient_type),
-                    action=a
-                )
-            )
-            for a in available_blocks
-        ]
-        next_Qs = [
-            (qstatea[0], self.QLearning.getQ(qstatea[1]))
-            for qstatea in next_qstates_as
-        ]
-        random.shuffle(next_Qs)
-        return max(next_Qs, key=lambda x: x[1])[0]
+        available_blocks_Q = np.array(
+            [
+                self.QLearning.getQ(
+                    get_hash_state(
+                        state=(state, patient_type),
+                        action=a
+                    )
+                ) for a in available_blocks
+            ]
+        ) + (np.random.rand(available_blocks.size) / 10e13)
+        idx = available_blocks_Q.argmax()
+        return available_blocks[idx]
 
     def __repr__(self):
         """
@@ -342,13 +386,14 @@ class QLearning:
         self.transform_parameter = transform_parameter
         self.previous_cost = 0.0
         self.hash_state = None
+        self.hash_state_idx = None
         self.learn = learn
-        self.initialise_df(initial_Qvalues=initial_Qvalues)
+        self.initialise_qvals(initial_Qvalues=initial_Qvalues)
 
     def __repr__(self):
         return "QLearning"
 
-    def initialise_df(self, initial_Qvalues):
+    def initialise_qvals(self, initial_Qvalues):
         """
         Initialises Qvals dataframe as either empty or with some
         previously learned Q-values.
@@ -357,10 +402,14 @@ class QLearning:
           + `initial_Qvalues`: a dataframe of Q-values
         """
         if initial_Qvalues is None:
-            self.Qvals = pd.DataFrame({'Q': [], 'hits': []})
+            self.keys = np.array([], dtype='int64')
+            self.qvals = np.array([], dtype='float64')
+            self.hits = np.array([], dtype='int64')
         else:
-            self.Qvals = initial_Qvalues.copy()
-            self.Qvals['hits'] = 0
+            self.keys = initial_Qvalues[0]
+            self.qvals = initial_Qvalues[1]
+            self.hits = np.zeros(self.keys.size)
+
         self.newQvals = {}
         self.defaultQtuple = Qtuple(Q=0.0, hits=0)
 
@@ -373,43 +422,37 @@ class QLearning:
         """
         self.simulation = simulation
 
-    def get_hash_state(self, state, action):
+    @lru_cache(maxsize=None)
+    def exists_idx(self, stateaction):
         """
-        Returns a hashable version of the state.
-
-        Arguments:
-          + `state`: a tuple with first element a numpy array
-              representing the state of the system, and second element
-              an integer representing the arriving customer type.
-          + `action`: the block to insert a patient.
-
-        Returns: an integer representation of the state-action pair.
+        Check if `stateaction` exists in self.keys.
         """
-        return int(
-            '9' + ''.join(
-                [''.join(map(str, state_row)) for state_row in state[0]]
-            ) + str(state[1]) + str(action)
-        )
+        idx = self.keys.searchsorted(stateaction)
+        if (idx < self.keys.size) and (self.keys[idx] == stateaction):
+            return idx
+        return None
 
-    def getQ(self, stateaction):
+    def getQ(self, stateaction, remember_idx=False):
         """
         Returns the Q-value for a particular state-action pair
         """
-        qcol = self.Qvals['Q']
-        Q = qcol.get(stateaction)
-        if Q is not None:
-            return Q
+        idx = self.exists_idx(stateaction)
+        if idx is not None:
+            if remember_idx:
+                self.hash_state_idx = idx
+            return self.qvals[idx]
+        if remember_idx:
+            self.hash_state_idx = None
         return self.newQvals.get(stateaction, self.defaultQtuple).Q
 
     def store_Qval(self, stateaction, newQ):
         """
         Stores the new Qvalue
         """
-        qcol = self.Qvals['Q']
-        indf = qcol.get(stateaction)
-        if indf is not None:
-            self.Qvals.at[stateaction, 'Q'] = newQ
-            self.Qvals.at[stateaction, 'hits'] += 1
+        if self.hash_state_idx is not None:
+            self.qvals[self.hash_state_idx] = newQ
+            self.hits[self.hash_state_idx
+            ] += 1
         elif stateaction in self.newQvals:
             oldhits = self.newQvals[stateaction].hits
             self.newQvals[stateaction] = Qtuple(Q=newQ, hits=oldhits+1)
@@ -438,7 +481,7 @@ class QLearning:
                 best_future_reward = self.get_best_future_reward(
                     next_state=next_state
                 )
-                oldQ = self.getQ(stateaction)
+                oldQ = self.getQ(stateaction, remember_idx=True)
                 newQ = (
                     ((1 - self.learning_rate) * oldQ)
                     + (self.learning_rate * (
@@ -449,7 +492,7 @@ class QLearning:
                 )
                 self.store_Qval(stateaction, newQ)
 
-            self.hash_state = self.get_hash_state(
+            self.hash_state = get_hash_state(
                 state=next_state,
                 action=next_action
             )
@@ -481,48 +524,26 @@ class QLearning:
           best actions from this state onwards.
         """
         available_as = get_available_insert_moves(state=next_state[0])
-        next_hash_states = [
-            self.get_hash_state(
+        next_hash_states = np.array([
+            get_hash_state(
                 state=next_state,
                 action=a
             ) for a in available_as
-        ]
+        ])
         return max(
             self.getQ(hash_state) for hash_state in next_hash_states
         )
 
-    def update_Qvals_df(self):
+    def merge_qvals(self):
         """
         Updates the Qvals_df with the newly learned Qvals_dict.
         """
-        Qs = []
-        hits = []
-        indices = []
-        for stateaction in self.newQvals:
-            indices.append(stateaction)
-            Qs.append(self.newQvals[stateaction].Q)
-            hits.append(self.newQvals[stateaction].hits)
-        combined_df = combine_Qvalues([self.Qvals, Qs])
-        self.Qvals = combined_df
-
-
-class Patient:
-    def __init__(self, patient_type, los, arrival_date, block):
-        """
-        A class to keep track of a patient's length of stay.
-
-        Arguments:
-          - `patient_type`: the type of the patient being moved, either
-             2: 'red', 1: 'amber', or 0: 'green'
-          - `los`: a numeric length of stay
-          - `now`: the current date
-          - `block`: the block number they are currently in
-        """
-        self.patient_type = patient_type
-        self.los = los
-        self.arrival_date = arrival_date
-        self.exit_date = self.arrival_date + self.los
-        self.block = block
+        keys = np.array([k for k in self.newQvals.keys()], dtype='int64')
+        qvals = np.array([v.Q for v in self.newQvals.values()], dtype='float64')
+        hits = np.array([v.hits for v in self.newQvals.values()], dtype='int64')
+        self.keys = np.concat([self.keys, keys])
+        self.qvals = np.concat([self.qvals, qvals])
+        self.hits = np.concat([self.hits, hits])
 
 
 class BedMoveSimulation:
@@ -580,7 +601,13 @@ class BedMoveSimulation:
             1: self.arrival_distributions[1].sample(),
             2: self.arrival_distributions[2].sample()
         }
-        self.patients = []
+        self.patients = Patients(
+            patient_types=-np.ones(17, dtype='int64'),
+            los=np.ones(17) * np.inf,
+            exit_dates=np.ones(17) * np.inf,
+            blocks=-np.ones(17, dtype='int64'),
+        )
+
         self.state = empty_state
 
     def find_next_arrival_date(self):
@@ -599,13 +626,11 @@ class BedMoveSimulation:
         Returns the next date an exit happens and what
         patient is to exit.
         """
-        if len(self.patients) == 0:
+        if np.isinf(np.min(self.patients.exit_dates)):
             return float('inf'), None
-        next_patient = min(
-            self.patients,
-            key=lambda patient: patient.exit_date
-        )
-        return next_patient.exit_date, next_patient
+
+        idx = self.patients.exit_dates.argmin()
+        return self.patients.exit_dates[idx], idx
 
     def simulate_until_max_time(
         self,
@@ -634,14 +659,14 @@ class BedMoveSimulation:
 
         while self.now < max_time:
             next_arrival, patient_type = self.find_next_arrival_date()
-            next_exit, patient = self.find_next_exit_date()
+            next_exit, patient_idx = self.find_next_exit_date()
             if next_arrival < next_exit:
                 self.arrival(
                     next_arrival=next_arrival,
                     patient_type=patient_type
                 )
             else:
-                self.exit(patient=patient)
+                self.exit(patient_idx=patient_idx)
 
             if progress_bar:
                 with lock:
@@ -673,7 +698,7 @@ class BedMoveSimulation:
             state=self.state,
             patient_type=patient_type
         )
-        if to_block is not False:
+        if to_block is not None:
             self.inflict_cost(update_time=next_arrival)
             self.prev_now = self.now
             self.now = next_arrival
@@ -681,35 +706,39 @@ class BedMoveSimulation:
                 next_state=(self.state, patient_type),
                 next_action=to_block
             )
-            arriving_patient = Patient(
-                patient_type=patient_type,
-                los=los,
-                arrival_date=self.now,
-                block=to_block
-            )
-            self.patients.append(arriving_patient)
+
+            idx = self.patients.patient_types.argmin()
+            self.patients.patient_types[idx] = patient_type
+            self.patients.los[idx] = los
+            self.patients.exit_dates[idx] = self.now + los
+            self.patients.blocks[idx] = to_block
+
             self.state = insert_patient(
                 state=self.state,
                 patient_type=patient_type,
                 to_block=to_block
             )
 
-    def exit(self, patient):
+    def exit(self, patient_idx):
         """
         Removes a patient from the ward.
 
         Arguments:
           + `patient`: The Patient object to remove.
         """
-        self.inflict_cost(update_time=patient.exit_date)
+        self.inflict_cost(update_time=self.patients.exit_dates[patient_idx])
         self.prev_now = self.now
-        self.now = patient.exit_date
+        self.now = self.patients.exit_dates[patient_idx]
         self.state = remove_patient(
             state=self.state,
-            patient_type=patient.patient_type,
-            from_block=patient.block
+            patient_type=self.patients.patient_types[patient_idx],
+            from_block=self.patients.blocks[patient_idx]
         )
-        self.patients.remove(patient)
+        self.patients.patient_types[patient_idx] = -1
+        self.patients.los[patient_idx] = np.inf
+        self.patients.exit_dates[patient_idx] = np.inf
+        self.patients.blocks[patient_idx] = -1
+
 
     def inflict_cost(self, update_time):
         """

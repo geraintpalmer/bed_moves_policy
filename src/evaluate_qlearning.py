@@ -7,6 +7,7 @@ import threading
 from pathlib import Path
 import yaml
 import argparse
+import numpy as np
 
 def evaluate(
     max_time,
@@ -81,7 +82,8 @@ if __name__ == '__main__':
     for stage in range(n_stages + 1):
         print(f"====-Stage {stage} (epsilon={round(training_epsilons[stage-1], 3)})-====")
         if stage > 0:
-            Qvalues = pd.read_csv(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.csv", index_col=0)
+            data =  np.genfromtxt(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.csv", names=True, delimiter=',', dtype=[('id', 'i8'), ('q', 'f8'), ('hits', 'i4')])
+            Qvalues = (data['Key'], data['Q'], data['Hits'])
         else:
             Qvalues = None
 
