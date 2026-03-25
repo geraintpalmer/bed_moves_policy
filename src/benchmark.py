@@ -56,6 +56,49 @@ def get_Qs(
     Q.merge_qvals()
     return (Q.keys, Q.qvals, Q.hits)
 
+def evaluate(
+    max_time,
+    learning_rate,
+    discount_factor,
+    transform_parameter,
+    epsilon,
+    Qvalues,
+    seed,
+):
+    """
+    Runs
+    """
+    Q = bedmoves.QLearning(
+        learning_rate=learning_rate,
+        discount_factor=discount_factor,
+        transform_parameter=transform_parameter,
+        initial_Qvalues=Qvalues,
+        learn=False
+    )
+    S = bedmoves.BedMoveSimulation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.3),
+            ciw.dists.Exponential(0.7),
+            ciw.dists.Exponential(0.4)
+        ],
+        action_chooser=bedmoves.EpsilonHard(
+            epsilon=epsilon,
+            QLearning=Q
+        ),
+        isolation_penalty=8,
+        adjacent_move_penalty=1,
+        nonadjacent_move_penalty=2,
+        QLearning=Q,
+        seed=seed
+    )
+    S.simulate_until_max_time(max_time=max_time, progress_bar=True)
+    return S.overall_cost
+
 if __name__ == '__main__':
     stage = 11
     max_time = 1000
@@ -69,4 +112,5 @@ if __name__ == '__main__':
     initial_Qvalues = (data['Key'], data['Q'], data['Hits'])
     
     results = get_Qs(max_time, learning_rate, discount_factor, transform_parameter, epsilon, initial_Qvalues, seed)
+    eval = evaluate(max_time, learning_rate, discount_factor, transform_parameter, epsilon, initial_Qvalues, seed)
 
