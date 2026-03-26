@@ -1,6 +1,6 @@
 import bedmoves
-import ciw
 import random
+import ciw
 import pandas as pd
 from multiprocessing.pool import ThreadPool
 import threading
