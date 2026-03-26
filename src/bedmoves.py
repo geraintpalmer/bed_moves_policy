@@ -2,12 +2,20 @@ import numpy as np
 import ciw
 import random
 import tqdm
-import pandas as pd
 from collections import namedtuple
 from functools import lru_cache
 
 Qtuple = namedtuple('Qtuple', 'Q hits')
 Patients = namedtuple('Patients', 'patient_types los exit_dates blocks')
+
+hash_weights = np.array(
+    [
+        [16e13, 243e10, 9e10, 16e8, 243e5, 9e5, 256e2, 32e2, 4e2],
+        [ 4e13,  81e10, 3e10,  4e8,  81e5, 3e5, 128e2, 16e2, 2e2],
+        [ 1e13,  27e10, 1e10,  1e8,  27e5, 1e5,  64e2,  8e2, 1e2],
+    ]
+).ravel()
+
 
 class NullLock(object):
     """
@@ -44,25 +52,9 @@ def get_hash_state(state, action):
 
     Returns: an integer representation of the state-action pair.
     """
-    s0 = state[0][0]
-    s1 = state[0][1]
-    s2 = state[0][2]
-    p = state[1]
-    
-    A = (s0[0] * 16) + (s1[0] * 4) + s1[0]
-    B = (s0[1] * 243) + (s1[1] * 81) + (s2[1] * 27) + (s0[2] * 9) + (s1[2] * 3) + s2[2]
-    D = (s0[3] * 16) + (s1[3] * 4) + s2[3]
-    E = (s0[4] * 243) + (s1[4] * 81) + (s2[4] * 27) + (s0[5] * 9) + (s1[5] * 3) + s2[5]
-    G = (s0[6] * 256) + (s1[6] * 128) + (s2[6] * 64) + (s0[7] * 32) + (s1[7] * 16) + (s2[7] * 8) + (s0[8] * 4) + (s1[8] * 2) + s2[8]
-
-    k = A
-    k = (k * 1000) + B
-    k = (k * 100) + D
-    k = (k * 1000) + E
-    k = (k * 1000) + G
-    k = (k * 10) + state[1]
-    k = (k * 10) + action
-    return k
+    return hash_weights.dot(
+        state[0].ravel()
+    ) + (state[1] * 10) + action
 
 def get_resource_use_per_time_unit(state):
     """
@@ -78,10 +70,7 @@ def get_resource_use_per_time_unit(state):
 
     Returns: and integer number of resources used per time unit.
     """
-    green = (state[0,:] > 0).sum()
-    amber = state[1,:].sum()
-    red = state[2,:].sum()
-    return green + amber + red
+    return np.minimum(state[0,:], 1).sum() + state.ravel()[9:].sum()
 
 
 def get_penalty_per_time_unit(state, isolation_penalty):
@@ -97,7 +86,7 @@ def get_penalty_per_time_unit(state, isolation_penalty):
 
     Returns: a numerical penalty per time unit for the given state.
     """
-    return state[2,:-3].sum() * isolation_penalty
+    return state.ravel()[18:24].sum() * isolation_penalty
 
 
 
@@ -143,10 +132,9 @@ def move_patient(state, patient_type, from_block, to_block):
 
     Returns: a numpy array representing the state after the move.
     """
-    new_state = state.copy()
-    new_state[patient_type, from_block] -= 1
-    new_state[patient_type, to_block] += 1
-    return new_state
+    state[patient_type, from_block] -= 1
+    state[patient_type, to_block] += 1
+    return state
 
 
 def insert_patient(state, patient_type, to_block):
@@ -162,9 +150,8 @@ def insert_patient(state, patient_type, to_block):
 
     Returns: a numpy array representing the state after the insert.
     """
-    new_state = state.copy()
-    new_state[patient_type, to_block] += 1
-    return new_state
+    state[patient_type, to_block] += 1
+    return state
 
 
 def remove_patient(state, patient_type, from_block):
@@ -181,9 +168,8 @@ def remove_patient(state, patient_type, from_block):
     Returns: a numpy array representing the state after removing the
     patient.
     """
-    new_state = state.copy()
-    new_state[patient_type, from_block] -= 1
-    return new_state
+    state[patient_type, from_block] -= 1
+    return state
 
 
 def get_available_insert_moves(state):
@@ -196,7 +182,8 @@ def get_available_insert_moves(state):
 
     Returns: a list of blocks that the patient can be inserted.    
     """
-    return np.flatnonzero(max_capacities - state.sum(axis=0) > 0)
+    occupancy = state[0] + state[1] + state[2]
+    return (max_capacities > occupancy).nonzero()[0]
 
 
 def get_available_moves(state):
@@ -284,6 +271,7 @@ class EpsilonHard:
         """
         self.epsilon = epsilon
         self.QLearning = QLearning
+        self.just_chose_best = False
 
     def choose_arriving_block(self, state, patient_type):
         """
@@ -298,17 +286,21 @@ class EpsilonHard:
 
         Returns: a block to place the arriving patient.
         """
-        available_blocks = get_available_insert_moves(state=state)
-        if available_blocks.size == 0:
+        self.available_blocks = get_available_insert_moves(state=state)
+        if self.available_blocks.size == 0:
             return None
         if random.random() < self.epsilon:
-            return self.choose_best_block(
+            self.just_chose_best = True
+            a = self.choose_best_block(
                 state=state,
                 patient_type=patient_type,
-                available_blocks=available_blocks
+                available_blocks=self.available_blocks
             )
+            self.best_action = a
+            return a
+        self.just_chose_best = False
         return self.choose_random_block(
-            available_blocks=available_blocks
+            available_blocks=self.available_blocks
         )
 
     def choose_random_block(self, available_blocks):
@@ -346,7 +338,7 @@ class EpsilonHard:
                     )
                 ) for a in available_blocks
             ]
-        ) + (np.random.rand(available_blocks.size) / 10e13)
+        ) + (self.rng.random(available_blocks.size) / 10e13)
         idx = available_blocks_Q.argmax()
         return available_blocks[idx]
 
@@ -401,16 +393,17 @@ class QLearning:
         Arguments:
           + `initial_Qvalues`: a dataframe of Q-values
         """
-        if initial_Qvalues is None:
-            self.keys = np.array([], dtype='int64')
-            self.qvals = np.array([], dtype='float64')
-            self.hits = np.array([], dtype='int64')
+        if initial_Qvalues is not None:
+            self.Qvals = {
+                k: Qtuple(Q=v, hits=h)
+                for k, v, h in zip(
+                    initial_Qvalues['Key'],
+                    initial_Qvalues['Q'],
+                    initial_Qvalues['Hits']
+                )
+            }
         else:
-            self.keys = initial_Qvalues[0]
-            self.qvals = initial_Qvalues[1]
-            self.hits = np.zeros(self.keys.size)
-
-        self.newQvals = {}
+            self.Qvals = {}
         self.defaultQtuple = Qtuple(Q=0.0, hits=0)
 
     def attach_simulation(self, simulation):
@@ -421,43 +414,20 @@ class QLearning:
           + `simulation`: a BedMovesSimulation object.
         """
         self.simulation = simulation
+        self.rng = self.simulation.rng
 
-    @lru_cache(maxsize=None)
-    def exists_idx(self, stateaction):
-        """
-        Check if `stateaction` exists in self.keys.
-        """
-        idx = self.keys.searchsorted(stateaction)
-        if (idx < self.keys.size) and (self.keys[idx] == stateaction):
-            return idx
-        return None
-
-    def getQ(self, stateaction, remember_idx=False):
+    def getQ(self, stateaction):
         """
         Returns the Q-value for a particular state-action pair
         """
-        idx = self.exists_idx(stateaction)
-        if idx is not None:
-            if remember_idx:
-                self.hash_state_idx = idx
-            return self.qvals[idx]
-        if remember_idx:
-            self.hash_state_idx = None
-        return self.newQvals.get(stateaction, self.defaultQtuple).Q
+        return self.Qvals.get(stateaction, self.defaultQtuple).Q
 
     def store_Qval(self, stateaction, newQ):
         """
         Stores the new Qvalue
         """
-        if self.hash_state_idx is not None:
-            self.qvals[self.hash_state_idx] = newQ
-            self.hits[self.hash_state_idx
-            ] += 1
-        elif stateaction in self.newQvals:
-            oldhits = self.newQvals[stateaction].hits
-            self.newQvals[stateaction] = Qtuple(Q=newQ, hits=oldhits+1)
-        else:
-            self.newQvals[stateaction] = Qtuple(Q=newQ, hits=1)
+        oldhits = self.Qvals.get(stateaction, self.defaultQtuple).hits
+        self.Qvals[stateaction] = Qtuple(Q=newQ, hits=oldhits+1)
 
 
     def update_Q_values(self, next_state, next_action):
@@ -481,7 +451,7 @@ class QLearning:
                 best_future_reward = self.get_best_future_reward(
                     next_state=next_state
                 )
-                oldQ = self.getQ(stateaction, remember_idx=True)
+                oldQ = self.getQ(stateaction)
                 newQ = (
                     ((1 - self.learning_rate) * oldQ)
                     + (self.learning_rate * (
@@ -523,27 +493,34 @@ class QLearning:
         Returns: the maximum epected future reward from following the
           best actions from this state onwards.
         """
+        if self.simulation.action_chooser.just_chose_best:
+            return self.getQ(
+                get_hash_state(
+                    state=next_state,
+                    action=self.simulation.action_chooser.best_action
+                )
+            )
+
         available_as = get_available_insert_moves(state=next_state[0])
-        next_hash_states = np.array([
+        next_hash_states = [
             get_hash_state(
                 state=next_state,
                 action=a
             ) for a in available_as
-        ])
+        ]
         return max(
             self.getQ(hash_state) for hash_state in next_hash_states
         )
 
-    def merge_qvals(self):
-        """
-        Updates the Qvals_df with the newly learned Qvals_dict.
-        """
-        keys = np.array([k for k in self.newQvals.keys()], dtype='int64')
-        qvals = np.array([v.Q for v in self.newQvals.values()], dtype='float64')
-        hits = np.array([v.hits for v in self.newQvals.values()], dtype='int64')
-        self.keys = np.concat([self.keys, keys])
-        self.qvals = np.concat([self.qvals, qvals])
-        self.hits = np.concat([self.hits, hits])
+    def return_Qvals(self):
+        keys = np.array([k for k in self.Qvals.keys()], dtype=np.int64)
+        Qs, hits = [], []
+        for qtuple in self.Qvals.values():
+            Qs.append(qtuple.Q)
+            hits.append(qtuple.hits)
+        Qs = np.array(Qs, dtype=np.float64)
+        hits = np.array(hits, dtype=np.int32)
+        return (keys, Qs, hits)
 
 
 class BedMoveSimulation:
@@ -585,6 +562,11 @@ class BedMoveSimulation:
         self.los_distributions = los_distributions
         self.action_chooser = action_chooser
         self.QLearning = QLearning
+
+        ciw.seed(seed)
+        self.rng = np.random.default_rng(seed=seed)
+        self.action_chooser.rng = self.rng
+
         self.QLearning.attach_simulation(simulation=self)
         
         self.prev_now = 0.0
@@ -595,7 +577,6 @@ class BedMoveSimulation:
         self.adjacent_move_penalty = adjacent_move_penalty
         self.nonadjacent_move_penalty = nonadjacent_move_penalty
 
-        ciw.seed(seed)
         self.next_arrivals = {
             0: self.arrival_distributions[0].sample(),
             1: self.arrival_distributions[1].sample(),
@@ -654,7 +635,8 @@ class BedMoveSimulation:
             with lock:
                 self.progress_bar = tqdm.tqdm(
                     total=max_time,
-                    desc=progress_bar_description
+                    desc=progress_bar_description,
+                    # mininterval=0.5
                 )
 
         while self.now < max_time:

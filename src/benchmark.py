@@ -53,8 +53,7 @@ def get_Qs(
         max_time=max_time,
         progress_bar=True,
     )
-    Q.merge_qvals()
-    return (Q.keys, Q.qvals, Q.hits)
+    return Q.return_Qvals()
 
 def evaluate(
     max_time,
@@ -96,21 +95,29 @@ def evaluate(
         QLearning=Q,
         seed=seed
     )
-    S.simulate_until_max_time(max_time=max_time, progress_bar=True)
+    S.simulate_until_max_time(
+        max_time=max_time,
+        progress_bar=True
+    )
     return S.overall_cost
 
 if __name__ == '__main__':
     stage = 11
-    max_time = 1000
+    max_time = 50000
     learning_rate = 0.5
     discount_factor = 0.95
     transform_parameter = 2.0
     epsilon = 0.5
     seed = 0
 
-    data = np.genfromtxt("experiments/exp2/results/stage_11_overall_epsilon_0.5.csv", delimiter=',', dtype=['i8', 'f8', 'i4'], names=True)
-    initial_Qvalues = (data['Key'], data['Q'], data['Hits'])
+    start = time.time()
+
+    initial_Qvalues = np.genfromtxt("experiments/exp2/results/stage_11_overall_epsilon_0.5.csv", delimiter=',', dtype=['i8', 'f8', 'i4'], names=True)
     
     results = get_Qs(max_time, learning_rate, discount_factor, transform_parameter, epsilon, initial_Qvalues, seed)
-    eval = evaluate(max_time, learning_rate, discount_factor, transform_parameter, epsilon, initial_Qvalues, seed)
+    evalres = evaluate(max_time, learning_rate, discount_factor, transform_parameter, epsilon, initial_Qvalues, seed)
+
+    end = time.time()
+
+    print(end - start)
 
