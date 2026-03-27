@@ -1,9 +1,9 @@
 import numpy as np
+from numpy.lib import recfunctions as rfn
 import ciw
 import random
 import tqdm
 from collections import namedtuple
-from functools import lru_cache
 from math import exp
 
 Qtuple = namedtuple('Qtuple', 'Q hits')
@@ -646,7 +646,7 @@ class BedMoveSimulation:
             free_indices=[i for i in range(17)]
         )
 
-        self.state = empty_state
+        self.state = empty_state.copy()
 
     def find_next_arrival_date(self):
         """
@@ -673,9 +673,8 @@ class BedMoveSimulation:
     def simulate_until_max_time(
         self,
         max_time,
-        lock=NullLock(),
-        progress_bar=False,
-        progress_bar_description=None
+        shared_progress_array=None,
+        trial=None
     ):
         """
         Simulates the ward for a given amount of time.
@@ -683,17 +682,14 @@ class BedMoveSimulation:
         Arguments:
           + `max_time`: the time to stop the simulation (positive float)
           + `lock`: a context manager used for parallel processing
-          + `progress_bar`: A boolean indicating if a tqdm progress bar
-               should be displayed.
-          + `progress_bar_description`: The string description for the
-               progress bar.
+          + `shared_progress_array`: A multiprocessing array containing
+               the progress of each of the parallel trials..
+          + `trial`: The number of the current trial (used for the
+               multiprocessing progress bar).
         """
-        if progress_bar:
-            with lock:
-                self.progress_bar = tqdm.tqdm(
-                    total=max_time,
-                    desc=progress_bar_description,
-                )
+        if shared_progress_array is not None:
+            self.update_interval = max_time / 100
+            self.update_threshold = self.update_interval
 
         while self.now < max_time:
             next_arrival, patient_type = self.find_next_arrival_date()
@@ -706,19 +702,14 @@ class BedMoveSimulation:
             else:
                 self.exit(patient_idx=patient_idx)
 
-            if progress_bar:
-                with lock:
-                    remaining_time = max_time - self.progress_bar.n
-                    time_increment = self.now - self.prev_now
-                    self.progress_bar.update(
-                        min(time_increment, remaining_time)
-                    )
 
-        if progress_bar:
-            with lock:
-                remaining_time = max(max_time - self.progress_bar.n, 0)
-                self.progress_bar.update(remaining_time)
-                self.progress_bar.close()
+            if shared_progress_array is not None:
+                if self.now > self.update_threshold:
+                    shared_progress_array[trial] = self.now
+                    self.update_threshold += self.update_interval
+
+        if shared_progress_array is not None:
+            shared_progress_array[trial] = max_time
 
     def arrival(self, next_arrival, patient_type):
         """
@@ -738,7 +729,6 @@ class BedMoveSimulation:
         )
         if to_block is not None:
             self.inflict_cost(update_time=next_arrival)
-            self.prev_now = self.now
             self.now = next_arrival
             self.QLearning.update_Q_values(
                 next_state=self.state,
@@ -767,7 +757,6 @@ class BedMoveSimulation:
           + `patient_idx`: The index of the patient object to remove.
         """
         self.inflict_cost(update_time=self.patients.exit_dates[patient_idx])
-        self.prev_now = self.now
         self.now = self.patients.exit_dates[patient_idx]
         self.state = remove_patient(
             state=self.state,

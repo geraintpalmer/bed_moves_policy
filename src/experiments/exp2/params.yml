@@ -1,8 +1,7 @@
-max_time: 1000
+max_time: 50000
 learning_rate: 0.5
 discount_factor: 0.95
 transform_parameter: 2.0
-n_stages: 21
-trials_per_stage: 22
-n_threads: 22
-write_trials_data: False
+n_stages: 11
+trials_per_stage: 4
+n_threads: 4

@@ -1,13 +1,20 @@
 import bedmoves
 import ciw
 import random
-import pandas as pd
-from multiprocessing.pool import ThreadPool
-import threading
-from pathlib import Path
 import yaml
 import argparse
 import numpy as np
+import multiprocessing
+import os
+import tqdm
+import time
+import pandas as pd
+
+# Force NumPy/OpenBLAS to use only 1 core per process
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def evaluate(
     max_time,
@@ -15,11 +22,10 @@ def evaluate(
     discount_factor,
     transform_parameter,
     epsilon,
-    Qvalues,
+    initial_Qvalues,
     seed,
     trial,
-    lock,
-    progress_bar_description
+    progress_array,
 ):
     """
     Runs
@@ -28,7 +34,7 @@ def evaluate(
         learning_rate=learning_rate,
         discount_factor=discount_factor,
         transform_parameter=transform_parameter,
-        initial_Qvalues=Qvalues,
+        initial_Qvalues=initial_Qvalues,
         learn=False
     )
     S = bedmoves.BedMoveSimulation(
@@ -52,7 +58,11 @@ def evaluate(
         QLearning=Q,
         seed=seed
     )
-    S.simulate_until_max_time(max_time=max_time, lock=lock, progress_bar=True, progress_bar_description=progress_bar_description)
+    S.simulate_until_max_time(
+        max_time=max_time,
+        shared_progress_array=progress_array,
+        trial=trial
+    )
     return S.overall_cost
 
 if __name__ == '__main__':
@@ -77,27 +87,57 @@ if __name__ == '__main__':
     seed = 0
 
     eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
-
+    
     costs = {}
-    for stage in range(n_stages + 1):
-        print(f"====-Stage {stage} (epsilon={round(training_epsilons[stage-1], 3)})-====")
+    for stage in range(n_stages+1):
         if stage > 0:
-            data =  np.genfromtxt(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.csv", names=True, delimiter=',', dtype=[('id', 'i8'), ('q', 'f8'), ('hits', 'i4')])
-            Qvalues = (data['Key'], data['Q'], data['Hits'])
+            Qvalues =  np.genfromtxt(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.csv", names=True, delimiter=',', dtype=[('id', 'i8'), ('q', 'f8'), ('hits', 'i4')])
         else:
             Qvalues = None
 
-        seeds = [seed + trial for trial in range(trials_per_stage)]
-        
-        pool = ThreadPool(n_threads)
-        lock = threading.Lock()
-        results = [pool.apply_async(evaluate, args=(max_time, learning_rate, discount_factor, transform_parameter, eval_epsilons[stage], Qvalues, seeds[trial], trial, lock, f"[Stage {stage}; trial {trial}]")) for trial in range(trials_per_stage)]
-        pool.close()
-        pool.join()
 
-        costs[f'Stage {stage}'] = [res.get() for res in results]
-        seed += n_stages
+        multiprocessing.set_start_method("spawn", force=True)
+        manager = multiprocessing.Manager()
+        progress_array = manager.Array('d', [0.0] * trials_per_stage)
+
+        seeds = [seed + trial for trial in range(trials_per_stage)]
+        args_list = [
+            (
+                max_time,
+                learning_rate,
+                discount_factor,
+                transform_parameter,
+                eval_epsilons[stage-1],
+                Qvalues,
+                seeds[t],
+                t,
+                progress_array
+            ) for t in range(trials_per_stage)
+        ]
+
+        with multiprocessing.Pool(processes=n_threads) as pool:
+            stage_results = pool.starmap_async(evaluate, args_list)
+
+            with tqdm.tqdm(
+                total=max_time,
+                desc=f"Stage {stage} (epsilon={round(training_epsilons[stage-1], 3)})",
+                unit_scale=True,
+                bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
+            ) as pbar:
+                last_min_progress = 0
+                while not stage_results.ready():
+                    current_min = min(progress_array)
+                    
+                    if current_min > last_min_progress:
+                        pbar.update(current_min - last_min_progress)
+                        last_min_progress = current_min
+                    
+                    time.sleep(1) # Don't burn CPU checking the array
+                pbar.update(max_time - last_min_progress)
+
+            costs[f'Stage {stage}'] = stage_results.get()
+
+        seed += trials_per_stage
 
     df = pd.DataFrame(costs)
     df.to_csv(f"{args.experiment}/results/evaluation.csv", index=False)
-

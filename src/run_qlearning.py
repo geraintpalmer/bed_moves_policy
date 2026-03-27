@@ -1,14 +1,19 @@
 import bedmoves
 import ciw
 import random
-import pandas as pd
-from multiprocessing.pool import ThreadPool
-import threading
-from pathlib import Path
 import yaml
 import argparse
-import time
 import numpy as np
+import multiprocessing
+import os
+import tqdm
+import time
+
+# Force NumPy/OpenBLAS to use only 1 core per process
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def get_Qs(
     max_time,
@@ -19,8 +24,7 @@ def get_Qs(
     initial_Qvalues,
     seed,
     trial,
-    lock,
-    progress_bar_description
+    progress_array,
 ):
     """
     Runs
@@ -54,12 +58,10 @@ def get_Qs(
     )
     S.simulate_until_max_time(
         max_time=max_time,
-        lock=lock,
-        progress_bar=True,
-        progress_bar_description=progress_bar_description
+        shared_progress_array=progress_array,
+        trial=trial
     )
-    Q.merge_qvals()
-    return (Q.keys, Q.qvals, Q.hits)
+    return Q.return_Qvals()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -77,7 +79,6 @@ if __name__ == '__main__':
     discount_factor = float(params['discount_factor'])
     transform_parameter = float(params['transform_parameter'])
     n_threads = int(params['n_threads'])
-    write_trials_data = params['write_trials_data']
 
     epsilon_step = 1.0 / (n_stages - 1)
     epsilons = [(i * epsilon_step) for i in range(n_stages)]
@@ -85,26 +86,66 @@ if __name__ == '__main__':
     
     initial_Qvalues = None
     for stage in range(1, n_stages+1):
-        print(f"====-Stage {stage} (epsilon={round(epsilons[stage-1], 3)})-====")
 
-        seeds = [seed + trial for trial in range(trials_per_stage)]        
-        pool = ThreadPool(n_threads)
-        lock = threading.Lock()
-        results = [pool.apply_async(get_Qs, args=(max_time, learning_rate, discount_factor, transform_parameter, epsilons[stage-1], initial_Qvalues, seeds[trial], trial, lock, f"[Stage {stage}; trial {trial}]")) for trial in range(trials_per_stage)]
-        pool.close()
-        pool.join()
+        multiprocessing.set_start_method("spawn", force=True)
+        manager = multiprocessing.Manager()
+        progress_array = manager.Array('d', [0.0] * trials_per_stage)
 
-        stage_results = [res.get() for res in results]
+        seeds = [seed + trial for trial in range(trials_per_stage)]
+        args_list = [
+            (
+                max_time,
+                learning_rate,
+                discount_factor,
+                transform_parameter,
+                epsilons[stage-1],
+                initial_Qvalues,
+                seeds[t],
+                t,
+                progress_array
+            ) for t in range(trials_per_stage)
+        ]
+
+        with multiprocessing.Pool(processes=n_threads) as pool:
+            stage_results = pool.starmap_async(get_Qs, args_list)
+
+            with tqdm.tqdm(
+                total=max_time,
+                desc=f"Stage {stage} (epsilon={round(epsilons[stage-1], 3)})",
+                unit_scale=True,
+                bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
+            ) as pbar:
+                last_min_progress = 0
+                while not stage_results.ready():
+                    current_min = min(progress_array)
+                    
+                    if current_min > last_min_progress:
+                        pbar.update(current_min - last_min_progress)
+                        last_min_progress = current_min
+                    
+                    time.sleep(1) # Don't burn CPU checking the array
+                pbar.update(max_time - last_min_progress)
+
+            stage_results = stage_results.get()
+
         keys_set = [res[0] for res in stage_results]
         qval_set = [res[1] for res in stage_results]
         hits_set = [res[2] for res in stage_results]
-        initial_Qvalues = bedmoves.combine_arrays(keys_set, qval_set, hits_set)
-        combined = np.vstack(initial_Qvalues).T
+        combined = bedmoves.combine_arrays(keys_set, qval_set, hits_set)
+        combined_to_save = np.vstack(combined).T
+
+        filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv"
         np.savetxt(
-            f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv",
-            combined,
+            filename,
+            combined_to_save,
             delimiter=",",
             header="Key,Q,Hits",
             fmt=['%d', '%.32f', '%d']
         )
-        seed += n_stages
+
+        initial_Qvalues = np.empty(len(combined[0]), dtype=[('Key', 'i8'), ('Q', 'f8'), ('Hits', 'i4')])
+        initial_Qvalues['Key'] = np.array(combined[0])
+        initial_Qvalues['Q'] = np.array(combined[1])
+        initial_Qvalues['Hits'] = np.array(combined[2])
+
+        seed += trials_per_stage
