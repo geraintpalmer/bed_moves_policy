@@ -1,4 +1,4 @@
-max_time: 5000
+max_time: 10000
 learning_rate: 0.5
 discount_factor: 0.95
 transform_parameter: 2.0
