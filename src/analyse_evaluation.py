@@ -28,7 +28,7 @@ if __name__ == '__main__':
     data = pd.read_csv(args.experiment + "/results/evaluation.csv")
 
     visited_states = [
-        count_lines_wc(f"experiments/exp2/results/stage_{s+1}_overall_epsilon_{round(epsilons[s], 3)}.csv") for s in range(params['n_stages'])
+        count_lines_wc(args.experiment + f"/results/stage_{s+1}_overall_epsilon_{round(epsilons[s], 3)}.csv") for s in range(params['n_stages'])
     ]
 
 
