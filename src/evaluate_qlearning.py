@@ -119,21 +119,21 @@ if __name__ == '__main__':
             stage_results = pool.starmap_async(evaluate, args_list)
 
             with tqdm.tqdm(
-                total=max_time,
+                total=max_time * trials_per_stage,
                 desc=f"Stage {stage} (epsilon={round(training_epsilons[stage-1], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
                 last_min_progress = 0
                 while not stage_results.ready():
-                    current_min = min(progress_array)
+                    current_min = sum(progress_array)
                     
                     if current_min > last_min_progress:
                         pbar.update(current_min - last_min_progress)
                         last_min_progress = current_min
                     
                     time.sleep(1) # Don't burn CPU checking the array
-                pbar.update(max_time - last_min_progress)
+                pbar.update((max_time * trials_per_stage) - last_min_progress)
 
             costs[f'Stage {stage}'] = stage_results.get()
 

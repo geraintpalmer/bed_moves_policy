@@ -705,7 +705,7 @@ class BedMoveSimulation:
 
             if shared_progress_array is not None:
                 if self.now > self.update_threshold:
-                    shared_progress_array[trial] = self.now
+                    shared_progress_array[trial] = self.update_threshold
                     self.update_threshold += self.update_interval
 
         if shared_progress_array is not None:
