@@ -107,35 +107,41 @@ if __name__ == '__main__':
                 learning_rate,
                 discount_factor,
                 transform_parameter,
-                eval_epsilons[stage-1],
+                eval_epsilons[stage],
                 Qvalues,
                 seeds[t],
                 t,
                 progress_array
             ) for t in range(trials_per_stage)
         ]
+        costs[f'Stage {stage}'] = []
 
         with multiprocessing.Pool(processes=n_threads) as pool:
-            stage_results = pool.starmap_async(evaluate, args_list)
+            results = [pool.apply_async(evaluate, args) for args in args_list]
+            finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
                 total=max_time * trials_per_stage,
-                desc=f"Stage {stage} (epsilon={round(training_epsilons[stage-1], 3)})",
+                desc=f"Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
                 last_min_progress = 0
-                while not stage_results.ready():
+                while not all(finished_mask):
                     current_min = sum(progress_array)
                     
                     if current_min > last_min_progress:
                         pbar.update(current_min - last_min_progress)
                         last_min_progress = current_min
-                    
+
+                    for i, res in enumerate(results):
+                        if not finished_mask[i] and res.ready():
+                            costs[f'Stage {stage}'].append(res.get())
+                            results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
+                            finished_mask[i] = True
+
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
-
-            costs[f'Stage {stage}'] = stage_results.get()
 
         seed += trials_per_stage
 

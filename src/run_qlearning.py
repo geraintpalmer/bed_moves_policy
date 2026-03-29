@@ -107,7 +107,11 @@ if __name__ == '__main__':
         ]
 
         with multiprocessing.Pool(processes=n_threads) as pool:
-            stage_results = pool.starmap_async(get_Qs, args_list)
+            results = [pool.apply_async(get_Qs, args) for args in args_list]
+            keys_set = []
+            qval_set = []
+            hits_set = []
+            finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
                 total=(max_time * trials_per_stage),
@@ -116,21 +120,25 @@ if __name__ == '__main__':
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
                 last_min_progress = 0
-                while not stage_results.ready():
+                while not all(finished_mask):
                     current_min = sum(progress_array)
                     
                     if current_min > last_min_progress:
                         pbar.update(current_min - last_min_progress)
                         last_min_progress = current_min
+
+                    for i, res in enumerate(results):
+                        if not finished_mask[i] and res.ready():
+                            data = res.get()
+                            keys_set.append(data[0])
+                            qval_set.append(data[1])
+                            hits_set.append(data[2])
+                            results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
+                            finished_mask[i] = True
                     
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
 
-            stage_results = stage_results.get()
-
-        keys_set = [res[0] for res in stage_results]
-        qval_set = [res[1] for res in stage_results]
-        hits_set = [res[2] for res in stage_results]
         combined = bedmoves.combine_arrays(keys_set, qval_set, hits_set)
         combined_to_save = np.vstack(combined).T
 
