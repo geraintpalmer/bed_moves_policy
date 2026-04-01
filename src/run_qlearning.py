@@ -8,6 +8,8 @@ import multiprocessing
 import os
 import tqdm
 import time
+import gc
+import pandas as pd
 
 # Force NumPy/OpenBLAS to use only 1 core per process
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -83,8 +85,11 @@ if __name__ == '__main__':
     epsilon_step = 1.0 / (n_stages - 1)
     epsilons = [(i * epsilon_step) for i in range(n_stages)]
     seed = 0
+
+    unique_states_per_trial = {s: {t: None for t in range(trials_per_stage)} for s in range(1, n_stages+1)}
+    unique_states_per_stage = {s: None for s in range(1, n_stages+1)}
     
-    initial_Qvalues = None
+    Qvals = None
     for stage in range(1, n_stages+1):
 
         multiprocessing.set_start_method("spawn", force=True)
@@ -99,7 +104,7 @@ if __name__ == '__main__':
                 discount_factor,
                 transform_parameter,
                 epsilons[stage-1],
-                initial_Qvalues,
+                Qvals,
                 seeds[t],
                 t,
                 progress_array
@@ -108,14 +113,14 @@ if __name__ == '__main__':
 
         with multiprocessing.Pool(processes=n_threads) as pool:
             results = [pool.apply_async(get_Qs, args) for args in args_list]
-            keys_set = []
-            qval_set = []
-            hits_set = []
+            keys = np.array([])
+            qval = np.array([])
+            hits = np.array([])
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
                 total=(max_time * trials_per_stage),
-                desc=f"Stage {stage} (epsilon={round(epsilons[stage-1], 3)})",
+                desc=f"Training Stage {stage} (epsilon={round(epsilons[stage-1], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
@@ -130,30 +135,30 @@ if __name__ == '__main__':
                     for i, res in enumerate(results):
                         if not finished_mask[i] and res.ready():
                             data = res.get()
-                            keys_set.append(data[0])
-                            qval_set.append(data[1])
-                            hits_set.append(data[2])
+                            unique_states_per_trial[stage][i] = data[0]
+                            keys, qval, hits = bedmoves.combine_arrays(
+                                [keys, data[1]],
+                                [qval, data[2]],
+                                [hits, data[3]]
+                            )
+                            data = None
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
+                            gc.collect()
                     
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
 
-        combined = bedmoves.combine_arrays(keys_set, qval_set, hits_set)
-        combined_to_save = np.vstack(combined).T
-
-        filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.csv"
-        np.savetxt(
-            filename,
-            combined_to_save,
-            delimiter=",",
-            header="Key,Q,Hits",
-            fmt=['%d', '%.32f', '%d']
-        )
-
-        initial_Qvalues = np.empty(len(combined[0]), dtype=[('Key', 'i8'), ('Q', 'f8'), ('Hits', 'i4')])
-        initial_Qvalues['Key'] = np.array(combined[0])
-        initial_Qvalues['Q'] = np.array(combined[1])
-        initial_Qvalues['Hits'] = np.array(combined[2])
+        Qvals = (keys.astype(np.int64), qval.astype(np.float64), hits.astype(np.int64))
+        filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
+        np.savez(filename, keys=keys, vals=qval, hits=hits)
+        unique_states_per_stage[stage] = len(keys)
 
         seed += trials_per_stage
+
+    unique_states = pd.DataFrame(
+        {
+            f'Stage {s}': [unique_states_per_trial[s][t] for t in range(trials_per_stage)] + [unique_states_per_stage[s]] for s in range(1, n_stages+1)
+        }, index=[f'Trial {t}' for t in range(trials_per_stage)] + ['Overall']
+    )
+    unique_states.to_csv(f"{args.experiment}/results/unique_states.csv")

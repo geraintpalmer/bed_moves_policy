@@ -9,6 +9,7 @@ import os
 import tqdm
 import time
 import pandas as pd
+import gc
 
 # Force NumPy/OpenBLAS to use only 1 core per process
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -91,7 +92,8 @@ if __name__ == '__main__':
     costs = {}
     for stage in range(n_stages+1):
         if stage > 0:
-            Qvalues =  np.genfromtxt(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.csv", names=True, delimiter=',', dtype=[('id', 'i8'), ('q', 'f8'), ('hits', 'i4')])
+            data = np.load(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.npz")
+            Qvalues =  data['keys'].astype(np.int64), data['vals'].astype(np.float64), data['hits'].astype(np.int64)
         else:
             Qvalues = None
 
@@ -122,7 +124,7 @@ if __name__ == '__main__':
 
             with tqdm.tqdm(
                 total=max_time * trials_per_stage,
-                desc=f"Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
+                desc=f"Evaluating Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
@@ -139,6 +141,7 @@ if __name__ == '__main__':
                             costs[f'Stage {stage}'].append(res.get())
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
+                            gc.collect()
 
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)

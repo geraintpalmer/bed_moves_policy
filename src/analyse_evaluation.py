@@ -6,11 +6,6 @@ import subprocess
 import numpy as np
 import argparse
 
-
-def count_lines_wc(filename):
-    out = subprocess.check_output(['wc', '-l', filename]).decode('utf-8')
-    return int(out.split()[0])
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
@@ -27,10 +22,8 @@ if __name__ == '__main__':
 
     data = pd.read_csv(args.experiment + "/results/evaluation.csv")
 
-    visited_states = [
-        count_lines_wc(args.experiment + f"/results/stage_{s+1}_overall_epsilon_{round(epsilons[s], 3)}.csv") for s in range(params['n_stages'])
-    ]
-
+    unique_states = pd.read_csv(args.experiment + "/results/unique_states.csv", index_col=0)
+    visited_states = np.array([unique_states.loc['Overall', f'Stage {s}'] for s in range(1, params['n_stages']+1)])
 
     # Plot evaluation
     fig, ax = plt.subplots(1, figsize=(7, 5))
@@ -68,6 +61,7 @@ if __name__ == '__main__':
     fig, axarr = plt.subplots(1, 2, figsize=(12, 3.5))
     axarr[0].barh(stage_labels, visited_states, color='darkorange', edgecolor='black')
     axarr[0].set_xlabel("Total Visited States")
+    plt.gca().invert_yaxis()
     axarr[1].barh(stage_labels, [visited_states[0]] + list(np.diff(visited_states)), color='darkorange', edgecolor='black')
     axarr[1].set_xlabel("New States Visited per Stage")
     plt.gca().invert_yaxis()

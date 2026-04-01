@@ -3,11 +3,8 @@ from numpy.lib import recfunctions as rfn
 import ciw
 import random
 import tqdm
-from collections import namedtuple
 from math import exp
-
-Qtuple = namedtuple('Qtuple', 'Q hits')
-Patients = namedtuple('Patients', 'patient_types los exit_dates blocks free_indices')
+from numba import typed, types, njit, jit
 
 hash_weights = np.array(
     (
@@ -18,19 +15,6 @@ hash_weights = np.array(
 ).ravel()
 
 
-class NullLock(object):
-    """
-    A null context to stand in for the parallel 'lock' thread context
-    required for parallel processing. Used as default when not
-    processing in parallel.
-    """
-    def __init__(self, dummy_resource=None):
-        self.dummy_resource = dummy_resource
-    def __enter__(self):
-        return self.dummy_resource
-    def __exit__(self, *args):
-        pass
-
 max_capacities = np.array([3, 2, 2, 3, 2, 2, 1, 1, 1], dtype=np.int32)
 
 empty_state = np.array(
@@ -39,9 +23,10 @@ empty_state = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0),
         (0, 0, 0, 0, 0, 0, 0, 0, 0)
     ), dtype=np.int32
-)
+).ravel()
 
-def get_hash_state_only(state, patient_type):
+@njit(cache=True)
+def get_hash_state_only(state, patient_type, hash_weights):
     """
     Returns a hashable version of the state - not including the action.
 
@@ -53,9 +38,10 @@ def get_hash_state_only(state, patient_type):
     Returns: an integer representation of the state, with 0 placeholder
     for an action.
     """
-    return hash_weights.dot(state.ravel()) + (patient_type * 10)
+    return (hash_weights * state).sum() + (patient_type * 10)
 
-def get_hash_stateaction(state, patient_type, action):
+@njit(cache=True)
+def get_hash_stateaction(state, patient_type, action, hash_weights):
     """
     Returns a hashable version of the state.
 
@@ -67,8 +53,9 @@ def get_hash_stateaction(state, patient_type, action):
 
     Returns: an integer representation of the state-action pair.
     """
-    return get_hash_state_only(state, patient_type) + action
+    return get_hash_state_only(state, patient_type, hash_weights) + action
 
+@njit(cache=True)
 def get_resource_use_per_time_unit(state):
     """
     Calculates the resource use for a given state per time unit
@@ -83,9 +70,10 @@ def get_resource_use_per_time_unit(state):
 
     Returns: and integer number of resources used per time unit.
     """
-    return np.count_nonzero(state[0,:]) + state.ravel()[9:].sum()
+    return np.count_nonzero(state[:9]) + state[9:].sum()
 
 
+@njit(cache=True, fastmath=True)
 def get_penalty_per_time_unit(state, isolation_penalty):
     """
     Calculates the penalty for having isolation patients in a
@@ -99,8 +87,7 @@ def get_penalty_per_time_unit(state, isolation_penalty):
 
     Returns: a numerical penalty per time unit for the given state.
     """
-    return state.ravel()[18:24].sum() * isolation_penalty
-
+    return state[18:24].sum() * isolation_penalty
 
 
 def get_move_penalty(from_block, to_block, b1, b2):
@@ -145,11 +132,11 @@ def move_patient(state, patient_type, from_block, to_block):
 
     Returns: a numpy array representing the state after the move.
     """
-    state[patient_type, from_block] -= 1
-    state[patient_type, to_block] += 1
+    state[(patient_type * 9) + from_block] -= 1
+    state[(patient_type * 9) + to_block] += 1
     return state
 
-
+@njit(cache=True)
 def insert_patient(state, patient_type, to_block):
     """
     Returns the state that results from inserting a patient.
@@ -163,10 +150,10 @@ def insert_patient(state, patient_type, to_block):
 
     Returns: a numpy array representing the state after the insert.
     """
-    state[patient_type, to_block] += 1
+    state[(patient_type * 9) + to_block] += 1
     return state
 
-
+@njit(cache=True)
 def remove_patient(state, patient_type, from_block):
     """
     Returns the state that results from removing a patient.
@@ -181,10 +168,11 @@ def remove_patient(state, patient_type, from_block):
     Returns: a numpy array representing the state after removing the
                patient.
     """
-    state[patient_type, from_block] -= 1
+    state[(patient_type * 9) + from_block] -= 1
     return state
 
 
+@njit(cache=True)
 def get_available_insert_moves(state):
     """
     Lists all available places where a patient can be inserted.
@@ -195,7 +183,7 @@ def get_available_insert_moves(state):
 
     Returns: a list of blocks that the patient can be inserted.    
     """
-    occupancy = state[0] + state[1] + state[2]
+    occupancy = state[0:9] + state[9:18] + state[18:27]
     return (max_capacities > occupancy).nonzero()[0]
 
 
@@ -224,6 +212,7 @@ def get_available_moves(state):
     return available_moves
 
 
+@njit(cache=True)
 def sort_arrays(keys, vals, hits):
     """
     Sorts the three arrays based on the `keys` array.
@@ -243,7 +232,6 @@ def sort_arrays(keys, vals, hits):
     sorted_vals = vals[sort_indices]
     sorted_hits = hits[sort_indices]
     return sorted_keys, sorted_vals, sorted_hits
-
 
 
 def combine_arrays(keys_set, vals_set, hits_set):
@@ -275,6 +263,212 @@ def combine_arrays(keys_set, vals_set, hits_set):
     return combined_keys, combined_vals, combined_hits
 
 
+@njit(cache=True)
+def choose_random_block(available_blocks):
+    """
+    Chooses a block randomly from a list of blocks.
+
+    Arguments:
+      + `available_blocks`: a list of available blocks to
+           insert a patient to.
+
+    Returns: a block to place the arriving patient.
+    """
+    return np.random.choice(available_blocks)
+
+@njit(cache=True)
+def choose_best_block(state, patient_type, available_blocks, Qvals):
+    """
+    Chooses the best action.
+
+    Arguments:
+      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient arriving, either
+           2: 'red', 1: 'amber', or 0: 'green'
+      + `available_blocks`: a list of available blocks to
+           insert a patient to.
+
+    Returns: a block to place the arriving patient, and the Q-value
+               associated with the state-best-action pair
+    """
+    hash_state_only = get_hash_state_only(
+        state=state,
+        patient_type=patient_type,
+        hash_weights=hash_weights
+    )
+
+    available_blocks_Q = np.zeros(len(available_blocks))
+    for i, a in enumerate(available_blocks):
+        key = hash_state_only + a
+        if key in Qvals:
+            available_blocks_Q[i] = Qvals[key]
+
+    Qs_with_rnd = (
+        available_blocks_Q + (
+            np.random.random(available_blocks.size) * 10e-13
+        )
+    )
+
+    idx = Qs_with_rnd.argmax()
+    return available_blocks[idx], available_blocks_Q[idx]
+
+
+@njit(cache=True)
+def get_best_future_reward(next_state, next_patient_type, Qvals, just_chose_best, prev_best_Q):
+    """
+    Returns the maximum future reward if taking the optimal action
+    when in the future state.
+
+    Arguments:
+      + `next_state`: a numpy array representing the state the
+          system has just reached
+      + `next_patient_type`: an integer representing the arriving
+          customer type
+
+    Returns: the maximum epected future reward from following the
+      best actions from this state onwards.
+    """
+    if just_chose_best:
+        return prev_best_Q
+
+    available_as = get_available_insert_moves(state=next_state)
+    hash_state_only = get_hash_state_only(
+        state=next_state,
+        patient_type=next_patient_type,
+        hash_weights=hash_weights
+    )
+
+    best_Q = 0.0
+    for a in available_as:
+        hash_state = hash_state_only + a
+        if hash_state in Qvals:
+            Q = Qvals[hash_state]
+            if Q > best_Q:
+                best_Q = Q
+
+    return best_Q
+
+
+@njit(cache=True, fastmath=True)
+def update_Q_values(first, hash_state, next_state, next_patient_type, next_action, Qvals, hits, reward, learning_rate, discount_factor, just_chose_best, prev_best_Q):
+    """
+    Updates the Q-values according to the Q-learning update:
+
+    Arguments:
+      + `next_state`: a numpy array representing the state the
+           system has just reached
+      + `next_patient_type`: an integer representing the arriving
+           customer type
+      + `next_action`: the next action that has been chosen.
+    """
+    if not first:
+        best_future_reward = get_best_future_reward(
+            next_state=next_state,
+            next_patient_type=next_patient_type,
+            Qvals=Qvals,
+            just_chose_best=just_chose_best,
+            prev_best_Q=prev_best_Q
+        )
+
+        oldQ = 0.0
+        oldhits = np.int64(0)
+        if hash_state in Qvals:
+            oldQ = Qvals[hash_state]
+            oldhits = hits[hash_state]
+
+        newQ = (
+            ((1 - learning_rate) * oldQ)
+            + (learning_rate * (
+                reward + (
+                    discount_factor * best_future_reward
+                )
+            ))
+        )
+        Qvals[hash_state] = newQ
+        hits[hash_state] = oldhits + np.int64(1)
+
+    next_hash_state = get_hash_stateaction(
+        state=next_state,
+        patient_type=next_patient_type,
+        action=next_action,
+        hash_weights=hash_weights
+    )
+    return next_hash_state
+
+
+@njit(cache=True, fastmath=True)
+def transform_cost(cost, transform_parameter):
+    """
+    Transforms the cost (C) into a reward (R) via: R = e^{-p * C}
+    where p is the transform parameter.
+
+    Arguments:
+      + `cost` the cost since the last timestamp
+
+    Returns: a reward.
+    """
+    return exp(-transform_parameter * cost)
+
+
+@njit(cache=True)
+def initialise_qvals(initial_Qvalues, Qvals, hits):
+    """
+    Initialises Qvals dictionary as either empty or with some
+    previously learned Q-values. Also sets the default tuple.
+
+    Arguments:
+      + `initial_Qvalues`: a numpy structured array of Q-values
+           with columns [Key, Q, Hits]
+    """
+    for k, v in zip(
+        initial_Qvalues[0],
+        initial_Qvalues[1]
+    ):
+        Qvals[k] = v
+        hits[k] = np.int64(0)
+
+@njit(cache=True)
+def get_arrays_from_qvals(Qvals, hits):
+    """
+    Directly extracts arrays from the TypedDict at C-speed.
+    """
+    n = len(Qvals)
+    keys_arr = np.empty(n, dtype=np.int64)
+    q_arr = np.empty(n, dtype=np.float64)
+    hits_arr = np.empty(n, dtype=np.int64)
+    
+    i = 0
+    for k, v in Qvals.items():
+        keys_arr[i] = k
+        q_arr[i] = v
+        hits_arr[i] = hits[k]
+        i += 1
+    return n, keys_arr, q_arr, hits_arr
+
+@njit(cache=True)
+def find_next_arrival_date(next_arrivals):
+    """
+    Returns the next date an arrival happens and
+    what type of patient that arrival will be.
+    """
+    t0, t1, t2 = next_arrivals[0], next_arrivals[1], next_arrivals[2]
+    if t0 <= t1 and t0 <= t2:
+        return next_arrivals[0], 0
+    if t1 <= t2:
+        return next_arrivals[1], 1
+    return next_arrivals[2], 2
+
+
+@njit(cache=True)
+def find_next_exit_date(exit_dates):
+    """
+    Returns the next date an exit happens and the indec of the
+    patient that is to exit.
+    """
+    idx = exit_dates.argmin()
+    return exit_dates[idx], idx
+
 
 class EpsilonHard:
     def __init__(self, epsilon, QLearning):
@@ -291,6 +485,7 @@ class EpsilonHard:
         self.epsilon = epsilon
         self.QLearning = QLearning
         self.just_chose_best = False
+        self.best_action_Q = 0.0
 
     def choose_arriving_block(self, state, patient_type):
         """
@@ -305,72 +500,24 @@ class EpsilonHard:
 
         Returns: a block to place the arriving patient.
         """
-        self.available_blocks = get_available_insert_moves(state=state)
-        if self.available_blocks.size == 0:
+        available_blocks = get_available_insert_moves(state=state)
+        if available_blocks.size == 0:
             return None
         if random.random() < self.epsilon:
             self.just_chose_best = True
-            a, Qa = self.choose_best_block(
+            a, Qa = choose_best_block(
                 state=state,
                 patient_type=patient_type,
-                available_blocks=self.available_blocks
+                available_blocks=available_blocks,
+                Qvals=self.QLearning.Qvals
             )
             self.best_action = a
             self.best_action_Q = Qa
             return a
         self.just_chose_best = False
-        return self.choose_random_block(
-            available_blocks=self.available_blocks
+        return choose_random_block(
+            available_blocks=available_blocks
         )
-
-    def choose_random_block(self, available_blocks):
-        """
-        Chooses a block randomly from a list of blocks.
-
-        Arguments:
-          + `available_blocks`: a list of available blocks to
-               insert a patient to.
-
-        Returns: a block to place the arriving patient.
-        """
-        return random.choice(available_blocks)
-
-    def choose_best_block(self, state, patient_type, available_blocks):
-        """
-        Chooses the best action.
-
-        Arguments:
-          + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
-               the state of the ward.
-          + `patient_type`: the type of the patient arriving, either
-               2: 'red', 1: 'amber', or 0: 'green'
-          + `available_blocks`: a list of available blocks to
-               insert a patient to.
-
-        Returns: a block to place the arriving patient, and the Q-value
-                   associated with the state-best-action pair
-        """
-        hash_state_only = get_hash_state_only(
-            state=state,
-            patient_type=patient_type
-        )
-
-        available_blocks_Q = np.array(
-            [
-                self.QLearning.getQ(
-                    hash_state_only + a
-                ) for a in available_blocks
-            ]
-        )
-
-        Qs_with_rnd = (
-            available_blocks_Q + (
-                self.rng.random(available_blocks.size) * 10e-13
-            )
-        )
-
-        idx = Qs_with_rnd.argmax()
-        return available_blocks[idx], available_blocks_Q[idx]
 
     def __repr__(self):
         """
@@ -408,10 +555,22 @@ class QLearning:
         self.discount_factor = discount_factor
         self.transform_parameter = transform_parameter
         self.previous_cost = 0.0
-        self.hash_state = None
-        self.hash_state_idx = None
+        self.hash_state = np.int64(0)
         self.learn = learn
-        self.initialise_qvals(initial_Qvalues=initial_Qvalues)
+        self.Qvals = typed.Dict.empty(
+            key_type=types.int64,
+            value_type=types.float64
+        )
+        self.hits = typed.Dict.empty(
+            key_type=types.int64,
+            value_type=types.int64
+        )
+        if initial_Qvalues is not None:
+            initialise_qvals(
+                initial_Qvalues=initial_Qvalues,
+                Qvals=self.Qvals,
+                hits=self.hits
+            )
 
     def __repr__(self):
         """
@@ -419,163 +578,13 @@ class QLearning:
         """
         return "QLearning"
 
-    def initialise_qvals(self, initial_Qvalues):
-        """
-        Initialises Qvals dictionary as either empty or with some
-        previously learned Q-values. Also sets the default tuple.
-
-        Arguments:
-          + `initial_Qvalues`: a numpy structured array of Q-values
-               with columns [Key, Q, Hits]
-        """
-        if initial_Qvalues is not None:
-            self.Qvals = {
-                k: Qtuple(Q=v, hits=0)
-                for k, v in zip(
-                    initial_Qvalues['Key'],
-                    initial_Qvalues['Q']
-                )
-            }
-        else:
-            self.Qvals = {}
-        self.defaultQtuple = Qtuple(Q=0.0, hits=0)
-
-    def attach_simulation(self, simulation):
-        """
-        Attaches the simulation object to the QLearning object, and
-        associates the random number generator
-
-        Arguments:
-          + `simulation`: a BedMovesSimulation object.
-        """
-        self.simulation = simulation
-        self.rng = self.simulation.rng
-
-    def getQ(self, stateaction):
-        """
-        Returns the Q-value for a particular state-action pair
-
-        Arguments:
-          + `stateaction`: an integer representation of the state-action
-               pair
-        """
-        return self.Qvals.get(stateaction, self.defaultQtuple).Q
-
-    def getQtuple(self, stateaction):
-        """
-        Returns the Q-tuple for a particular state-action pair
-
-        Arguments:
-          + `stateaction`: an integer representation of the state-action
-               pair
-        """
-        return self.Qvals.get(stateaction, self.defaultQtuple)
-
-    def store_Qval(self, stateaction, newQ, oldhits):
-        """
-        Stores the new Qvalue.
-
-        Arguments:
-          + `stateaction`: an integer representation of the state-action
-               pair
-          + `newQ`: the new Q value for that state-action pair
-          + `oldhits`: the previous number of hits for that state-action
-               pair.
-        """
-        self.Qvals[stateaction] = Qtuple(Q=newQ, hits=oldhits+1)
-
-    def update_Q_values(self, next_state, next_patient_type, next_action):
-        """
-        Updates the Q-values according to the Q-learning update:
-
-        Arguments:
-          + `next_state`: a numpy array representing the state the
-               system has just reached
-          + `next_patient_type`: an integer representing the arriving
-               customer type
-          + `next_action`: the next action that has been chosen.
-        """
-        if self.learn:
-            cost = self.simulation.overall_cost - self.previous_cost
-            self.previous_cost = self.simulation.overall_cost
-            R = self.transform_cost(cost=cost)
-    
-            if self.hash_state is not None:
-                best_future_reward = self.get_best_future_reward(
-                    next_state=next_state,
-                    next_patient_type=next_patient_type,
-                )
-                oldQtuple = self.getQtuple(self.hash_state)
-                newQ = (
-                    ((1 - self.learning_rate) * oldQtuple.Q)
-                    + (self.learning_rate * (
-                        R + (
-                            self.discount_factor * best_future_reward
-                        )
-                    ))
-                )
-                self.store_Qval(self.hash_state, newQ, oldQtuple.hits)
-
-            self.hash_state = get_hash_stateaction(
-                state=next_state,
-                patient_type=next_patient_type,
-                action=next_action
-            )
-
-    def transform_cost(self, cost):
-        """
-        Transforms the cost (C) into a reward (R) via: R = e^{-p * C}
-        where p is the transform parameter.
-
-        Arguments:
-          + `cost` the cost since the last timestamp
-
-        Returns: a reward.
-        """
-        return exp(-self.transform_parameter * cost)
-
-    def get_best_future_reward(self, next_state, next_patient_type):
-        """
-        Returns the maximum future reward if taking the optimal action
-        when in the future state.
-
-        Arguments:
-          + `next_state`: a numpy array representing the state the
-              system has just reached
-          + `next_patient_type`: an integer representing the arriving
-              customer type
-
-        Returns: the maximum epected future reward from following the
-          best actions from this state onwards.
-        """
-        if self.simulation.action_chooser.just_chose_best:
-            return self.simulation.action_chooser.best_action_Q
-
-        available_as = get_available_insert_moves(state=next_state)
-        hash_state_only = get_hash_state_only(
-            state=next_state,
-            patient_type=next_patient_type
-        )
-        next_hash_states = [
-            hash_state_only + a for a in available_as
-        ]
-        return max(
-            self.getQ(hash_state) for hash_state in next_hash_states
-        )
-
     def return_Qvals(self):
         """
         Transforms the dictionary of Q-values into a tuple of three
         numpy arrays (keys, Qs, hits).
         """
-        keys = np.array([k for k in self.Qvals.keys()], dtype=np.int64)
-        Qs, hits = [], []
-        for qtuple in self.Qvals.values():
-            Qs.append(qtuple.Q)
-            hits.append(qtuple.hits)
-        Qs = np.array(Qs, dtype=np.float64)
-        hits = np.array(hits, dtype=np.int32)
-        return (keys, Qs, hits)
+        n, k, q, h = get_arrays_from_qvals(self.Qvals, self.hits)
+        return n, k, q, h
 
 
 class BedMoveSimulation:
@@ -619,56 +628,31 @@ class BedMoveSimulation:
         self.QLearning = QLearning
 
         ciw.seed(seed)
-        self.rng = np.random.default_rng(seed=seed)
-        self.action_chooser.rng = self.rng
+        np.random.seed(seed)
+        self.next_arrivals = np.array(
+            [
+                self.arrival_distributions[0].sample(),
+                self.arrival_distributions[1].sample(),
+                self.arrival_distributions[2].sample()
+]
+        )
 
-        self.next_arrivals = {
-            0: self.arrival_distributions[0].sample(),
-            1: self.arrival_distributions[1].sample(),
-            2: self.arrival_distributions[2].sample()
-        }
-
-        self.QLearning.attach_simulation(simulation=self)
-        
+        self.QLearning.simulation = self
         self.prev_now = 0.0
         self.now = 0.0
         self.overall_cost = 0.0
-
+        self.first = True
         self.isolation_penalty = isolation_penalty
         self.adjacent_move_penalty = adjacent_move_penalty
         self.nonadjacent_move_penalty = nonadjacent_move_penalty
 
-        self.patients = Patients(
-            patient_types=-np.ones(17, dtype='int64'),
-            los=np.ones(17) * np.inf,
-            exit_dates=np.ones(17) * np.inf,
-            blocks=-np.ones(17, dtype='int64'),
-            free_indices=[i for i in range(17)]
-        )
+        self.patients_patient_types = -np.ones(17, dtype='int64')
+        self.patients_exit_dates = np.ones(17) * np.inf
+        self.patients_blocks = -np.ones(17, dtype='int64')
+        self.patients_free_indices = [i for i in range(17)]
+        self.patients_number_free = 17
 
         self.state = empty_state.copy()
-
-    def find_next_arrival_date(self):
-        """
-        Returns the next date an arrival happens and
-        what type of patient that arrival will be.
-        """
-        next_type = min(
-            self.next_arrivals,
-            key=self.next_arrivals.get
-        )
-        return self.next_arrivals[next_type], next_type
-
-    def find_next_exit_date(self):
-        """
-        Returns the next date an exit happens and the indec of the
-        patient that is to exit.
-        """
-        if len(self.patients.free_indices) == 17:
-            return float('inf'), None
-
-        idx = self.patients.exit_dates.argmin()
-        return self.patients.exit_dates[idx], idx
 
     def simulate_until_max_time(
         self,
@@ -692,8 +676,12 @@ class BedMoveSimulation:
             self.update_threshold = self.update_interval
 
         while self.now < max_time:
-            next_arrival, patient_type = self.find_next_arrival_date()
-            next_exit, patient_idx = self.find_next_exit_date()
+            next_arrival, patient_type = find_next_arrival_date(self.next_arrivals)
+            if self.patients_number_free == 0:
+                next_exit = float('inf')
+            else:
+                next_exit, patient_idx = find_next_exit_date(self.patients_exit_dates)
+
             if next_arrival < next_exit:
                 self.arrival(
                     next_arrival=next_arrival,
@@ -701,7 +689,6 @@ class BedMoveSimulation:
                 )
             else:
                 self.exit(patient_idx=patient_idx)
-
 
             if shared_progress_array is not None:
                 if self.now > self.update_threshold:
@@ -730,18 +717,36 @@ class BedMoveSimulation:
         if to_block is not None:
             self.inflict_cost(update_time=next_arrival)
             self.now = next_arrival
-            self.QLearning.update_Q_values(
-                next_state=self.state,
-                next_patient_type=patient_type,
-                next_action=to_block
-            )
+            if self.QLearning.learn:
+                cost = self.overall_cost - self.QLearning.previous_cost
+                self.QLearning.previous_cost = self.overall_cost
+                R = transform_cost(
+                    cost=cost,
+                    transform_parameter=self.QLearning.transform_parameter
+                )
 
-            idx = self.patients.free_indices[-1]
-            self.patients.patient_types[idx] = patient_type
-            self.patients.los[idx] = los
-            self.patients.exit_dates[idx] = self.now + los
-            self.patients.blocks[idx] = to_block
-            self.patients.free_indices.pop()
+                self.QLearning.hash_state = update_Q_values(
+                    first=self.first,
+                    hash_state=self.QLearning.hash_state,
+                    next_state=self.state,
+                    next_patient_type=patient_type,
+                    next_action=to_block,
+                    Qvals=self.QLearning.Qvals,
+                    hits=self.QLearning.hits,
+                    reward=R,
+                    learning_rate=self.QLearning.learning_rate,
+                    discount_factor=self.QLearning.discount_factor,
+                    just_chose_best=self.action_chooser.just_chose_best,
+                    prev_best_Q=self.action_chooser.best_action_Q
+                )
+                self.first = False
+
+            idx = self.patients_free_indices[-1]
+            self.patients_patient_types[idx] = patient_type
+            self.patients_exit_dates[idx] = self.now + los
+            self.patients_blocks[idx] = to_block
+            self.patients_free_indices.pop()
+            self.patients_number_free += 1
 
             self.state = insert_patient(
                 state=self.state,
@@ -756,18 +761,18 @@ class BedMoveSimulation:
         Arguments:
           + `patient_idx`: The index of the patient object to remove.
         """
-        self.inflict_cost(update_time=self.patients.exit_dates[patient_idx])
-        self.now = self.patients.exit_dates[patient_idx]
+        self.inflict_cost(update_time=self.patients_exit_dates[patient_idx])
+        self.now = self.patients_exit_dates[patient_idx]
         self.state = remove_patient(
             state=self.state,
-            patient_type=self.patients.patient_types[patient_idx],
-            from_block=self.patients.blocks[patient_idx]
+            patient_type=self.patients_patient_types[patient_idx],
+            from_block=self.patients_blocks[patient_idx]
         )
-        self.patients.patient_types[patient_idx] = -1
-        self.patients.los[patient_idx] = np.inf
-        self.patients.exit_dates[patient_idx] = np.inf
-        self.patients.blocks[patient_idx] = -1
-        self.patients.free_indices.append(patient_idx)
+        self.patients_patient_types[patient_idx] = -1
+        self.patients_exit_dates[patient_idx] = np.inf
+        self.patients_blocks[patient_idx] = -1
+        self.patients_free_indices.append(patient_idx)
+        self.patients_number_free -= 1
 
     def inflict_cost(self, update_time):
         """
