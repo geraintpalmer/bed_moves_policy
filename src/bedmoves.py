@@ -213,54 +213,60 @@ def get_available_moves(state):
 
 
 @njit(cache=True)
-def sort_arrays(keys, vals, hits):
+def incremental_merge(keys1, vals1, hits1, keys2, vals2, hits2):
     """
-    Sorts the three arrays based on the `keys` array.
+    Merges two sorted arrays of keys, vals, and hits.
 
     Arguments
-      - `keys`: a numpy array of int64, the state-action pairs on which
-           to sort
-      - `vals`: a numpy array of float64, the Q-values associated with
-           the state-action pairs
-      - `hits`: a numpy array of int64, the number of hits per
-           state-action pair
-
-    Returns: the same three arrays sorted.
-    """
-    sort_indices = keys.argsort()
-    sorted_keys = keys[sort_indices]
-    sorted_vals = vals[sort_indices]
-    sorted_hits = hits[sort_indices]
-    return sorted_keys, sorted_vals, sorted_hits
-
-
-def combine_arrays(keys_set, vals_set, hits_set):
-    """
-    Combines sets of keys, vals, and hits, such that the resulting
-    vals are the weighted average of the vals across all sets (weighted
-    by hits), and the number of hits are summed.
-
-    Arguments
-      - `keys_set` a list of numpy arrays of int64, the state-action
-           pairs
-      - `vals_set` a list of numpy array of float64, the Q-values
+      - `keys`: a tuple of numpy arrays of int64, the state-action
+           pairs on which to sort
+      - `vals`: a tuple of numpy arrays of float64, the Q-values
            associated with the state-action pairs
-      - `hits_set` a list of numpy array of int64, the number of hits
-           per state-action pair
+      - `hits`: a tuple of numpy arrays of int64, the number of
+           hits per state-action pair
 
-    Returns: the combined list of keys, vals, and hits.
+    Returns: the same three arrays merged sorted.
     """
-    all_keys = np.concatenate(keys_set)
-    all_hits = np.concatenate(hits_set)
-    all_hitsvals = np.concatenate(vals_set) * all_hits
-    sort_idx = all_keys.argsort()
-    sorted_all_keys = all_keys[sort_idx]
-    sorted_all_hits = all_hits[sort_idx]
-    sorted_all_hitsvals = all_hitsvals[sort_idx]
-    combined_keys, jump_indices = np.unique(sorted_all_keys, return_index=True)
-    combined_hits = np.maximum(np.add.reduceat(sorted_all_hits, jump_indices), 1)
-    combined_vals = np.add.reduceat(sorted_all_hitsvals, jump_indices) / combined_hits
-    return combined_keys, combined_vals, combined_hits
+    max_len = len(keys1) + len(keys2)
+    keys_n = np.empty(max_len, dtype=np.int64)
+    vals_n = np.empty(max_len, dtype=np.float64)
+    hits_n = np.empty(max_len, dtype=np.int64)
+
+    idx_1 = 0
+    idx_2 = 0
+    idx_n = 0
+
+    while idx_1 < len(keys1) and idx_2 < len(keys2):
+        if keys1[idx_1] < keys2[idx_2]:
+            keys_n[idx_n], vals_n[idx_n], hits_n[idx_n] = keys1[idx_1], vals1[idx_1], hits1[idx_1]
+            idx_1 += 1
+        elif keys1[idx_1] > keys2[idx_2]:
+            keys_n[idx_n], vals_n[idx_n], hits_n[idx_n] = keys2[idx_2], vals2[idx_2], hits2[idx_2]
+            idx_2 += 1
+        else:
+            sum_hits = hits1[idx_1] + hits2[idx_2]
+            vals_n[idx_n] = ((vals1[idx_1] * hits1[idx_1]) + (vals2[idx_2] * hits2[idx_2])) / sum_hits
+            keys_n[idx_n] = keys1[idx_1]
+            hits_n[idx_n] = sum_hits
+            idx_1 += 1
+            idx_2 += 1
+        idx_n += 1
+
+    while idx_1 < len(keys1):
+        keys_n[idx_n] = keys1[idx_1]
+        vals_n[idx_n] = vals1[idx_1]
+        hits_n[idx_n] = hits1[idx_1]
+        idx_1 += 1
+        idx_n += 1
+
+    while idx_2 < len(keys2):
+        keys_n[idx_n] = keys2[idx_2]
+        vals_n[idx_n] = vals2[idx_2]
+        hits_n[idx_n] = hits2[idx_2]
+        idx_2 += 1
+        idx_n += 1
+
+    return keys_n[:idx_n], vals_n[:idx_n], hits_n[:idx_n]
 
 
 @njit(cache=True)
@@ -426,7 +432,7 @@ def initialise_qvals(initial_Qvalues, Qvals, hits):
         initial_Qvalues[1]
     ):
         Qvals[k] = v
-        hits[k] = np.int64(0)
+        hits[k] = np.int64(1)
 
 @njit(cache=True)
 def get_arrays_from_qvals(Qvals, hits):
@@ -445,6 +451,7 @@ def get_arrays_from_qvals(Qvals, hits):
         hits_arr[i] = hits[k]
         i += 1
     return n, keys_arr, q_arr, hits_arr
+
 
 @njit(cache=True)
 def find_next_arrival_date(next_arrivals):
@@ -584,7 +591,8 @@ class QLearning:
         numpy arrays (keys, Qs, hits).
         """
         n, k, q, h = get_arrays_from_qvals(self.Qvals, self.hits)
-        return n, k, q, h
+        idx = np.argsort(k)
+        return n, k[idx], q[idx], h[idx]
 
 
 class BedMoveSimulation:

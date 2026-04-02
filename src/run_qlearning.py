@@ -66,6 +66,7 @@ def get_Qs(
     return Q.return_Qvals()
 
 if __name__ == '__main__':
+    start = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
     args = parser.parse_args()
@@ -136,10 +137,8 @@ if __name__ == '__main__':
                         if not finished_mask[i] and res.ready():
                             data = res.get()
                             unique_states_per_trial[stage][i] = data[0]
-                            keys, qval, hits = bedmoves.combine_arrays(
-                                [keys, data[1]],
-                                [qval, data[2]],
-                                [hits, data[3]]
+                            keys, qval, hits = bedmoves.incremental_merge(
+                                keys, qval, hits, data[1], data[2], data[3]
                             )
                             data = None
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
@@ -152,7 +151,7 @@ if __name__ == '__main__':
         Qvals = (keys.astype(np.int64), qval.astype(np.float64), hits.astype(np.int64))
         filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
         np.savez(filename, keys=keys, vals=qval, hits=hits)
-        unique_states_per_stage[stage] = len(keys)
+        unique_states_per_stage[stage] = len(Qvals[0])
 
         seed += trials_per_stage
 
@@ -162,3 +161,6 @@ if __name__ == '__main__':
         }, index=[f'Trial {t}' for t in range(trials_per_stage)] + ['Overall']
     )
     unique_states.to_csv(f"{args.experiment}/results/unique_states.csv")
+    end = time.time()
+
+    print(f"Time take: {round(end - start, 2)}")
