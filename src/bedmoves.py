@@ -476,6 +476,23 @@ def find_next_exit_date(exit_dates):
     idx = exit_dates.argmin()
     return exit_dates[idx], idx
 
+@njit(cache=True)
+def get_state_action_from_hashstate(hash_state):
+    action = (hash_state % 10)
+    hash_state_only = hash_state - action
+    return hash_state_only, action
+
+@njit(cache=True)
+def initialise_policy(keys, vals, policy):
+    for k, v in zip(keys, vals):
+        hash_state_only, a = get_state_action_from_hashstate(k)
+        if hash_state_only in policy:
+            if policy[hash_state_only] < v:
+                policy[hash_state_only] = a
+        else:
+            policy[hash_state_only] = a
+    return policy
+
 
 class EpsilonHard:
     def __init__(self, epsilon, QLearning):
@@ -493,6 +510,19 @@ class EpsilonHard:
         self.QLearning = QLearning
         self.just_chose_best = False
         self.best_action_Q = 0.0
+
+    def exploit_policy(self, state, patient_type, policy):
+        hash_state_only = get_hash_state_only(
+            state=state,
+            patient_type=patient_type,
+            hash_weights=hash_weights
+        )
+        if hash_state_only in policy:
+            return policy[hash_state_only]
+        available_blocks = get_available_insert_moves(state=state)
+        if available_blocks.size == 0:
+            return None
+        return choose_random_block(available_blocks=available_blocks)
 
     def choose_arriving_block(self, state, patient_type):
         """
@@ -521,6 +551,7 @@ class EpsilonHard:
             self.best_action = a
             self.best_action_Q = Qa
             return a
+
         self.just_chose_best = False
         return choose_random_block(
             available_blocks=available_blocks
@@ -541,6 +572,7 @@ class QLearning:
         discount_factor,
         transform_parameter,
         initial_Qvalues=None,
+        policy=None,
         learn=True
     ):
         """
@@ -573,11 +605,22 @@ class QLearning:
             value_type=types.int64
         )
         if initial_Qvalues is not None:
-            initialise_qvals(
-                initial_Qvalues=initial_Qvalues,
-                Qvals=self.Qvals,
-                hits=self.hits
-            )
+            if self.learn:
+                initialise_qvals(
+                    initial_Qvalues=initial_Qvalues,
+                    Qvals=self.Qvals,
+                    hits=self.hits
+                )
+            else:
+                self.policy = typed.Dict.empty(
+                    key_type=types.int64,
+                    value_type=types.int64
+                )
+                initialise_policy(
+                    keys=initial_Qvalues[0],
+                    vals=initial_Qvalues[1],
+                    policy=self.policy
+                )
 
     def __repr__(self):
         """
@@ -642,7 +685,7 @@ class BedMoveSimulation:
                 self.arrival_distributions[0].sample(),
                 self.arrival_distributions[1].sample(),
                 self.arrival_distributions[2].sample()
-]
+            ]
         )
 
         self.QLearning.simulation = self
@@ -718,10 +761,19 @@ class BedMoveSimulation:
         interarrival = self.arrival_distributions[patient_type].sample()
         self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
-        to_block = self.action_chooser.choose_arriving_block(
-            state=self.state,
-            patient_type=patient_type
-        )
+        
+        if not self.QLearning.learn and self.action_chooser.epsilon == 1.0:
+            to_block = self.action_chooser.exploit_policy(
+                state=self.state,
+                patient_type=patient_type,
+                policy=self.QLearning.policy
+            )
+        else:
+            to_block = self.action_chooser.choose_arriving_block(
+                state=self.state,
+                patient_type=patient_type
+            )
+
         if to_block is not None:
             self.inflict_cost(update_time=next_arrival)
             self.now = next_arrival

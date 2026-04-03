@@ -10,6 +10,8 @@ import tqdm
 import time
 import pandas as pd
 import gc
+from numba import typed, types, njit, jit
+
 
 # Force NumPy/OpenBLAS to use only 1 core per process
 os.environ["MKL_NUM_THREADS"] = "1"
