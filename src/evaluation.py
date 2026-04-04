@@ -1,6 +1,5 @@
-import bedmoves
+import sim, ward, chooser, rl
 import ciw
-import random
 import yaml
 import argparse
 import numpy as np
@@ -17,7 +16,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
-def get_Qs(
+def evaluate(
     max_time,
     learning_rate,
     discount_factor,
@@ -31,13 +30,7 @@ def get_Qs(
     """
     Runs
     """
-    Q = bedmoves.QLearning(
-        learning_rate=learning_rate,
-        discount_factor=discount_factor,
-        transform_parameter=transform_parameter,
-        initial_Qvalues=initial_Qvalues
-    )
-    S = bedmoves.BedMoveSimulation(
+    S = sim.WardRLSimulation(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -48,30 +41,28 @@ def get_Qs(
             ciw.dists.Exponential(0.7),
             ciw.dists.Exponential(0.4)
         ],
-        action_chooser=bedmoves.EpsilonHard(
-            epsilon=epsilon,
-            QLearning=Q
-        ),
         isolation_penalty=8,
-        adjacent_move_penalty=1,
-        nonadjacent_move_penalty=2,
-        QLearning=Q,
-        seed=seed
+        epsilon=epsilon,
+        learning_rate=learning_rate,
+        discount_factor=discount_factor,
+        transform_parameter=transform_parameter,
+        seed=seed,
+        initial_Qvalues=initial_Qvalues,
+        learn=False
     )
     S.simulate_until_max_time(
         max_time=max_time,
         shared_progress_array=progress_array,
         trial=trial
     )
-    return Q.return_Qvals()
+    return S.overall_cost
 
 if __name__ == '__main__':
-    start = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
     args = parser.parse_args()
 
-    with open(args.experiment + "/params.yml") as f:
+    with open(args.experiment + "/params_eval.yml") as f:
         params_raw = f.read()
         params = yaml.safe_load(params_raw)
 
@@ -84,14 +75,19 @@ if __name__ == '__main__':
     n_threads = int(params['n_threads'])
 
     epsilon_step = 1.0 / (n_stages - 1)
-    epsilons = [(i * epsilon_step) for i in range(n_stages)]
+    training_epsilons = [(i * epsilon_step) for i in range(n_stages)]
     seed = 0
 
-    unique_states_per_trial = {s: {t: None for t in range(trials_per_stage)} for s in range(1, n_stages+1)}
-    unique_states_per_stage = {s: None for s in range(1, n_stages+1)}
+    eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
     
-    Qvals = None
-    for stage in range(1, n_stages+1):
+    costs = {}
+    for stage in range(n_stages+1):
+        if stage > 0:
+            data = np.load(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.npz")
+            Qvalues =  data['keys'].astype(np.int64), data['vals'].astype(np.float64)
+        else:
+            Qvalues = None
+
 
         multiprocessing.set_start_method("spawn", force=True)
         manager = multiprocessing.Manager()
@@ -104,24 +100,22 @@ if __name__ == '__main__':
                 learning_rate,
                 discount_factor,
                 transform_parameter,
-                epsilons[stage-1],
-                Qvals,
+                eval_epsilons[stage],
+                Qvalues,
                 seeds[t],
                 t,
                 progress_array
             ) for t in range(trials_per_stage)
         ]
+        costs[f'Stage {stage}'] = []
 
         with multiprocessing.Pool(processes=n_threads) as pool:
-            results = [pool.apply_async(get_Qs, args) for args in args_list]
-            keys = np.array([])
-            qval = np.array([])
-            hits = np.array([])
+            results = [pool.apply_async(evaluate, args) for args in args_list]
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
-                total=(max_time * trials_per_stage),
-                desc=f"Training Stage {stage} (epsilon={round(epsilons[stage-1], 3)})",
+                total=max_time * trials_per_stage,
+                desc=f"Evaluating Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
             ) as pbar:
@@ -135,32 +129,15 @@ if __name__ == '__main__':
 
                     for i, res in enumerate(results):
                         if not finished_mask[i] and res.ready():
-                            data = res.get()
-                            unique_states_per_trial[stage][i] = data[0]
-                            keys, qval, hits = bedmoves.incremental_merge(
-                                keys, qval, hits, data[1], data[2], data[3]
-                            )
-                            data = None
+                            costs[f'Stage {stage}'].append(res.get())
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
                             gc.collect()
-                    
+
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
 
-        Qvals = (keys.astype(np.int64), qval.astype(np.float64), hits.astype(np.int64))
-        filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.savez(filename, keys=keys, vals=qval, hits=hits)
-        unique_states_per_stage[stage] = len(Qvals[0])
-
         seed += trials_per_stage
 
-    unique_states = pd.DataFrame(
-        {
-            f'Stage {s}': [unique_states_per_trial[s][t] for t in range(trials_per_stage)] + [unique_states_per_stage[s]] for s in range(1, n_stages+1)
-        }, index=[f'Trial {t}' for t in range(trials_per_stage)] + ['Overall']
-    )
-    unique_states.to_csv(f"{args.experiment}/results/unique_states.csv")
-    end = time.time()
-
-    print(f"Time take: {round(end - start, 2)}")
+    df = pd.DataFrame(costs)
+    df.to_csv(f"{args.experiment}/results/evaluation.csv", index=False)

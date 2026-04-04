@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import yaml
 plt.style.use("seaborn-v0_8-whitegrid")
-import subprocess
 import numpy as np
 import argparse
 
