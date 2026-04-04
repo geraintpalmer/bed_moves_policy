@@ -24,6 +24,7 @@ def evaluate(
     epsilon,
     initial_keys,
     initial_qvals,
+    warmup,
     seed,
     trial,
     progress_array,
@@ -46,14 +47,15 @@ def evaluate(
         epsilon=epsilon,
         seed=seed,
         initial_keys=initial_keys,
-        initial_qvals=initial_qvals
+        initial_qvals=initial_qvals,
+        warmup=warmup
     )
     S.simulate_until_max_time(
         max_time=max_time,
         shared_progress_array=progress_array,
         trial=trial
     )
-    return S.overall_cost
+    return S.overall_cost - S.warmup_cost
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -67,6 +69,7 @@ if __name__ == '__main__':
     n_stages = int(params['n_stages'])
     trials_per_stage = int(params['trials_per_stage'])
     max_time = float(params['max_time'])
+    warmup = float(params['warmup'])
     learning_rate = float(params['learning_rate'])
     discount_factor = float(params['discount_factor'])
     transform_parameter = float(params['transform_parameter'])
@@ -103,6 +106,7 @@ if __name__ == '__main__':
                 eval_epsilons[stage],
                 keys,
                 qvals,
+                warmup,
                 seeds[t],
                 t,
                 progress_array

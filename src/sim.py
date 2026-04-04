@@ -82,7 +82,8 @@ class WardSimulation:
         discount_factor=None,
         transform_parameter=None,
         initial_keys=None,
-        initial_qvals=None
+        initial_qvals=None,
+        warmup=0.0
     ):
         """
         Initialises the simulation object.
@@ -108,6 +109,8 @@ class WardSimulation:
                generator.
           + `initial_keys`: a numpy array of hashed state action pairs
           + `initial_qvals`: a numpy arrays of q-values.
+          + `warmup`: when evaluating, the date at which to begin
+               accumulating the cost.
         """
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
@@ -131,10 +134,12 @@ class WardSimulation:
             ]
         )
 
-        self.prev_now = 0.0
         self.now = 0.0
         self.overall_cost = 0.0
         self.previous_cost = 0.0
+        self.warmup = warmup
+        self.warmup_cost = 0.0
+        self.pre_warmup = True
 
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
@@ -151,6 +156,23 @@ class WardSimulation:
         Placeholder for setting up qvals or policy.
         """
         pass
+
+    def accumulate_warmup_cost(self, cost, update_time):
+        """
+        Accumulates the cost incurred during the warmup time
+
+        Arguments:
+          + `cost`: the cost incurred during the last interval
+          + `update_time`: the date of the end of the interval
+        """
+        if update_time <= self.warmup:
+            self.warmup_cost += cost
+        if (update_time > self.warmup) and self.pre_warmup:
+            residual_cost = cost * (
+                (update_time - self.now) / (update_time - self.warmup)
+            )
+            self.warmup_cost += residual_cost
+            self.pre_warmup = False
 
     def simulate_until_max_time(
         self,
@@ -214,11 +236,16 @@ class WardSimulation:
         a = self.decide_action(patient_type)
 
         if a is not None:
-            self.overall_cost += get_cost(
+            cost = get_cost(
                 state=self.state,
                 update_time=next_arrival,
                 prev_time=self.now,
                 isolation_penalty=self.isolation_penalty
+            )
+            self.overall_cost += cost
+            self.accumulate_warmup_cost(
+                cost=cost,
+                update_time=next_arrival
             )
             self.now = next_arrival
             self.learn(patient_type, a)
@@ -242,11 +269,16 @@ class WardSimulation:
         Arguments:
           + `patient_idx`: The index of the patient object to remove.
         """
-        self.overall_cost += get_cost(
+        cost = get_cost(
             state=self.state,
             update_time=self.patients_exit_dates[patient_idx],
-            prev_time=self.prev_now,
+            prev_time=self.now,
             isolation_penalty=self.isolation_penalty
+        )
+        self.overall_cost += cost
+        self.accumulate_warmup_cost(
+            cost=cost,
+            update_time=self.patients_exit_dates[patient_idx]
         )
         self.now = self.patients_exit_dates[patient_idx]
         self.state = ward.remove_patient(

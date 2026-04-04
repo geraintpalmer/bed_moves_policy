@@ -262,3 +262,46 @@ def test_can_simulate_with_initial_Qvals():
     assert 100003 in S.hits
     assert 22 not in S.hits
     assert 162521625229227 in S.hits
+
+def test_using_warmup():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.1),
+            ciw.dists.Exponential(0.5),
+            ciw.dists.Exponential(0.2)
+        ],
+        isolation_penalty=3,
+        epsilon=0.0,
+        seed=0,
+        warmup=50.0
+    )
+    # Simulate for less than the warmup time
+    S.simulate_until_max_time(40.0)
+    assert S.overall_cost == 580.6972971751927
+    assert S.warmup_cost == 580.6972971751927
+
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Exponential(1.5),
+            ciw.dists.Exponential(1.0),
+            ciw.dists.Exponential(0.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(0.1),
+            ciw.dists.Exponential(0.5),
+            ciw.dists.Exponential(0.2)
+        ],
+        isolation_penalty=3,
+        epsilon=0.0,
+        seed=0,
+        warmup=50.0
+    )
+    # Simulate for more than the warmup time
+    S.simulate_until_max_time(60.0)
+    assert S.overall_cost == 853.4886757599921
+    assert S.warmup_cost == 694.4406726288279
