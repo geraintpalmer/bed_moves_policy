@@ -22,7 +22,8 @@ def evaluate(
     discount_factor,
     transform_parameter,
     epsilon,
-    initial_Qvalues,
+    initial_keys,
+    initial_qvals,
     seed,
     trial,
     progress_array,
@@ -30,7 +31,7 @@ def evaluate(
     """
     Runs
     """
-    S = sim.WardRLSimulation(
+    S = sim.WardEvaluation(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -43,12 +44,9 @@ def evaluate(
         ],
         isolation_penalty=8,
         epsilon=epsilon,
-        learning_rate=learning_rate,
-        discount_factor=discount_factor,
-        transform_parameter=transform_parameter,
         seed=seed,
-        initial_Qvalues=initial_Qvalues,
-        learn=False
+        initial_keys=initial_keys,
+        initial_qvals=initial_qvals
     )
     S.simulate_until_max_time(
         max_time=max_time,
@@ -84,9 +82,11 @@ if __name__ == '__main__':
     for stage in range(n_stages+1):
         if stage > 0:
             data = np.load(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.npz")
-            Qvalues =  data['keys'].astype(np.int64), data['vals'].astype(np.float64)
+            keys =  data['keys'].astype(np.int64)
+            qvals = data['vals'].astype(np.float64)
         else:
-            Qvalues = None
+            keys = None
+            qvals = None
 
 
         multiprocessing.set_start_method("spawn", force=True)
@@ -101,7 +101,8 @@ if __name__ == '__main__':
                 discount_factor,
                 transform_parameter,
                 eval_epsilons[stage],
-                Qvalues,
+                keys,
+                qvals,
                 seeds[t],
                 t,
                 progress_array

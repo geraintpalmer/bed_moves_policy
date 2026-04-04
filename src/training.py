@@ -22,7 +22,8 @@ def train(
     discount_factor,
     transform_parameter,
     epsilon,
-    initial_Qvalues,
+    initial_keys,
+    initial_qvals,
     seed,
     trial,
     progress_array,
@@ -30,7 +31,7 @@ def train(
     """
     Runs
     """
-    S = sim.WardRLSimulation(
+    S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -43,12 +44,12 @@ def train(
         ],
         isolation_penalty=8,
         epsilon=epsilon,
+        seed=seed,
         learning_rate=learning_rate,
         discount_factor=discount_factor,
         transform_parameter=transform_parameter,
-        seed=seed,
-        initial_Qvalues=initial_Qvalues,
-        learn=True
+        initial_keys=initial_keys,
+        initial_qvals=initial_qvals
     )
     S.simulate_until_max_time(
         max_time=max_time,
@@ -81,7 +82,8 @@ if __name__ == '__main__':
     unique_states_per_trial = {s: {t: None for t in range(trials_per_stage)} for s in range(1, n_stages+1)}
     unique_states_per_stage = {s: None for s in range(1, n_stages+1)}
     
-    Qvals = None
+    keys = None
+    qvals = None
     for stage in range(1, n_stages+1):
 
         multiprocessing.set_start_method("spawn", force=True)
@@ -96,7 +98,8 @@ if __name__ == '__main__':
                 discount_factor,
                 transform_parameter,
                 epsilons[stage-1],
-                Qvals,
+                keys,
+                qvals,
                 seeds[t],
                 t,
                 progress_array
@@ -106,7 +109,7 @@ if __name__ == '__main__':
         with multiprocessing.Pool(processes=n_threads) as pool:
             results = [pool.apply_async(train, args) for args in args_list]
             keys = np.array([])
-            qval = np.array([])
+            qvals = np.array([])
             hits = np.array([])
             finished_mask = [False] * trials_per_stage
 
@@ -128,8 +131,8 @@ if __name__ == '__main__':
                         if not finished_mask[i] and res.ready():
                             data = res.get()
                             unique_states_per_trial[stage][i] = data[0]
-                            keys, qval, hits = rl.merge_sorted_qvals(
-                                keys, qval, hits, data[1], data[2], data[3]
+                            keys, qvals, hits = rl.merge_sorted_qvals(
+                                keys, qvals, hits, data[1], data[2], data[3]
                             )
                             data = None
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
@@ -139,10 +142,9 @@ if __name__ == '__main__':
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
 
-        Qvals = (keys.astype(np.int64), qval.astype(np.float64))
         filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.savez(filename, keys=keys, vals=qval, hits=hits)
-        unique_states_per_stage[stage] = len(Qvals[0])
+        np.savez(filename, keys=keys, vals=qvals, hits=hits)
+        unique_states_per_stage[stage] = len(keys)
 
         seed += trials_per_stage
 

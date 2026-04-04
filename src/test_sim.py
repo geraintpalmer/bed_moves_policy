@@ -83,8 +83,8 @@ def test_get_cost():
     assert cost == 12.0
 
 
-def test_WardRLSimulation_arrival_and_exit():
-    S = sim.WardRLSimulation(
+def test_WardSimulation_arrival_and_exit():
+    S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Deterministic(5),
             ciw.dists.Deterministic(9),
@@ -97,10 +97,10 @@ def test_WardRLSimulation_arrival_and_exit():
         ],
         isolation_penalty=2.0,
         epsilon=0.0,
+        seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
-        transform_parameter=1.0,
-        seed=0
+        transform_parameter=1.0
     )
     expected_state_before = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -169,7 +169,7 @@ def test_can_simulate_with_initial_Qvals():
     qval = np.array([2.5])
     hits = np.array([34])
     
-    S = sim.WardRLSimulation(
+    S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -182,12 +182,12 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         epsilon=0.0,
+        seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        seed=0,
-        initial_Qvalues=(keys, qval),
-        learn=True
+        initial_keys=keys,
+        initial_qvals=qval
     )
     S.simulate_until_max_time(2)
     assert 100003 in S.Qvals
@@ -202,7 +202,7 @@ def test_can_simulate_with_initial_Qvals():
     qval = np.array([2.5])
     hits = np.array([34])
     
-    S = sim.WardRLSimulation(
+    S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -215,12 +215,12 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         epsilon=0.0,
+        seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        seed=0,
-        initial_Qvalues=(keys, qval),
-        learn=True
+        initial_keys=keys,
+        initial_qvals=qval
     )
     S.simulate_until_max_time(2)
     assert 100003 in S.Qvals
@@ -235,7 +235,7 @@ def test_can_simulate_with_initial_Qvals():
     qval = np.array([2.5])
     hits = np.array([34])
     
-    S = sim.WardRLSimulation(
+    S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
             ciw.dists.Exponential(1.0),
@@ -248,12 +248,12 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         epsilon=0.0,
+        seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
         transform_parameter=0.2,
-        seed=0,
-        initial_Qvalues=(keys, qval),
-        learn=True
+        initial_keys=keys,
+        initial_qvals=qval
     )
     S.simulate_until_max_time(2)
     assert 100003 in S.Qvals

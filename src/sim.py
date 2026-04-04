@@ -70,19 +70,19 @@ def get_cost(state, update_time, prev_time, isolation_penalty):
     return cost
 
 
-class WardRLSimulation:
+class WardSimulation:
     def __init__(
         self,
         arrival_distributions,
         los_distributions,
         isolation_penalty,
         epsilon,
-        learning_rate,
-        discount_factor,
-        transform_parameter,
         seed,
-        initial_Qvalues=None,
-        learn=True
+        learning_rate=None,
+        discount_factor=None,
+        transform_parameter=None,
+        initial_keys=None,
+        initial_qvals=None
     ):
         """
         Initialises the simulation object.
@@ -106,11 +106,8 @@ class WardRLSimulation:
                rewards via e^{-transform_parameter * cost}
           + `seed`: the random seed for the pseudorandom number
                generator.
-          + `initial_Qvalues`: a tuple of two numpy arrays, the first
-               being the hashed state action pairs, and the second being
-               the q-values.
-          + `learn`: a Boolean, indicating if the object should carry
-               out learning on this run of the simulation or not.
+          + `initial_keys`: a numpy array of hashed state action pairs
+          + `initial_qvals`: a numpy arrays of q-values.
         """
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
@@ -118,7 +115,6 @@ class WardRLSimulation:
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.transform_parameter = transform_parameter
-        self.learn = learn
 
         self.epsilon = epsilon
         self.just_chose_best = False
@@ -148,35 +144,13 @@ class WardRLSimulation:
 
         self.state = ward.empty_state.copy()
         self.hash_state = None
+        self.setup_qvals(initial_keys, initial_qvals)
 
-        
-        if self.learn:
-            self.Qvals = typed.Dict.empty(
-                key_type=types.int64,
-                value_type=types.float64
-            )
-            self.hits = typed.Dict.empty(
-                key_type=types.int64,
-                value_type=types.int64
-            )
-            if initial_Qvalues is not None:
-                rl.initialise_qvals(
-                    keys_array=initial_Qvalues[0],
-                    qval_array=initial_Qvalues[1],
-                    Qvals=self.Qvals,
-                    hits=self.hits
-                )
-        else:
-            self.policy = typed.Dict.empty(
-                key_type=types.int64,
-                value_type=types.int64
-            )
-            if initial_Qvalues is not None:
-                rl.initialise_policy(
-                    keys_array=initial_Qvalues[0],
-                    qval_array=initial_Qvalues[1],
-                    policy=self.policy
-                )
+    def setup_qvals(self, initial_keys, initial_qvals):
+        """
+        Placeholder for setting up qvals or policy.
+        """
+        pass
 
     def simulate_until_max_time(
         self,
@@ -237,22 +211,7 @@ class WardRLSimulation:
         interarrival = self.arrival_distributions[patient_type].sample()
         self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
-        
-        if not self.learn:
-            a = chooser.exploit_policy(
-                state=self.state,
-                patient_type=patient_type,
-                policy=self.policy
-            )
-        else:
-            a, Qa = chooser.choose_arriving_block(
-                state=self.state,
-                patient_type=patient_type,
-                epsilon=self.epsilon,
-                Qvals=self.Qvals
-            )
-            self.just_chose_best = Qa is not None
-            self.prev_best_Q = Qa
+        a = self.decide_action(patient_type)
 
         if a is not None:
             self.overall_cost += get_cost(
@@ -262,37 +221,7 @@ class WardRLSimulation:
                 isolation_penalty=self.isolation_penalty
             )
             self.now = next_arrival
-            if self.learn:
-                cost = self.overall_cost - self.previous_cost
-                self.previous_cost = self.overall_cost
-                R = rl.transform_cost(
-                    cost=cost,
-                    transform_parameter=self.transform_parameter
-                )
-
-                if self.hash_state is not None:
-                    self.hash_state = rl.update_Q_values(
-                        hash_state=self.hash_state,
-                        next_state=self.state,
-                        next_patient_type=patient_type,
-                        next_action=a,
-                        Qvals=self.Qvals,
-                        hits=self.hits,
-                        reward=R,
-                        learning_rate=self.learning_rate,
-                        discount_factor=self.discount_factor,
-                        just_chose_best=self.just_chose_best,
-                        prev_best_Q=self.prev_best_Q
-                    )
-                else:
-                    self.hash_state = ward.get_hash_stateaction(
-                        state=self.state,
-                        patient_type=patient_type,
-                        action=a,
-                        hash_weights=ward.hash_weights
-                    )
-
-
+            self.learn(patient_type, a)
             idx = self.patients_free_indices[-1]
             self.patients_patient_types[idx] = patient_type
             self.patients_exit_dates[idx] = self.now + los
@@ -331,6 +260,18 @@ class WardRLSimulation:
         self.patients_free_indices.append(patient_idx)
         self.patients_number_free -= 1
 
+    def learn(self, patient_type, action):
+        """
+        Placeholder for learning.
+        """
+        pass
+
+    def decide_action(self, patient_type):
+        """
+        Placeholder for deciding an action.
+        """
+        return None
+
     def return_Qvals(self):
         """
         Transforms the dictionary of Q-values into a tuple of three
@@ -340,3 +281,130 @@ class WardRLSimulation:
         idx = np.argsort(k)
         return n, k[idx], q[idx], h[idx]
 
+
+
+class WardTraining(WardSimulation):
+    def decide_action(self, patient_type):
+        """
+        Decides on the action to take.
+
+        Arguments:
+          + `patient_type`: the type of patient that the next arrival
+               will be.
+
+        Returns: an action.
+        """
+        a, Qa = chooser.choose_arriving_block(
+            state=self.state,
+            patient_type=patient_type,
+            epsilon=self.epsilon,
+            Qvals=self.Qvals
+        )
+        self.just_chose_best = Qa is not None
+        self.prev_best_Q = Qa
+        return a
+
+    def learn(self, patient_type, action):
+        """
+        Performs some Q-Learning.
+
+        Arguments:
+          + `patient_type`: the type of patient that the next arrival
+               will be.
+          + `action`: the action taken.
+        """
+        cost = self.overall_cost - self.previous_cost
+        self.previous_cost = self.overall_cost
+        R = rl.transform_cost(
+            cost=cost,
+            transform_parameter=self.transform_parameter
+        )
+
+        if self.hash_state is not None:
+            self.hash_state = rl.update_Q_values(
+                hash_state=self.hash_state,
+                next_state=self.state,
+                next_patient_type=patient_type,
+                next_action=action,
+                Qvals=self.Qvals,
+                hits=self.hits,
+                reward=R,
+                learning_rate=self.learning_rate,
+                discount_factor=self.discount_factor,
+                just_chose_best=self.just_chose_best,
+                prev_best_Q=self.prev_best_Q
+            )
+        else:
+            self.hash_state = ward.get_hash_stateaction(
+                state=self.state,
+                patient_type=patient_type,
+                action=action,
+                hash_weights=ward.hash_weights
+            )
+    def setup_qvals(self, initial_keys, initial_qvals):
+        """
+        Sets up the Qvals and hits dictionaries
+
+        Arguments:
+          + `initial_keys`: a numpy array of hashed stateaction pairs
+          + `initial_qvals`: a numpy array of q-values
+        """
+        self.Qvals = typed.Dict.empty(
+            key_type=types.int64,
+            value_type=types.float64
+        )
+        self.hits = typed.Dict.empty(
+            key_type=types.int64,
+            value_type=types.int64
+        )
+        if initial_keys is not None:
+            rl.initialise_qvals(
+                keys_array=initial_keys,
+                qval_array=initial_qvals,
+                Qvals=self.Qvals,
+                hits=self.hits
+            )
+
+class WardEvaluation(WardSimulation):
+    def decide_action(self, patient_type):
+        """
+        Decides on the action to take by exploting the given policy.
+
+        Arguments:
+          + `patient_type`: the type of patient that the next arrival
+               will be.
+
+        Returns: an action.
+        """
+        a = chooser.exploit_policy(
+            state=self.state,
+            patient_type=patient_type,
+            policy=self.policy
+        )
+        return a
+
+    def learn(self, patient_type, action):
+        """
+        Passes as no learning takes place.
+        """
+        pass
+
+    def setup_qvals(self, initial_keys, initial_qvals):
+        """
+        Sets up the Qvals and hits dictionaries
+        (when learning), or the policy (when evaluating)
+
+        Arguments:
+          + `initial_keys`: a numpy array of hashed stateaction pairs
+          + `initial_qvals`: a numpy array of q-values
+        """
+        self.policy = typed.Dict.empty(
+            key_type=types.int64,
+            value_type=types.int64
+        )
+        if initial_keys is not None:
+            rl.initialise_policy(
+                keys_array=initial_keys,
+                qval_array=initial_qvals,
+                policy=self.policy
+            )
