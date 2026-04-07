@@ -89,7 +89,7 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
         hash_weights=ward.hash_weights
     )
 
-    best_Q = 0.0
+    best_Q = -np.inf
     for a in available_as:
         hash_state = hash_state_only + a
         if hash_state in Qvals:
@@ -112,7 +112,8 @@ def update_Q_values(
     learning_rate,
     discount_factor,
     just_chose_best,
-    prev_best_Q
+    prev_best_Q,
+    default_future_reward
 ):
     """
     Updates the Q-values according to the Q-learning update:
@@ -134,6 +135,8 @@ def update_Q_values(
       + `just_chose_best`: a Boolean representing if the
              simulation chose the best action in the previous step
       + `prev_best_Q`: the previously chosen best q-value
+      + `default_future_reward`: the future reward given if all
+           future actions unexplored
 
     Returns: (updates the Qvals and hits dictionaries) and returns
              the hash state of the newly reached state.
@@ -145,6 +148,8 @@ def update_Q_values(
         just_chose_best=just_chose_best,
         prev_best_Q=prev_best_Q
     )
+    if np.isinf(best_future_reward):
+        best_future_reward = default_future_reward / (1 - discount_factor)
 
     oldQ = 0.0
     oldhits = np.int64(0)
@@ -185,7 +190,8 @@ def transform_cost(cost, transform_parameter):
 
     Returns: a reward.
     """
-    return exp(-transform_parameter * cost)
+    return -cost
+    # return exp(-transform_parameter * cost)
 
 
 @njit(cache=True)

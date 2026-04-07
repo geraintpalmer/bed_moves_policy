@@ -137,6 +137,8 @@ class WardSimulation:
         self.now = 0.0
         self.overall_cost = 0.0
         self.previous_cost = 0.0
+        self.average_reward = 0.0
+        self.n_rewards = 0
         self.warmup = warmup
         self.warmup_cost = 0.0
         self.pre_warmup = True
@@ -352,6 +354,9 @@ class WardTraining(WardSimulation):
             transform_parameter=self.transform_parameter
         )
 
+        self.n_rewards += 1
+        self.average_reward += ((R - self.average_reward) / self.n_rewards)
+
         if self.hash_state is not None:
             self.hash_state = rl.update_Q_values(
                 hash_state=self.hash_state,
@@ -364,7 +369,8 @@ class WardTraining(WardSimulation):
                 learning_rate=self.learning_rate,
                 discount_factor=self.discount_factor,
                 just_chose_best=self.just_chose_best,
-                prev_best_Q=self.prev_best_Q
+                prev_best_Q=self.prev_best_Q,
+                default_future_reward=self.average_reward
             )
         else:
             self.hash_state = ward.get_hash_stateaction(

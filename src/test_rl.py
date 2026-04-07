@@ -117,7 +117,8 @@ def test_update_Q_values():
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=False,
-        prev_best_Q=300
+        prev_best_Q=300,
+        default_future_reward=0.1
     )
 
     assert next_hash_state == 485044850400016
@@ -137,7 +138,8 @@ def test_update_Q_values():
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=False,
-        prev_best_Q=300
+        prev_best_Q=300,
+        default_future_reward=0.1
     )
     assert next_hash_state == 485044850400016
     assert len(Qvals) == 4
@@ -156,7 +158,8 @@ def test_update_Q_values():
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=True,
-        prev_best_Q=10000
+        prev_best_Q=10000,
+        default_future_reward=0.1
     )
     assert next_hash_state == 485044850400016
     assert len(Qvals) == 4
@@ -164,14 +167,65 @@ def test_update_Q_values():
     assert hits[hash_state + 5] == 3
     assert Qvals[hash_state + 5] == 308.75 + 4500.0
 
+def test_update_Q_values_default_future():
+    state = np.array(
+        (3, 2, 2, 3, 2, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    hash_state = ward.get_hash_state_only(
+        state=state,
+        patient_type=0,
+        hash_weights=ward.hash_weights
+    )
+    next_state = np.array(
+        (3, 2, 2, 3, 2, 2, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    next_hash_state = ward.get_hash_state_only(
+        state=next_state,
+        patient_type=1,
+        hash_weights=ward.hash_weights
+    )
 
-def test_transform_cost():
-    cost1 = -math.log(7)
-    cost2 = -math.log(2)
-    cost3 = -math.log(15)
-    assert np.isclose(rl.transform_cost(cost=cost1, transform_parameter=1.0), 7)
-    assert np.isclose(rl.transform_cost(cost=cost2, transform_parameter=1.0), 2)
-    assert np.isclose(rl.transform_cost(cost=cost3, transform_parameter=1.0), 15)
+    Qvals = typed.Dict.empty(
+        key_type=types.int64,
+        value_type=types.float64
+    )
+    hits = typed.Dict.empty(
+        key_type=types.int64,
+        value_type=types.int64
+    )
+    next_hash_state = rl.update_Q_values(
+        hash_state=hash_state+5,
+        next_state=next_state,
+        next_patient_type=1,
+        next_action=6,
+        Qvals=Qvals,
+        hits=hits,
+        reward=200,
+        learning_rate=0.5,
+        discount_factor=0.9,
+        just_chose_best=False,
+        prev_best_Q=300,
+        default_future_reward=0.1
+    )
+
+    assert next_hash_state == 485044850400016
+    assert len(Qvals) == 1
+    assert len(hits) == 1
+    assert hits[hash_state + 5] == 1
+    assert Qvals[hash_state + 5] == (0.5 * 200) + (0.5 * (0.9 * (0.1 / 0.1)))
+
+
+# def test_transform_cost():
+#     cost1 = -math.log(7)
+#     cost2 = -math.log(2)
+#     cost3 = -math.log(15)
+#     assert np.isclose(rl.transform_cost(cost=cost1, transform_parameter=1.0), 7)
+#     assert np.isclose(rl.transform_cost(cost=cost2, transform_parameter=1.0), 2)
+#     assert np.isclose(rl.transform_cost(cost=cost3, transform_parameter=1.0), 15)
 
 def test_initialise_qvals():
     keys1 = np.array([1, 4, 5, 9, 11])
