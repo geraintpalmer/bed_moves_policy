@@ -178,20 +178,16 @@ def update_Q_values(
 
 
 @njit(cache=True, fastmath=True)
-def transform_cost(cost, transform_parameter):
+def transform_cost(cost):
     """
-    Transforms the cost (C) into a reward (R) via: R = e^{-p * C}
-    where p is the transform parameter.
+    Transforms the cost (C) into a reward (R) via: R = -C
 
     Arguments:
       + `cost` the cost since the last timestamp
-      + `transform_parameter`: a parameter to transform costs into
-           rewards via e^{-transform_parameter * cost}
 
     Returns: a reward.
     """
     return -cost
-    # return exp(-transform_parameter * cost)
 
 
 @njit(cache=True)

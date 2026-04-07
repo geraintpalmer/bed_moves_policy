@@ -9,4 +9,4 @@
 *.fdb_latexmk
 *bedmoves/*
 *env/*
-*results*
+*.npz*

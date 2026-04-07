@@ -80,7 +80,6 @@ class WardSimulation:
         seed,
         learning_rate=None,
         discount_factor=None,
-        transform_parameter=None,
         initial_keys=None,
         initial_qvals=None,
         warmup=0.0
@@ -103,8 +102,6 @@ class WardSimulation:
                algorithm (a number between 0 and 1)
           + `discount_factor`: the discount factor of the Q-learning
                algorithm (a number between 0 and 1)
-          + `transform_parameter`: a parameter to transform costs into
-               rewards via e^{-transform_parameter * cost}
           + `seed`: the random seed for the pseudorandom number
                generator.
           + `initial_keys`: a numpy array of hashed state action pairs
@@ -117,7 +114,6 @@ class WardSimulation:
         self.isolation_penalty = isolation_penalty
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
-        self.transform_parameter = transform_parameter
 
         self.epsilon = epsilon
         self.just_chose_best = False
@@ -349,10 +345,7 @@ class WardTraining(WardSimulation):
         """
         cost = self.overall_cost - self.previous_cost
         self.previous_cost = self.overall_cost
-        R = rl.transform_cost(
-            cost=cost,
-            transform_parameter=self.transform_parameter
-        )
+        R = rl.transform_cost(cost=cost)
 
         self.n_rewards += 1
         self.average_reward += ((R - self.average_reward) / self.n_rewards)

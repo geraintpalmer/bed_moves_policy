@@ -26,15 +26,16 @@ def train(
     seed,
     trial,
     progress_array,
+    m
 ):
     """
     Runs
     """
     S = sim.WardTraining(
         arrival_distributions=[
-            ciw.dists.Exponential(1.5),
-            ciw.dists.Exponential(1.0),
-            ciw.dists.Exponential(0.5)
+            ciw.dists.Exponential(1.5 * m),
+            ciw.dists.Exponential(1.0 * m),
+            ciw.dists.Exponential(0.5 * m)
         ],
         los_distributions=[
             ciw.dists.Exponential(0.3),
@@ -50,7 +51,7 @@ def train(
         initial_qvals=initial_qvals
     )
     S.simulate_until_max_time(
-        max_time=max_time,
+        max_time=(max_time / m),
         shared_progress_array=progress_array,
         trial=trial
     )
@@ -71,6 +72,7 @@ if __name__ == '__main__':
     learning_rate = float(params['learning_rate'])
     discount_factor = float(params['discount_factor'])
     n_threads = int(params['n_threads'])
+    m = float(params['m'])
 
     epsilon_step = 1.0 / (n_stages - 1)
     epsilons = [(i * epsilon_step) for i in range(n_stages)]
@@ -98,7 +100,8 @@ if __name__ == '__main__':
                 qvals,
                 seeds[t],
                 t,
-                progress_array
+                progress_array,
+                m
             ) for t in range(trials_per_stage)
         ]
 

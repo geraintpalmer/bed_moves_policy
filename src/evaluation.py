@@ -18,9 +18,6 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def evaluate(
     max_time,
-    learning_rate,
-    discount_factor,
-    transform_parameter,
     epsilon,
     initial_keys,
     initial_qvals,
@@ -70,9 +67,6 @@ if __name__ == '__main__':
     trials_per_stage = int(params['trials_per_stage'])
     max_time = float(params['max_time'])
     warmup = float(params['warmup'])
-    learning_rate = float(params['learning_rate'])
-    discount_factor = float(params['discount_factor'])
-    transform_parameter = float(params['transform_parameter'])
     n_threads = int(params['n_threads'])
 
     epsilon_step = 1.0 / (n_stages - 1)
@@ -100,9 +94,6 @@ if __name__ == '__main__':
         args_list = [
             (
                 max_time,
-                learning_rate,
-                discount_factor,
-                transform_parameter,
                 eval_epsilons[stage],
                 keys,
                 qvals,

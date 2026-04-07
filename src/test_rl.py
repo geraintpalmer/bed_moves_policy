@@ -218,15 +218,6 @@ def test_update_Q_values_default_future():
     assert hits[hash_state + 5] == 1
     assert Qvals[hash_state + 5] == (0.5 * 200) + (0.5 * (0.9 * (0.1 / 0.1)))
 
-
-# def test_transform_cost():
-#     cost1 = -math.log(7)
-#     cost2 = -math.log(2)
-#     cost3 = -math.log(15)
-#     assert np.isclose(rl.transform_cost(cost=cost1, transform_parameter=1.0), 7)
-#     assert np.isclose(rl.transform_cost(cost=cost2, transform_parameter=1.0), 2)
-#     assert np.isclose(rl.transform_cost(cost=cost3, transform_parameter=1.0), 15)
-
 def test_initialise_qvals():
     keys1 = np.array([1, 4, 5, 9, 11])
     vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5])

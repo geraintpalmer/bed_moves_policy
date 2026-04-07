@@ -99,8 +99,7 @@ def test_WardSimulation_arrival_and_exit():
         epsilon=0.0,
         seed=0,
         learning_rate=0.5,
-        discount_factor=0.9,
-        transform_parameter=1.0
+        discount_factor=0.9
     )
     expected_state_before = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -185,7 +184,6 @@ def test_can_simulate_with_initial_Qvals():
         seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
-        transform_parameter=0.2,
         initial_keys=keys,
         initial_qvals=qval
     )
@@ -218,7 +216,6 @@ def test_can_simulate_with_initial_Qvals():
         seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
-        transform_parameter=0.2,
         initial_keys=keys,
         initial_qvals=qval
     )
@@ -251,7 +248,6 @@ def test_can_simulate_with_initial_Qvals():
         seed=0,
         learning_rate=0.5,
         discount_factor=0.9,
-        transform_parameter=0.2,
         initial_keys=keys,
         initial_qvals=qval
     )
