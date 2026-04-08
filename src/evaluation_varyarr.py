@@ -113,7 +113,7 @@ if __name__ == '__main__':
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
-                total=max_time * trials_per_stage,
+                total=((max_time / m) * trials_per_stage),
                 desc=f"Evaluating Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
