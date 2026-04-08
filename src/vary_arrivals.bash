@@ -19,9 +19,9 @@ python3 evaluation_varyarr.py experiments/vary_arrivals/m100
 python3 analysis.py experiments/vary_arrivals/m100
 
 echo "Arrival multiplier: 1.25"
-python3 training_varyarr.py experiments/vary_arrivals/m125
-python3 evaluation_varyarr.py experiments/vary_arrivals/m125
-python3 analysis.py experiments/vary_arrivals/m125
+python3 training_varyarr.py experiments/vary_arrivals/m115
+python3 evaluation_varyarr.py experiments/vary_arrivals/m115
+python3 analysis.py experiments/vary_arrivals/m115
 
 echo "Arrival multiplier: 1.5"
 python3 training_varyarr.py experiments/vary_arrivals/m150
