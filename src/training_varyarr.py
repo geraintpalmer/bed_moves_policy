@@ -139,7 +139,7 @@ if __name__ == '__main__':
                             gc.collect()
                     
                     time.sleep(1) # Don't burn CPU checking the array
-                pbar.update((max_time * trials_per_stage) - last_min_progress)
+                pbar.update(((max_time / m) * trials_per_stage) - last_min_progress)
 
         filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
         np.savez(filename, keys=keys, vals=qvals, hits=hits)

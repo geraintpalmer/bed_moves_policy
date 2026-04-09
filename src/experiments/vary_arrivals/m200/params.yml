@@ -1,7 +1,7 @@
-max_time: 300000
+max_time: 320000
 learning_rate: 0.1
 discount_factor: 0.95
 n_stages: 21
-trials_per_stage: 24
-n_threads: 12
+trials_per_stage: 18
+n_threads: 18
 m: 2.0
