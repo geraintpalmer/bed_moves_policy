@@ -1,32 +1,47 @@
-echo "Arrival multiplier: 0.25"
-python3 training_varyarr.py experiments/vary_arrivals/m025
-python3 evaluation_varyarr.py experiments/vary_arrivals/m025
-python3 analysis.py experiments/vary_arrivals/m025
+echo "Arrival multiplier: 0.2"
+python3 training_varyarr.py experiments/vary_arrivals/m020
+python3 evaluation_varyarr.py experiments/vary_arrivals/m020
+python3 analysis.py experiments/vary_arrivals/m020
 
-echo "Arrival multiplier: 0.5"
-python3 training_varyarr.py experiments/vary_arrivals/m050
-python3 evaluation_varyarr.py experiments/vary_arrivals/m050
-python3 analysis.py experiments/vary_arrivals/m050
+echo "Arrival multiplier: 0.4"
+python3 training_varyarr.py experiments/vary_arrivals/m040
+python3 evaluation_varyarr.py experiments/vary_arrivals/m040
+python3 analysis.py experiments/vary_arrivals/m040
 
-echo "Arrival multiplier: 0.75"
-python3 training_varyarr.py experiments/vary_arrivals/m075
-python3 evaluation_varyarr.py experiments/vary_arrivals/m075
-python3 analysis.py experiments/vary_arrivals/m075
+echo "Arrival multiplier: 0.6"
+python3 training_varyarr.py experiments/vary_arrivals/m060
+python3 evaluation_varyarr.py experiments/vary_arrivals/m060
+python3 analysis.py experiments/vary_arrivals/m060
+
+echo "Arrival multiplier: 0.8"
+python3 training_varyarr.py experiments/vary_arrivals/m080
+python3 evaluation_varyarr.py experiments/vary_arrivals/m080
+python3 analysis.py experiments/vary_arrivals/m080
 
 echo "Arrival multiplier: 1.0"
 python3 training_varyarr.py experiments/vary_arrivals/m100
 python3 evaluation_varyarr.py experiments/vary_arrivals/m100
 python3 analysis.py experiments/vary_arrivals/m100
 
-echo "Arrival multiplier: 1.25"
-python3 training_varyarr.py experiments/vary_arrivals/m125
-python3 evaluation_varyarr.py experiments/vary_arrivals/m125
-python3 analysis.py experiments/vary_arrivals/m125
+echo "Arrival multiplier: 1.2"
+python3 training_varyarr.py experiments/vary_arrivals/m120
+python3 evaluation_varyarr.py experiments/vary_arrivals/m120
+python3 analysis.py experiments/vary_arrivals/m120
 
-echo "Arrival multiplier: 1.5"
-python3 training_varyarr.py experiments/vary_arrivals/m150
-python3 evaluation_varyarr.py experiments/vary_arrivals/m150
-python3 analysis.py experiments/vary_arrivals/m150
+echo "Arrival multiplier: 1.4"
+python3 training_varyarr.py experiments/vary_arrivals/m140
+python3 evaluation_varyarr.py experiments/vary_arrivals/m140
+python3 analysis.py experiments/vary_arrivals/m140
+
+echo "Arrival multiplier: 1.6"
+python3 training_varyarr.py experiments/vary_arrivals/m160
+python3 evaluation_varyarr.py experiments/vary_arrivals/m160
+python3 analysis.py experiments/vary_arrivals/m160
+
+echo "Arrival multiplier: 1.8"
+python3 training_varyarr.py experiments/vary_arrivals/m180
+python3 evaluation_varyarr.py experiments/vary_arrivals/m180
+python3 analysis.py experiments/vary_arrivals/m180
 
 echo "Arrival multiplier: 2.0"
 python3 training_varyarr.py experiments/vary_arrivals/m200
@@ -42,8 +57,3 @@ echo "Arrival multiplier: 3.0"
 python3 training_varyarr.py experiments/vary_arrivals/m300
 python3 evaluation_varyarr.py experiments/vary_arrivals/m300
 python3 analysis.py experiments/vary_arrivals/m300
-
-echo "Arrival multiplier: 4.0"
-python3 training_varyarr.py experiments/vary_arrivals/m400
-python3 evaluation_varyarr.py experiments/vary_arrivals/m400
-python3 analysis.py experiments/vary_arrivals/m400

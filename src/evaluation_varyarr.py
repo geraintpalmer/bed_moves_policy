@@ -49,7 +49,7 @@ def evaluate(
         warmup=(warmup / m)
     )
     S.simulate_until_max_time(
-        max_time=(max_time / m),
+        max_time=max_time,
         shared_progress_array=progress_array,
         trial=trial
     )
@@ -66,10 +66,10 @@ if __name__ == '__main__':
 
     n_stages = int(params['n_stages'])
     trials_per_stage = int(params['trials_per_stage'])
-    max_time = float(params['max_time'])
     warmup = float(params['warmup'])
     n_threads = int(params['n_threads'])
     m = float(params['m'])
+    max_time = float(params['max_time']) / m
 
     epsilon_step = 1.0 / (n_stages - 1)
     training_epsilons = [(i * epsilon_step) for i in range(n_stages)]
@@ -113,7 +113,7 @@ if __name__ == '__main__':
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
-                total=((max_time / m) * trials_per_stage),
+                total=(max_time * trials_per_stage),
                 desc=f"Evaluating Stage {stage} (epsilon={round(eval_epsilons[stage], 3)})",
                 unit_scale=True,
                 bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                             gc.collect()
 
                     time.sleep(1) # Don't burn CPU checking the array
-                pbar.update(((max_time / m) * trials_per_stage) - last_min_progress)
+                pbar.update((max_time * trials_per_stage) - last_min_progress)
 
         seed += trials_per_stage
 
