@@ -44,6 +44,6 @@ python3 evaluation_varyarr.py experiments/vary_arrivals/m300
 python3 analysis.py experiments/vary_arrivals/m300
 
 echo "Arrival multiplier: 4.0"
-python3 training_varyarr.py experiments/vary_arrivals/400
-python3 evaluation_varyarr.py experiments/vary_arrivals/400
-python3 analysis.py experiments/vary_arrivals/400
+python3 training_varyarr.py experiments/vary_arrivals/m400
+python3 evaluation_varyarr.py experiments/vary_arrivals/m400
+python3 analysis.py experiments/vary_arrivals/m400
