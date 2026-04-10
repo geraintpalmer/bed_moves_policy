@@ -134,7 +134,7 @@ if __name__ == '__main__':
                             gc.collect()
 
                     time.sleep(1) # Don't burn CPU checking the array
-                pbar.update((max_time * trials_per_stage) - last_min_progress)
+                pbar.update(((max_time / m) * trials_per_stage) - last_min_progress)
 
         seed += trials_per_stage
 
