@@ -3,4 +3,3 @@ learning_rate: 0.6
 discount_factor: 0.5
 n_stages: 21
 trials_per_stage: 18
-n_threads: 18

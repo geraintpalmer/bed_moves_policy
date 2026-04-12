@@ -57,6 +57,7 @@ def evaluate(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
+    parser.add_argument('n_threads', help='The number of parallel processers to use.')
     args = parser.parse_args()
 
     with open(args.experiment + "/params_eval.yml") as f:
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     trials_per_stage = int(params['trials_per_stage'])
     max_time = float(params['max_time'])
     warmup = float(params['warmup'])
-    n_threads = int(params['n_threads'])
+    n_threads = int(args.n_threads)
 
     epsilon_step = 1.0 / (n_stages - 1)
     training_epsilons = [(i * epsilon_step) for i in range(n_stages)]

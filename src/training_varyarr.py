@@ -60,6 +60,7 @@ def train(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
+    parser.add_argument('n_threads', help='The number of parallel processers to use.')
     args = parser.parse_args()
 
     with open(args.experiment + "/params.yml") as f:
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     trials_per_stage = int(params['trials_per_stage'])
     learning_rate = float(params['learning_rate'])
     discount_factor = float(params['discount_factor'])
-    n_threads = int(params['n_threads'])
+    n_threads = int(args.n_threads)
     m = float(params['m'])
     max_time = float(params['max_time']) / m
 
@@ -83,12 +84,10 @@ if __name__ == '__main__':
     
     keys = None
     qvals = None
+    multiprocessing.set_start_method("spawn", force=True)
+    manager = multiprocessing.Manager()
     for stage in range(1, n_stages+1):
-
-        multiprocessing.set_start_method("spawn", force=True)
-        manager = multiprocessing.Manager()
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
-
         seeds = [seed + trial for trial in range(trials_per_stage)]
         args_list = [
             (
@@ -130,9 +129,15 @@ if __name__ == '__main__':
                         if not finished_mask[i] and res.ready():
                             data = res.get()
                             unique_states_per_trial[stage][i] = data[0]
-                            keys, qvals, hits = rl.merge_sorted_qvals(
+                            new_keys, new_qvals, new_hits = rl.merge_sorted_qvals(
                                 keys, qvals, hits, data[1], data[2], data[3]
                             )
+                            keys = new_keys.copy()
+                            new_keys = None
+                            qvals = new_qvals.copy()
+                            new_qvals = None
+                            hits = new_hits.copy()
+                            new_hits = None
                             data = None
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True

@@ -6,13 +6,13 @@ from numba import typed, types
 import math
 
 def test_merge_sorted_qvals():
-    keys1 = np.array([1, 4, 5, 9, 11])
-    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5])
-    hits1 = np.array([1, 1, 5, 2, 3])
+    keys1 = np.array([1, 4, 5, 9, 11, 16])
+    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 8.0])
+    hits1 = np.array([1, 1, 5, 2, 3, 0])
 
-    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14])
-    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5])
-    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4])
+    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14, 16])
+    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 8.0])
+    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4, 0])
 
     keys, vals, hits = rl.merge_sorted_qvals(
         keys1=keys1,
@@ -23,9 +23,9 @@ def test_merge_sorted_qvals():
         hits2=hits2
     )
 
-    assert np.array_equal(keys, np.array([1, 2, 4, 5, 6, 9, 10, 11, 12, 14]))
-    assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5]))
-    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4]))
+    assert np.array_equal(keys, np.array([1, 2, 4, 5, 6, 9, 10, 11, 12, 14, 16]))
+    assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5, 8.0]))
+    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0]))
 
 
 def test_get_best_future_reward():
@@ -219,9 +219,9 @@ def test_update_Q_values_default_future():
     assert Qvals[hash_state + 5] == (0.5 * 200) + (0.5 * (0.9 * (0.1 / 0.1)))
 
 def test_initialise_qvals():
-    keys1 = np.array([1, 4, 5, 9, 11])
-    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5])
-    hits1 = np.array([1, 1, 5, 2, 3])
+    keys1 = np.array([1, 4, 5, 9, 11, 12])
+    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0])
+    hits1 = np.array([1, 1, 5, 2, 3, 0])
     Qvals1 = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.float64
@@ -236,18 +236,20 @@ def test_initialise_qvals():
         Qvals=Qvals1,
         hits=Hits1
     )
-    assert len(Qvals1) == 5
-    assert len(Hits1) == 5
+    assert len(Qvals1) == 6
+    assert len(Hits1) == 6
     assert Qvals1[1] == 0.5
     assert Qvals1[4] == 1.5
     assert Qvals1[5] == 2.0
     assert Qvals1[9] == 1.5
     assert Qvals1[11] == 4.5
-    assert Hits1[1] == 1
-    assert Hits1[4] == 1
-    assert Hits1[5] == 1
-    assert Hits1[9] == 1
-    assert Hits1[11] == 1
+    assert Qvals1[12] == 6.0
+    assert Hits1[1] == 0
+    assert Hits1[4] == 0
+    assert Hits1[5] == 0
+    assert Hits1[9] == 0
+    assert Hits1[11] == 0
+    assert Hits1[12] == 0
 
     keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14])
     vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5])
@@ -266,8 +268,8 @@ def test_initialise_qvals():
         Qvals=Qvals2,
         hits=Hits2
     )
-    assert len(Qvals1) == 5
-    assert len(Hits1) == 5
+    assert len(Qvals2) == 8
+    assert len(Hits2) == 8
     assert Qvals2[2] == 1.5
     assert Qvals2[5] == 5.0
     assert Qvals2[6] == 1.0
@@ -276,14 +278,14 @@ def test_initialise_qvals():
     assert Qvals2[11] == 6.0
     assert Qvals2[12] == 4.5
     assert Qvals2[14] == 1.5
-    assert Hits2[2] == 1
-    assert Hits2[5] == 1
-    assert Hits2[6] == 1
-    assert Hits2[9] == 1
-    assert Hits2[10] == 1
-    assert Hits2[11] == 1
-    assert Hits2[12] == 1
-    assert Hits2[14] == 1
+    assert Hits2[2] == 0
+    assert Hits2[5] == 0
+    assert Hits2[6] == 0
+    assert Hits2[9] == 0
+    assert Hits2[10] == 0
+    assert Hits2[11] == 0
+    assert Hits2[12] == 0
+    assert Hits2[14] == 0
 
 
 def test_initialise_policy():

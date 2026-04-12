@@ -36,9 +36,12 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
             idx_2 += 1
         else:
             sum_hits = hits1[idx_1] + hits2[idx_2]
-            vals_n[idx_n] = ((vals1[idx_1] * hits1[idx_1]) + (vals2[idx_2] * hits2[idx_2])) / sum_hits
             keys_n[idx_n] = keys1[idx_1]
             hits_n[idx_n] = sum_hits
+            if sum_hits == 0:
+                vals_n[idx_n] = vals1[idx_1]
+            else:
+                vals_n[idx_n] = ((vals1[idx_1] * hits1[idx_1]) + (vals2[idx_2] * hits2[idx_2])) / sum_hits
             idx_1 += 1
             idx_2 += 1
         idx_n += 1
@@ -207,7 +210,7 @@ def initialise_qvals(keys_array, qval_array, Qvals, hits):
         qval_array
     ):
         Qvals[k] = v
-        hits[k] = np.int64(1)
+        hits[k] = np.int64(0)
 
 
 @njit(cache=True)
