@@ -1,7 +1,4 @@
 max_time: 30000
 warmup: 5000
-learning_rate: 0.5
-discount_factor: 0.95
-transform_parameter: 2.0
 n_stages: 21
-trials_per_stage: 44
+trials_per_stage: 60
