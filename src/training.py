@@ -9,6 +9,15 @@ import tqdm
 import time
 import gc
 import pandas as pd
+import ctypes
+from ctypes.util import find_library
+
+def trim_memory():
+    libc_path = find_library('c')
+    if libc_path:
+        libc = ctypes.CDLL(libc_path)
+        if hasattr(libc, 'malloc_trim'):
+            libc.malloc_trim(0)
 
 # Force NumPy/OpenBLAS to use only 1 core per process
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -103,6 +112,8 @@ if __name__ == '__main__':
 
         with multiprocessing.Pool(processes=n_threads) as pool:
             results = [pool.apply_async(train, args) for args in args_list]
+            del args_list
+            gc.collect()
             keys = np.array([])
             qvals = np.array([])
             hits = np.array([])
@@ -129,16 +140,17 @@ if __name__ == '__main__':
                             new_keys, new_qvals, new_hits = rl.merge_sorted_qvals(
                                 keys, qvals, hits, data[1], data[2], data[3]
                             )
-                            keys = new_keys.copy()
-                            new_keys = None
-                            qvals = new_qvals.copy()
-                            new_qvals = None
-                            hits = new_hits.copy()
-                            new_hits = None
                             data = None
+                            keys = new_keys.copy()
+                            del new_keys
+                            qvals = new_qvals.copy()
+                            del new_qvals
+                            hits = new_hits.copy()
+                            del new_hits
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
                             gc.collect()
+                            trim_memory()
                     
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)

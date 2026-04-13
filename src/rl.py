@@ -9,19 +9,38 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
     Merges two sorted arrays of keys, vals, and hits.
 
     Arguments
-      - `keys`: a tuple of numpy arrays of int64, the state-action
-           pairs on which to sort
-      - `vals`: a tuple of numpy arrays of float64, the Q-values
+      - `keys1`: a sorted numpy array of int64, the state-action
+           pair hashes
+      - `vals1`: a sorted numpy array of float64, the Q-values
            associated with the state-action pairs
-      - `hits`: a tuple of numpy arrays of int64, the number of
+      - `hits1`: a sorted numpy array of int64, the number of
            hits per state-action pair
-
-    Returns: the same three arrays merged sorted.
+      - `keys2`: a sorted numpy array of int64, the state-action
+           pair hashes
+      - `vals2`: a sorted numpy array of float64, the Q-values
+           associated with the state-action pairs
+      - `hits2`: a sorted numpy array of int64, the number of
+           hits per state-action pair
+    Returns: the same three arrays merge-sorted.
     """
-    max_len = len(keys1) + len(keys2)
-    keys_n = np.empty(max_len, dtype=np.int64)
-    vals_n = np.empty(max_len, dtype=np.float64)
-    hits_n = np.empty(max_len, dtype=np.int64)
+    idx_1 = 0
+    idx_2 = 0
+    unique_count = 0
+    while idx_1 < len(keys1) and idx_2 < len(keys2):
+        if keys1[idx_1] == keys2[idx_2]:
+            idx_1 += 1
+            idx_2 += 1
+        elif keys1[idx_1] < keys2[idx_2]:
+            idx_1 += 1
+        else:
+            idx_2 += 1
+        unique_count += 1
+    unique_count += (len(keys1) - idx_1) + (len(keys2) - idx_2)
+
+
+    keys_n = np.empty(unique_count, dtype=np.int64)
+    vals_n = np.empty(unique_count, dtype=np.float64)
+    hits_n = np.empty(unique_count, dtype=np.int64)
 
     idx_1 = 0
     idx_2 = 0
@@ -60,7 +79,7 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
         idx_2 += 1
         idx_n += 1
 
-    return keys_n[:idx_n], vals_n[:idx_n], hits_n[:idx_n]
+    return keys_n, vals_n, hits_n
 
 
 @njit(cache=True)

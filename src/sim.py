@@ -309,7 +309,10 @@ class WardSimulation:
         """
         n, k, q, h = rl.get_arrays_from_dicts(self.Qvals, self.hits)
         idx = np.argsort(k)
-        return n, k[idx], q[idx], h[idx]
+        k = k[idx]
+        q = q[idx]
+        h = h[idx]
+        return n, k, q, h
 
 
 
