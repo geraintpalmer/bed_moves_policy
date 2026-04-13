@@ -23,9 +23,9 @@ def test_merge_sorted_qvals():
         hits2=hits2
     )
 
-    assert np.array_equal(keys, np.array([1, 2, 4, 5, 6, 9, 10, 11, 12, 14, 16]))
-    assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5, 8.0]))
-    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0]))
+    assert np.array_equal(keys, np.array([1, 2, 4, 5, 6, 9, 10, 11, 12, 14, 16], dtype=np.int64))
+    assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5, 8.0], dtype=np.float32))
+    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0], dtype=np.int32))
 
 
 def test_get_best_future_reward():
@@ -347,5 +347,5 @@ def test_get_arrays_from_dicts():
 
     assert n == 3
     assert np.array_equal(k, np.array([99900096, 99900097, 99900098]))
-    assert np.array_equal(q, np.array([50.4, 100.4, 60.4]))
+    assert np.array_equal(q, np.array([50.4, 100.4, 60.4], dtype=np.float32))
     assert np.array_equal(h, np.array([1, 6, 2]))

@@ -67,7 +67,7 @@ def get_cost(state, update_time, prev_time, isolation_penalty):
     )
     interval = update_time - prev_time
     cost = (interval * (resource_use + penalty))
-    return cost
+    return np.float32(cost)
 
 
 class WardSimulation:
@@ -111,13 +111,13 @@ class WardSimulation:
         """
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
-        self.isolation_penalty = isolation_penalty
-        self.learning_rate = learning_rate
-        self.discount_factor = discount_factor
+        self.isolation_penalty = np.float32(isolation_penalty)
+        self.learning_rate = np.float32(learning_rate)
+        self.discount_factor = np.float32(discount_factor)
 
         self.epsilon = epsilon
         self.just_chose_best = False
-        self.prev_best_Q = 0.0
+        self.prev_best_Q = np.float32(0.0)
 
         ciw.seed(seed)
         np.random.seed(seed)
@@ -131,12 +131,12 @@ class WardSimulation:
         )
 
         self.now = 0.0
-        self.overall_cost = 0.0
-        self.previous_cost = 0.0
-        self.average_reward = 0.0
+        self.overall_cost = np.float32(0.0)
+        self.previous_cost = np.float32(0.0)
+        self.average_reward = np.float32(0.0)
         self.n_rewards = 0
         self.warmup = warmup
-        self.warmup_cost = 0.0
+        self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
         self.patients_patient_types = -np.ones(17, dtype='int64')
@@ -166,9 +166,9 @@ class WardSimulation:
         if update_time <= self.warmup:
             self.warmup_cost += cost
         if (update_time > self.warmup) and self.pre_warmup:
-            residual_cost = cost * (
+            residual_cost = np.float32(cost * (
                 (update_time - self.now) / (update_time - self.warmup)
-            )
+            ))
             self.warmup_cost += residual_cost
             self.pre_warmup = False
 
@@ -346,9 +346,8 @@ class WardTraining(WardSimulation):
                will be.
           + `action`: the action taken.
         """
-        cost = self.overall_cost - self.previous_cost
+        R = self.previous_cost - self.overall_cost
         self.previous_cost = self.overall_cost
-        R = rl.transform_cost(cost=cost)
 
         self.n_rewards += 1
         self.average_reward += ((R - self.average_reward) / self.n_rewards)
@@ -385,11 +384,11 @@ class WardTraining(WardSimulation):
         """
         self.Qvals = typed.Dict.empty(
             key_type=types.int64,
-            value_type=types.float64
+            value_type=types.float32
         )
         self.hits = typed.Dict.empty(
             key_type=types.int64,
-            value_type=types.int64
+            value_type=types.int32
         )
         if initial_keys is not None:
             rl.initialise_qvals(
@@ -434,7 +433,7 @@ class WardEvaluation(WardSimulation):
         """
         self.policy = typed.Dict.empty(
             key_type=types.int64,
-            value_type=types.int64
+            value_type=types.int32
         )
         if initial_keys is not None:
             rl.initialise_policy(

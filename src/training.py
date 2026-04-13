@@ -93,6 +93,7 @@ if __name__ == '__main__':
     qvals = None
     multiprocessing.set_start_method("spawn", force=True)
     manager = multiprocessing.Manager()
+    
     for stage in range(1, n_stages+1):
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
         seeds = [seed + trial for trial in range(trials_per_stage)]
@@ -114,9 +115,9 @@ if __name__ == '__main__':
             results = [pool.apply_async(train, args) for args in args_list]
             del args_list
             gc.collect()
-            keys = np.array([])
-            qvals = np.array([])
-            hits = np.array([])
+            keys = np.array([], dtype=np.int64)
+            qvals = np.array([], dtype=np.float32)
+            hits = np.array([], dtype=np.float32)
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(

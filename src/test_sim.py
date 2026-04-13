@@ -278,8 +278,8 @@ def test_using_warmup():
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time(40.0)
-    assert S.overall_cost == 580.6972971751927
-    assert S.warmup_cost == 580.6972971751927
+    assert S.overall_cost == 580.697
+    assert S.warmup_cost == 580.697
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -299,5 +299,5 @@ def test_using_warmup():
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time(60.0)
-    assert S.overall_cost == 853.4886757599921
-    assert S.warmup_cost == 694.4406726288279
+    assert S.overall_cost == 853.48846
+    assert S.warmup_cost == 694.4404

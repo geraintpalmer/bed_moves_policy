@@ -39,8 +39,8 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
 
 
     keys_n = np.empty(unique_count, dtype=np.int64)
-    vals_n = np.empty(unique_count, dtype=np.float64)
-    hits_n = np.empty(unique_count, dtype=np.int64)
+    vals_n = np.empty(unique_count, dtype=np.float32)
+    hits_n = np.empty(unique_count, dtype=np.int32)
 
     idx_1 = 0
     idx_2 = 0
@@ -111,7 +111,7 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
         hash_weights=ward.hash_weights
     )
 
-    best_Q = -np.inf
+    best_Q = -np.float32(np.inf)
     for a in available_as:
         hash_state = hash_state_only + a
         if hash_state in Qvals:
@@ -171,24 +171,24 @@ def update_Q_values(
         prev_best_Q=prev_best_Q
     )
     if np.isinf(best_future_reward):
-        best_future_reward = default_future_reward / (1 - discount_factor)
+        best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
 
-    oldQ = 0.0
-    oldhits = np.int64(0)
+    oldQ = np.float32(0.0)
+    oldhits = np.int32(0)
     if hash_state in Qvals:
         oldQ = Qvals[hash_state]
         oldhits = hits[hash_state]
 
     newQ = (
-        ((1 - learning_rate) * oldQ)
+        ((np.float32(1.0) - learning_rate) * oldQ)
         + (learning_rate * (
             reward + (
                 discount_factor * best_future_reward
             )
         ))
     )
-    Qvals[hash_state] = newQ
-    hits[hash_state] = oldhits + np.int64(1)
+    Qvals[hash_state] = np.float32(newQ)
+    hits[hash_state] = np.int32(oldhits + 1)
 
     next_hash_state = ward.get_hash_stateaction(
         state=next_state,
@@ -198,18 +198,6 @@ def update_Q_values(
     )
     return next_hash_state
 
-
-@njit(cache=True, fastmath=True)
-def transform_cost(cost):
-    """
-    Transforms the cost (C) into a reward (R) via: R = -C
-
-    Arguments:
-      + `cost` the cost since the last timestamp
-
-    Returns: a reward.
-    """
-    return -cost
 
 
 @njit(cache=True)
@@ -229,7 +217,7 @@ def initialise_qvals(keys_array, qval_array, Qvals, hits):
         qval_array
     ):
         Qvals[k] = v
-        hits[k] = np.int64(0)
+        hits[k] = np.int32(0)
 
 
 @njit(cache=True)
@@ -243,7 +231,7 @@ def initialise_policy(keys_array, qval_array, policy):
       + `qval_array`: a numpy array containing the learned q-values
       + `policy`: an empty typed dictionary for the policy.
     """
-    running_max = 0.0
+    running_max = np.float32(0.0)
     for k, v in zip(keys_array, qval_array):
         hash_state_only, a = ward.get_state_action_from_hashstate(k)
         if hash_state_only in policy:
@@ -272,8 +260,8 @@ def get_arrays_from_dicts(Qvals, hits):
     """
     n = len(Qvals)
     keys_arr = np.empty(n, dtype=np.int64)
-    q_arr = np.empty(n, dtype=np.float64)
-    hits_arr = np.empty(n, dtype=np.int64)
+    q_arr = np.empty(n, dtype=np.float32)
+    hits_arr = np.empty(n, dtype=np.int32)
     
     i = 0
     for k, v in Qvals.items():

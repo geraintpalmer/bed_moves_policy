@@ -9,6 +9,15 @@ import tqdm
 import time
 import gc
 import pandas as pd
+import ctypes
+from ctypes.util import find_library
+
+def trim_memory():
+    libc_path = find_library('c')
+    if libc_path:
+        libc = ctypes.CDLL(libc_path)
+        if hasattr(libc, 'malloc_trim'):
+            libc.malloc_trim(0)
 
 # Force NumPy/OpenBLAS to use only 1 core per process
 os.environ["MKL_NUM_THREADS"] = "1"
@@ -79,18 +88,18 @@ if __name__ == '__main__':
     eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
     
     costs = {}
+    multiprocessing.set_start_method("spawn", force=True)
+    manager = multiprocessing.Manager()
+    
     for stage in range(n_stages+1):
         if stage > 0:
             data = np.load(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.npz")
             keys =  data['keys'].astype(np.int64)
-            qvals = data['vals'].astype(np.float64)
+            qvals = data['vals'].astype(np.float32)
         else:
             keys = None
             qvals = None
 
-
-        multiprocessing.set_start_method("spawn", force=True)
-        manager = multiprocessing.Manager()
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
 
         seeds = [seed + trial for trial in range(trials_per_stage)]
@@ -111,6 +120,8 @@ if __name__ == '__main__':
 
         with multiprocessing.Pool(processes=n_threads) as pool:
             results = [pool.apply_async(evaluate, args) for args in args_list]
+            del args_list
+            gc.collect()
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
@@ -133,6 +144,7 @@ if __name__ == '__main__':
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
                             gc.collect()
+                            trim_memory()
 
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
