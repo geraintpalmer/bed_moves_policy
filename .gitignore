@@ -8,6 +8,8 @@
 *.out
 *.fls
 *.fdb_latexmk
+*.bbl
+*.blg
 *bedmoves/*
 *env/*
 *.npz*

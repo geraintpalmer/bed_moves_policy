@@ -1,0 +1,582 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{parskip}
+\usepackage{standalone}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{xurl}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{xfrac}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{xfrac}
+\usepackage{bbm}
+\usepackage{siunitx}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{patterns,snakes}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{arrows.meta}
+\usepackage{cases}
+\usepackage{tcolorbox}
+
+
+\title{\bf Improving ICU Patient Bed Moves Policies with \{Simulation-Optimisation / Reinforcement Learning / Q-Learning / Unsupervised Learning / Approximate Dynamic Programming / Markov Decision Processes\}}
+\author{Geraint I. Palmer-Liyu, Mark Tuson, Virginia Ahedo \& Paul R. Harper}
+
+\begin{document}
+\maketitle
+
+
+\section{Introduction}
+
+
+\section{Background}\label{sec:background}
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Here we need some background on the ICU department at the Heath; background and
+literature on on ICU bed moves, why we move patients, why it's bad to move
+patients, etc. 
+\end{tcolorbox}
+
+
+\section{MDP Formulation}
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Here I am describing the simplified (trivial?) MDP which finds the policy of
+which block to place newly arriving patients. This will be expanded to include
+bed moved once this formulation has been tested and experimented with. 
+\end{tcolorbox}
+
+We will consider the bed move policy problem as a Markov Decision Process (MDP),
+which is a tuple $(S, A, P, R)$, with states $s \in S$, actions $a \in A$,
+transition probabilities $p_{s, s', a} \in P$, and rewards $r_{s, s', a} \in R$.
+This is a discrete time MDP, with actions being taken at the discrete events
+when a new patient is admitted.
+The approach taken to find the optimal policy will be reinforcement learning, a
+model-free approach, and so the probabilities $P$ need not be defined, and
+transitions are taken care of with a simulation model.
+The following sections describe each component.
+
+
+\subsection{States}
+The ICU ward contains 17 beds, which can be partitioned into 9 blocks, shown in
+Figure~\ref{fig:block_structure}.
+These blocks are defined by resource use: normally each block can be overseen
+by one full time equivalent nurse.
+A corridor separates blocks 1, 2, and 3, from blocks 4, 5, and 6.
+Blocks 7, 8, and 9 represent isolation units, and are separated by physical
+walls.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../images/block_structure}
+\end{center}
+\caption{Representation of the 17 ICU beds partitioned into 9 blocks.}
+\label{fig:block_structure}
+\end{figure}
+
+The model will consider three types of patient, categorised as green, amber,
+or red patients:
+\begin{itemize}
+  \item Green: these are the least severe patients.
+        When there are multiple green patients occupying beds in the same block,
+        only one FTE nurse is required for the whole block;
+  \item Amber: these patients require one to one attention from nurses, they
+        will always require their own FTE nurse whichever block they are in,
+        and whichever patients are sharing their block;
+  \item Red: these patients require isolation and one to one attention.
+        If they cannot be places in an isolation unit, they are placed in a
+        shared unit, and will require their own FTE nurse similar to amber
+        patients.
+        They will also incur a penalty cost for each time unit they are placed
+        in a shared block.
+\end{itemize}
+
+Within a block it doesn't make a difference which bed a particular patient is
+in, as it won't have an effect on resource use or cost.
+Therefore, the state of the ward can be defined only by how many of each
+category of patient are in each block.
+Define the ward state by a $3\times9$ matrix $M$, with integer entries $M_{ij}$
+corresponding to the number of category $j$ patients (where $j=0$ corresponds
+to green patients, $j=1$ to amber patients, and $j=2$ to red patients)
+currently occupying a bed in block $i$.
+
+As an example, consider the ICU state given in Figure~\ref{fig:example_state},
+where green, amber and red beds indicate beds occupied by green, amber and red
+patients respectively, and black beds are unoccupied.
+This corresponds to the ward state:
+
+\begin{equation}\label{eqn:example_M}
+M^{\star} = \begin{pmatrix}
+0 & 2 & 0 & 2 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0
+\end{pmatrix}
+\end{equation}
+
+Ward state changes are caused by newly arriving patients of different categories
+being placed into beds in specific blocks, patient discharges, and moving a
+patient from one block to another.
+
+\begin{figure}l
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../images/example}
+\end{center}
+\caption{An example ICU state, corresponding to matrix $M^{\star}$.}
+\label{fig:example_state}
+\end{figure}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Enumerate combinatorially how many valid ward states exist.
+\end{tcolorbox}
+
+Actions only take place when a new patient arrives to the ward, and this patient
+can be either red, amber of green (category $0$, $1$, or $2$).
+Therefore the states of the MDP also need to contain information about the newly
+arriving patient.
+Let
+
+\begin{equation*}
+s = (M, p)
+\end{equation*}
+
+represent the state of the MDP, where $M$ is a $3\times9$ matrix representing
+the ward state, and $p \in \{0, 1, 2\}$ indicate the category of the arriving
+patient.
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Enumerate combinatorially how many valid MDP states exist.
+\end{tcolorbox}
+
+
+\subsection{Actions}
+An action in this case is placing a newly arriving patient into an unoccupied
+bed. As it does not matter which bed within a block to place the patient, the
+action is the block in which to place the patient.
+Therefore the maximal set of actions is $A = \{1, 2, 3, 4, 5, 6, 7, 8, 9\}$.
+
+Some actions may not be available in all states, for example if block $3$ if
+full, then a patient cannot be places in a bed in block 3.
+The set of actions available when in a particular state $s$, denoted by $A_s$,
+will depend on the ward state component, $M$.
+It will be the the set of blocks that are not full, that is:
+
+\begin{equation}
+A_s = \left\{j \in A \;|\; \left( \sum_{i=1}^{3} M_{i,j} \right) - K_j < 0 \right\}
+\end{equation}
+
+where $K_j$ is the capacity of each block, that is
+$K = (3, 2, 2, 3, 2, 2, 1, 1, 1)$.
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Enumerate combinatorially how many valid MDP states-action pairs exist.
+\end{tcolorbox}
+
+
+\subsection{Rewards}
+The reward received for transitioning from state $s_1$ to state $s_2$ given
+action $a$ was taken, $R(s_1, s_2, a)$, consists of three components:
+
+\begin{equation}\label{eqn:reward}
+\text{R}(s_1, s_2, a) = -(C + P)t_{s_1, s_2}
+\end{equation}
+
+Where
+
+\begin{itemize}
+    \item $t_{s_1, s_2}$ is the time spent in state $s_1$ before transitioning
+    to state $s_2$;
+
+    \item $C$ is the instantaneous staffing cost, corresponding to the number of
+    staff required to care for the patients per time unit.
+    This can be calculated from the ward-state component of $s_1$, given by
+    Equation~\ref{eqn:staffing_cost}.
+
+    \item $P$ is the instantaneous penalty, measures in staff per time unit,
+    corresponding to any additional staffing costs required when patients are
+    not in their preferred blocks, e.g. if a red patient is not in an isolation
+    block.
+    This can be calculated from the ward-state component of $s_1$, given by
+    Equation~\ref{eqn:penalty_cost}, where $b$ is some penalty parameter.
+\end{itemize}
+
+
+\begin{equation}\label{eqn:staffing_cost}
+C = \sum_{j=1}^{9} \mathbbm{1}_{\{M_{1,j} > 0\}} + \sum_{i=2}^{3} \sum_{j=1}^{9} M_{i,j}
+\end{equation}
+
+
+\begin{equation}\label{eqn:penalty_cost}
+P = b \sum_{j=1}^{6} M_{3,j}
+\end{equation}
+
+
+\subsection{Simulation Model}
+The simulation model is parametrised by:
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Parametrise these properly, referring back to Section~\ref{sec:background}.
+We can do some data analysis here.
+\end{tcolorbox}
+
+\begin{itemize}
+  \item Green patients arrive according to the Poisson distribution with rate 1.5,
+  \item Amber patients arrive according to the Poisson distribution with rate 1.0,
+  \item Red patients arrive according to the Poisson distribution with rate 0.5,
+  \item Green patients' lengths of stay is Exponentially distributed with rate 0.3,
+  \item Amber patients' lengths of stay is Exponentially distributed with rate 0.7,
+  \item Red patients' lengths of stay is Exponentially distributed with rate 0.4,
+  \item The isolation penalty $b=8$.
+\end{itemize}
+
+
+\section{Reinforcement Learning Framework}\label{sec:rlframework}
+Reinforcement learning is a model-free unsupervised learning that allows a
+central agent to learn optimal policies as it explores the state space during a
+simulation run.
+One standard algorithm is Q-learning, with overviews given in
+\cite{suttonbarto1998} and \cite{watkins1992}.
+The idea is that each MDP state and action pair, $(s, a)$ with $s \in S$ and
+$a \in A_s$, has some value $Q(s, a)$, called $Q$-values, representing the
+expected long term reward for taking action $a$ when in state $s$, and
+following an optimal policy from then on.
+An optimal policy is, for each state, the action that gives the maximum
+expected reward, given by Equation~\ref{eqn:optimal_policy}.
+
+ \begin{equation}\label{eqn:optimal_policy}
+ a^{\star} = \arg\!\max_{a \in A_s} Q(s, a)
+ \end{equation}
+
+The $Q$-values are found by iteratively updating them, as the simulation visits
+states, performs actions, and observes some reward, until convergence.
+The update, implemented once state $s'$ has been reached, after taking action
+$a$ in state $s$, and observing a reward $R(s, s', a)$ is given in
+Equation~\ref{eqn:q_update}.
+
+\begin{equation}\label{eqn:q_update}
+Q(s, a) \leftarrow (1 - \alpha) Q(s, a) + \alpha \left(R(s, s', a) + \gamma \max_{a' \in A_s'} Q(s', a') \right)
+\end{equation}
+
+Here $\alpha \in (0, 1]$ is the learning rate, a parameter that indicates how
+important new information is, or how quick the agent is to trust new
+information; and $\gamma \in [0, 1)$ is the discount factor, a parameter that
+indicates how important future rewards are as opposed to immediate rewards.
+The ICU ward is stochastic, and so we anticipate a medium to low learning rate
+$\alpha$ would be required to overcome the variability in the rewards.
+The aim is for a general state of high reward throughout the ICU's operating
+times, and so future rewards are just as important as immediate rewards, so we
+anticipate a high discount factor $\gamma$ would be beneficial.
+In particular, as the rewards are dependent on the time between updates
+(Equation~\ref{eqn:reward}), immediate rewards are far less meaningful that long
+run average rewards - for example, one long interval with low instantaneous
+reward may look better than many shorter periods of high rewards, but it is the
+long run average that matters.
+
+The reinforcement learning framework used is developed in Python.
+Due to the very high number of possible states-action pairs, the framework
+utilises high performance libraries such as Numpy~\cite{numpy20} and
+Numba~\cite{numba15}, and was optimised for both speed and memory with help from
+conversations with Google Gemini~\cite{googlegemini26} to learn and steer some
+of the software development.
+It is fully unit-tested and verified, and openly available
+at \url{https://github.com/geraintpalmer/bed_moves_policy}.
+
+The $Q$-values are stored in a Numba typed dictionary, an implementation of a
+hash table, that maps state-action pairs to Q-values, which are generally kept
+in memory.
+At the beginning of a run, all state-action pairs are unexplored, and the $Q$-value dictionary is empty.
+When state-action pairs are visited for the first time, the state-action pair is added to the dictionary, mapping it to the $Q$-value calculated using
+Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other unexplored state-action pairs.
+In these cases, the overall average $Q$-value found up to that point is used as a default value, $\bar{Q}$, which can be obtained by keeping track of the overall average reward, $\bar{R}$, using Equation~\ref{eqn:averageQ}.
+
+\begin{equation*}\label{eqn:averageQ}
+\bar{Q} = \frac{\bar{R}}{1 - \gamma}
+\end{equation*}
+
+
+\subsection{State Hashing}
+Due to the vast number of potential state-action pairs, storing full tuples and
+matrices in the Q-table is very memory intensive.
+Therefore in order to preserve memory, we define a reversible hash between
+state-action pairs $(s, a) = ((M, p), a)$ and 64-bit integers (from
+$-2^{63}$ to $2^{63} - 1$), that is a 19-digit integer.
+
+Consider $M$, each entry $M_{ij}$ is an integer in the range $[0, K_j]$, with
+$K_j \in \{1, 2, 3\}$, and so groups of columns have a limited set of
+configurations, which can be bounded.
+For example, columns 7, 8, 9, representing the isolation wards, and so
+$K_j = 1$ for all $j \in [7, 8, 9]$.
+Therefore there is at most $2^9 = 512$ configurations for these columns (this
+is an upper bound, as we have ignored the column sum constraint), and so we can
+assign a 3-digit integer value to the configuration of these three columns.
+Similar arguments gives that column 1 has at most $4^3 = 64$ configurations,
+columns 2 and 3 together have at most $3^6 = 729$ configurations, column 4 has
+at most $4^3 = 64$ configurations, and columns 5 and 6 together have at most
+$3^6 = 729$ configurations.
+Using positional concatenation we can therefore transform $M$ into a 13 digit
+number.
+Including the arriving patient type $p$ and action $a$ gives us a 15 digit
+number, well within the confines of 64-bit integers.
+This is a form of mixed radix encoding.
+Equation~\ref{eqn:hashing} gives this hashing, where
+$\langle A, B \rangle_F = Tr(A^T B)$ is the Frobenius inner
+product~\cite{calderolver25}, and the matrix $W$ is given in
+Equation~\ref{eqn:hash_weights}.
+
+\begin{equation}\label{eqn:hashing}
+H((M, p), a)) = 100\langle M, W \rangle_F + 10p + a
+\end{equation}
+
+\begin{equation}\label{eqn:hash_weights}
+W = \begin{pmatrix}
+\num{16e11} & \num{243e8} & \num{9e8} & \num{16e6} & \num{243e3} & \num{9e3} & 256 & 32 & 4 \\
+ \num{4e11} &  \num{81e8} & \num{3e8} &  \num{4e6} &  \num{81e3} & \num{3e3} & 128 & 16 & 2 \\
+ \num{1e11} &  \num{27e8} & \num{1e8} &  \num{1e6} &  \num{27e3} & \num{1e3} &  64 &  8 & 1
+\end{pmatrix}
+\end{equation}
+
+As an example $H((M^{\star}, 1, 7) = 4893600107217$, where $M^{\star}$ is the
+ward state given in Equation~\ref{eqn:example_M}.
+
+
+\subsection{Training Framework}
+During the simulation's training run, actions are selected using the
+$\epsilon$-greedy policy \cite{suttonbarto1998}, that is, for some probability
+$\epsilon \in [0, 1]$, the agent will choose the best discovered action so far,
+using Equation~\ref{eqn:optimal_policy}, with probability $\epsilon$, and
+choose a random action with probability $1 - \epsilon$.
+That is, the agent \textit{explores} with probability $1 - \epsilon$, and
+\textit{exploits} with probability $\epsilon$.
+
+Exploration versus exploitation is an important concept in reinforcement
+learning, especially in such vast state-spaces.
+Exploration, or a low $\epsilon$, is important to be able to discover new
+state-action pairs, however spending too much time exploring can be detrimental,
+as it wastes time and resources on discovering states that would be seldom
+visited when following the optimal policy.
+Exploitation, or a high $\epsilon$, ensures that relevant states are revisited
+many times, helping to gain enough information on these state-action pairs that
+their $Q$-values are updated enough times for these to be a good approximation
+of the expected future rewards.
+We choose to begin the training run with a low $\epsilon$ and gradually increase
+is throughout the run - exploring early to find plausible optimal policies, and
+exploiting later to refine them.
+
+With such a vast state space, and high stochasticity, convergence for all states
+is practically impossible, and we must settle on very long enough run times to
+obtain good-enough $Q$-values to read off optimal policies.
+These long run times are still computationally expensive and time intensive.
+We therefore train the agent in a parallel framework, visualised in
+Figure~\ref{fig:training_framework}.
+
+
+\begin{figure}
+\includegraphics[width=\textwidth]{../images/qlearning_setup}
+\caption{Framework used for training the model.}
+\label{fig:training_framework}
+\end{figure}
+
+We train the model over $M$ stages, utilising $N$ parallel workers.
+At stage $m=0$, $Q$-value tables are initialised as empty, that is no
+states-action pairs have been discovered yet, and we set $\epsilon = 0$ for full
+exploration.
+These $Q$-value tables are replicated $N$ times, and split over $N$ parallel
+workers, each running its own training simulation, updating its own table of
+$Q$-values for a particular stretch of time.
+Once these parallel training runs are complete, each worker will have its own
+distinct table of $Q$-values: let $Q_n(s, a)$ represent the $n^{\text{th}}$
+worker's estimate of the $Q$-value for the $(s, a)$ state-action pair.
+Workers also keep track of the number of visits to each state-action pair, let
+$h_n(s, a)$ be the number of times worker $n$ visited that state-action pair.
+These tables are then combined, weighting each $Q$-value by the number of
+visits, that is:
+
+\begin{equation}
+Q(s, a) = \frac{\sum_{n=0}^N Q_n(s, a) h_n(s, a)}{\sum_{n=0}^N h_n(s, a)}
+\end{equation}
+
+In the next state, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$, gradually increasing the agents rate of exploitation.
+Then $Q$-values are initialised with the combined $Q$-value tables found at the
+end of the last stage, and the training is repeated on parallel workers.
+This ensures that at the first stage we have full exploration, and by the final
+stage we have full exploitation, with $\epsilon$ increasing linearly over the
+stages.
+
+After each stage the combined $Q$-values are saved and so the incumbent policy
+can be evaluated by running the simulation, without any $Q$-learning, choosing
+actions based on that incumbent policy.
+
+
+\section{Experiments}
+For a particular run, we evaluate each stage' incumbent policy by running the
+simulation for 60 trials, for a 30,000 time units, and a warm-up time of 5,000
+time units, and recording the overall cost running the ICU for the remaining
+25,000 time units when exploiting that incumbent policy.
+An initial `random` policy is evaluated for comparison.
+
+First we train the agent using the framework described in Section~\ref{sec:rlframework}, choosing $\alpha = 0.6$ and $\gamma = 0.6$.
+During training each stage was run for 500,000 time units, using 20 parallel
+workers per stage.
+Figure~\ref{fig:base_run} shows these results.
+We see that as the stages increase (and hence more training), the agent makes
+very quick gains in the early stages as the agent explores more, and then slower
+gains as the agent exploits and refines the policies it has already learned.
+In this case the agent has made gains from a cost of 366681.25 using the random
+policy, to 273569.88 using the policy at the end of the 21 stages, an
+improvement of 25.4\%.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/test_run/results/cost_by_stage}
+\end{center}
+\caption{Evaluation of the incumbent policies across the stages.}
+\label{fig:base_run}
+\end{figure}
+
+As there is such a huge amount of state-action pairs, it is practically
+impossible to estimate whether the policy has converged or not, though we see
+any improvements in cost slowing down as the stages increase.
+We can also count the number of unique state-action pairs visited per stage
+during the training process, shown in Figure~\ref{fig:base_run_visited}.
+We see some tapering-off of the number of new states-action pairs visited,
+indicating both a decreasing tendency to explore (from the increasing
+$\epsilon$), and a gradual saturation of states from previous explorations.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{../src/experiments/test_run/results/unique_visits_per_stage}
+\end{center}
+\caption{Number of state-action pairs visited in each stage of the training
+process.}
+\label{fig:base_run_visited}
+\end{figure}
+
+
+\subsection{Effect of the learning rate $\alpha$}
+Using this setup then, we can also look at the effect of the learning rate
+$\alpha$.
+Figure~\ref{fig:vary_alpha} shows the percentage improvement in using the
+incumbent policy per stage for different values of $\alpha$ (left), and the
+percentage improvement after all 21 stages for different values of $\alpha$
+(right).
+
+\begin{figure}
+\includegraphics[width=\textwidth]{../src/experiments/vary_alpha/vary_alpha}
+\caption{The effect of varying the learning rate $\alpha$.}
+\label{fig:vary_alpha}
+\end{figure}
+
+We immediately see from the left plot that the improvement peaks when
+$\alpha=0.6$, indicating that this is the ideal learning rate for this problem,
+when running under the current setup.
+However the right plot shows the agent's behaviour as the training progresses:
+a smaller learning rate results in slower learning (a less steep curve); a high
+learning rate has faster learning, but cannot smooth out stochasticity of
+rewards as effectively; while a moderate learning rate can learn quickly and smooth
+out variability.
+The speed of learning is important in our case is important: as it would be
+impractical to run the algorithm until convergence we have to choose some
+temporal cut-off, and so we want as much learning to occur in the time allotted
+as possible.
+
+
+\subsection{Effect of the discount factor $\gamma$}
+We can also look at the effect of the discount factor $\gamma$.
+Figure~\ref{fig:vary_gamma} shows the percentage improvement in using the
+incumbent policy per stage for different values of $\gamma$ (left), and the
+percentage improvement after all 21 stages for different values of $\gamma$
+(right).
+
+\begin{figure}
+\includegraphics[width=\textwidth]{../src/experiments/vary_gamma/vary_gamma}
+\caption{The effect of varying the discount factor $\gamma$.}
+\label{fig:vary_gamma}
+\end{figure}
+
+Again we can immediately see from the plot on the left that the improvement
+peaks when $\gamma$ is around 0.5-0.6.
+Considering the right plot which shows the agent's behaviour as the training
+progresses: a high discount factor results in slower learning (a less steep
+curve), this is due to each update requiring a larger input from future rewards,
+which themselves need to be well-learned; a small discount factor has faster
+learning, but account for steady-state or average long-run rewards as
+effectively.
+Again, the speed of learning due to the need to choose some arbitrary
+temporal cut-off.
+
+\subsection{Effect of the traffic intensity}
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Results are super preliminary, I am currently re-running these with better parameters.
+\end{tcolorbox}
+
+Bed moves policies might have a greater impact on some ICU wards over other, or
+there might be some situation where finding optimal bed moves policies can have
+greater impact.
+One feature that is likely to have an effect is the ward's business, or the
+traffic intensity of the ward.
+To test this, introduce some factor $m$, and multiply all arrival rates by $m$,
+while keeping the service rates fixed.
+In this way increasing $m$ increases the traffic intensity $\rho$ of the ward
+linearly, due to summation of traffic intensities across customer classes:
+
+\begin{equation}
+\rho = \rho_{\text{green}} + \rho_{\text{amber}} + \rho_{\text{red}} =
+\frac{m}{17}\left(
+\frac{\lambda_{\text{green}}}{\mu_{\text{green}}} +
+\frac{\lambda_{\text{amber}}}{\mu_{\text{amber}}} +
+\frac{\lambda_{\text{red}}}{\mu_{\text{red}}}
+\right)
+\end{equation}
+
+To keep costs and training epochs relatively comparable, we reduce the maximum
+training and evaluation times by a factor $m$ also.
+Figure~\ref{fig:vary_rho} shows the overall evaluation cost, ad $\rho$ varies,
+for each stage of training.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../images/vary_arrivals_early}
+\end{center}
+\caption{The effect of varying the traffic intensity, $\rho$.}
+\label{fig:vary_rho}
+\end{figure}
+
+When $\rho$ is small, we see that there are huge gains to be made, and that most
+of these gains happen in the early stages, that is after not much training.
+This implies that these are easy or obvious changes that can be made using human
+instinct, and a reinforcement learning algorithm may not be needed in practise.
+The large gains may also show that in such an empty ward, it is easy to reach an
+`ideal` scenario, where no penalties or extra staffing is required, as the near
+empty system is not very complex.
+
+When $\rho$ is very large, there is hardly any gains to be made.
+This may be because ward is so busy that any bed move actions are not helpful,
+and penalties and extra staffing are unavoidable whatever moves are taken.
+Here there is not enough `wiggle room` to influence much.
+
+This implies that the ideal times to invest in a bed moves policy is for
+moderate traffic intensities, where $0.3 < \rho < 0.6$. Here large to moderate
+gains are still possible, however these gains occur in the later stages of
+training, implying they are less obvious and hence the power of the
+reinforcement learning algorithm is useful. This is a sweet spot where there is
+sufficient complexity in the system to require a policy, and enough `wiggle
+room` to make substantial gains.
+
+
+\section{Human-Readable Policies}
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Idea: Currently the policies that come from the reinforcement learning is a mapping from millions / tens of millions of states to optimal actions. I wonder if we can use some sort of machine learning / clustering  algorithm to simplify this into general human-readable `guidelines` rather than a full detailed policy. This simplified policy would of course be less effective than the full policy, but this is something that can be measured and analysed.
+\end{tcolorbox}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}
