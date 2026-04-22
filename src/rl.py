@@ -180,7 +180,7 @@ def update_Q_values(
         oldhits = hits[hash_state]
 
     newQ = (
-        ((np.float32(1.0) - learning_rate) * oldQ)
+        ((1.0 - learning_rate) * oldQ)
         + (learning_rate * (
             reward + (
                 discount_factor * best_future_reward

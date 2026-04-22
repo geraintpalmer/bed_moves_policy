@@ -50,6 +50,10 @@ def evaluate(
             ciw.dists.Exponential(0.7),
             ciw.dists.Exponential(0.4)
         ],
+        deterioration_distributions=[
+            ciw.dists.Exponential(rate=0.1),
+            ciw.dists.Exponential(rate=0.2)
+        ],
         isolation_penalty=8,
         epsilon=epsilon,
         seed=seed,

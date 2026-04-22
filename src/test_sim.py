@@ -24,32 +24,32 @@ def test_find_next_arrival_date():
     assert t == 0.432
     assert p == 1
 
-def test_find_next_exit_date():
+def test_find_next_activity_date():
     exit_dates = np.array(
         [17.4, 10.5, 34.6, 9.1, 13.9, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
     )
-    t, i =  sim.find_next_exit_date(exit_dates)
+    t, i =  sim.find_next_activity_date(exit_dates)
     assert t == 9.1
     assert i == 3
 
     exit_dates = np.array(
         [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, 17.4, 10.5, 34.6, 9.1, 13.9]
     )
-    t, i =  sim.find_next_exit_date(exit_dates)
+    t, i =  sim.find_next_activity_date(exit_dates)
     assert t == 9.1
     assert i == 15
 
     exit_dates = np.array(
         [np.inf, np.inf, np.inf, np.inf, np.inf, 17.4, 1.5, 34.6, 9.1, 13.9, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf]
     )
-    t, i =  sim.find_next_exit_date(exit_dates)
+    t, i =  sim.find_next_activity_date(exit_dates)
     assert t == 1.5
     assert i == 6
 
     exit_dates = np.array(
         [17.4, 10.5, 34.6, 9.1, 13.9, np.inf, np.inf, np.inf, np.inf, np.inf, 44.2, 6.11, np.inf, np.inf, np.inf, np.inf, np.inf]
     )
-    t, i =  sim.find_next_exit_date(exit_dates)
+    t, i =  sim.find_next_activity_date(exit_dates)
     assert t == 6.11
     assert i == 11
 
@@ -94,6 +94,10 @@ def test_WardSimulation_arrival_and_exit():
             ciw.dists.Deterministic(1),
             ciw.dists.Deterministic(3),
             ciw.dists.Deterministic(7)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=2.0,
         epsilon=0.0,
@@ -179,6 +183,10 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
+        ],
         isolation_penalty=3,
         epsilon=0.0,
         seed=0,
@@ -210,6 +218,10 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.1),
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
         epsilon=0.0,
@@ -243,6 +255,10 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
+        ],
         isolation_penalty=3,
         epsilon=0.0,
         seed=0,
@@ -271,6 +287,10 @@ def test_using_warmup():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
+        ],
         isolation_penalty=3,
         epsilon=0.0,
         seed=0,
@@ -292,6 +312,10 @@ def test_using_warmup():
             ciw.dists.Exponential(0.5),
             ciw.dists.Exponential(0.2)
         ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(float('inf')),
+            ciw.dists.Deterministic(float('inf'))
+        ],
         isolation_penalty=3,
         epsilon=0.0,
         seed=0,
@@ -301,3 +325,45 @@ def test_using_warmup():
     S.simulate_until_max_time(60.0)
     assert S.overall_cost == 853.48846
     assert S.warmup_cost == 694.4404
+
+
+def test_deterioration():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=7.0),
+            ciw.dists.Deterministic(value=13.0),
+            ciw.dists.Deterministic(value=22.0)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        isolation_penalty=3,
+        epsilon=0.0,
+        seed=0,
+        warmup=50.0
+    )
+
+    S_A = np.array(
+        (0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+    )
+    S_B = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+    )
+    
+    S.simulate_until_max_time(6.0) # only one arrival
+    assert S.now == 7.0
+    assert np.array_equal(S.state, S_A)
+
+    S.simulate_until_max_time(8.0) # only one arrival, but deteriorates
+    assert S.now == 9.0
+    assert np.array_equal(S.state, S_B)

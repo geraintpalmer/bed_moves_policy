@@ -41,14 +41,18 @@ def train(
     """
     S = sim.WardTraining(
         arrival_distributions=[
-            ciw.dists.Exponential(1.5),
-            ciw.dists.Exponential(1.0),
-            ciw.dists.Exponential(0.5)
+            ciw.dists.Exponential(rate=1.5),
+            ciw.dists.Exponential(rate=1.0),
+            ciw.dists.Exponential(rate=0.5)
         ],
         los_distributions=[
-            ciw.dists.Exponential(0.3),
-            ciw.dists.Exponential(0.7),
-            ciw.dists.Exponential(0.4)
+            ciw.dists.Exponential(rate=0.3),
+            ciw.dists.Exponential(rate=0.7),
+            ciw.dists.Exponential(rate=0.4)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Exponential(rate=0.1),
+            ciw.dists.Exponential(rate=0.2)
         ],
         isolation_penalty=8,
         epsilon=epsilon,

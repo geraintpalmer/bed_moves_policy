@@ -306,6 +306,45 @@ def test_remove_patient():
     assert np.array_equal(newS, expected_newS)
 
 
+def test_deteriorate_patient():
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
+    expected_newS = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0,
+         0, 0, 1, 0, 0, 1, 1, 1, 0)
+    )
+    newS = ward.deteriorate_patient(S.copy(), 1, 2)
+    assert np.array_equal(newS, expected_newS)
+
+    expected_newS = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 1, 0, 1, 1, 1, 0)
+    )
+    newS = ward.deteriorate_patient(S.copy(), 1, 3)
+    assert np.array_equal(newS, expected_newS)
+
+    expected_newS = np.array(
+        (0, 1, 0, 2, 0, 0, 0, 0, 0,
+         0, 1, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
+    newS = ward.deteriorate_patient(S.copy(), 0, 1)
+    assert np.array_equal(newS, expected_newS)
+
+    expected_newS = np.array(
+        (0, 2, 0, 1, 0, 0, 0, 0, 0,
+         0, 0, 1, 2, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
+    newS = ward.deteriorate_patient(S.copy(), 0, 3)
+    assert np.array_equal(newS, expected_newS)
+
+
 def test_get_available_insert_moves():
     S = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0,

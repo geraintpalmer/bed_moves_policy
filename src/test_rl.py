@@ -209,14 +209,14 @@ def test_update_Q_values_default_future():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=300,
-        default_future_reward=0.1
+        default_future_reward=0.2
     )
 
     assert next_hash_state == 485044850400016
     assert len(Qvals) == 1
     assert len(hits) == 1
     assert hits[hash_state + 5] == 1
-    assert Qvals[hash_state + 5] == (0.5 * 200) + (0.5 * (0.9 * (0.1 / 0.1)))
+    assert Qvals[hash_state + 5] == np.float32((0.5 * 200) + (0.5 * (0.9 * (0.2 / 0.1))))
 
 def test_initialise_qvals():
     keys1 = np.array([1, 4, 5, 9, 11, 12])

@@ -31,22 +31,21 @@ def find_next_arrival_date(next_arrivals):
 
 
 @njit(cache=True)
-def find_next_exit_date(exit_dates):
+def find_next_activity_date(dates):
     """
-    Returns the next date an exit happens and the index of the
-    patient that is to exit.
+    Returns the next date an activity happens and the index of the
+    patient that is to participate.
 
     Arguments:
-      + `exit_dates`: a numpy array of length 17 representing
-          the exit dates of the patients occupying each of the
-          17 beds in the ward. An unoccupied bed will have value
-          np.inf.
+      + `dates`: a numpy array of length 17 representing the dates
+          of activity of the patients occupying each of the 17 beds
+          in the ward. An unoccupied bed will have value np.inf.
 
     Returns: the date of the next patient to exit, and the index
                of the patient to exit.
     """
-    idx = exit_dates.argmin()
-    return exit_dates[idx], idx
+    idx = dates.argmin()
+    return dates[idx], idx
 
 @njit(cache=True)
 def get_cost(state, update_time, prev_time, isolation_penalty):
@@ -75,6 +74,7 @@ class WardSimulation:
         self,
         arrival_distributions,
         los_distributions,
+        deterioration_distributions,
         isolation_penalty,
         epsilon,
         seed,
@@ -94,6 +94,9 @@ class WardSimulation:
           + `los_distributions`: a list of Ciw distribution objects
                representing the length of stay times of the green,
                amber, and red patients.
+          + `deterioration_distributions`: a list of Ciw distribution
+               objects representing the length time it takes for a patient
+               to deteriorate into the next category.
           + `isolation_penalty`: the numerical penalty patient per time
                unit of not being in an isolation ward.
           + `epsilon`: a probability, float between 0 and 1
@@ -111,6 +114,7 @@ class WardSimulation:
         """
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
+        self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
         self.isolation_penalty = np.float32(isolation_penalty)
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
@@ -141,6 +145,7 @@ class WardSimulation:
 
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
+        self.patients_deterioration_dates = np.ones(17) * np.inf
         self.patients_blocks = -np.ones(17, dtype='int64')
         self.patients_free_indices = [i for i in range(17)]
         self.patients_number_free = 17
@@ -199,15 +204,20 @@ class WardSimulation:
             if self.patients_number_free == 0:
                 next_exit = float('inf')
             else:
-                next_exit, patient_idx = find_next_exit_date(
-                    exit_dates=self.patients_exit_dates
+                next_exit, patient_idx = find_next_activity_date(
+                    dates=self.patients_exit_dates
+                )
+                next_deterioration, deteriorating_index = find_next_activity_date(
+                    dates=self.patients_deterioration_dates
                 )
 
-            if next_arrival < next_exit:
+            if (next_arrival <= next_exit) and (next_arrival <= next_deterioration):
                 self.arrival(
                     next_arrival=next_arrival,
                     patient_type=patient_type
                 )
+            elif (next_deterioration <= next_exit):
+                self.deteriorate(patient_idx=deteriorating_index)
             else:
                 self.exit(patient_idx=patient_idx)
 
@@ -231,6 +241,7 @@ class WardSimulation:
         interarrival = self.arrival_distributions[patient_type].sample()
         self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
+        det = self.deterioration_distributions[patient_type].sample()
         a = self.decide_action(patient_type)
 
         if a is not None:
@@ -250,6 +261,7 @@ class WardSimulation:
             idx = self.patients_free_indices[-1]
             self.patients_patient_types[idx] = patient_type
             self.patients_exit_dates[idx] = self.now + los
+            self.patients_deterioration_dates[idx] = self.now + det
             self.patients_blocks[idx] = a
             self.patients_free_indices.pop()
             self.patients_number_free += 1
@@ -265,7 +277,7 @@ class WardSimulation:
         Removes a patient from the ward.
 
         Arguments:
-          + `patient_idx`: The index of the patient object to remove.
+          + `patient_idx`: The index of the patient to remove.
         """
         cost = get_cost(
             state=self.state,
@@ -286,9 +298,40 @@ class WardSimulation:
         )
         self.patients_patient_types[patient_idx] = -1
         self.patients_exit_dates[patient_idx] = np.inf
+        self.patients_deterioration_dates[patient_idx] = np.inf
         self.patients_blocks[patient_idx] = -1
         self.patients_free_indices.append(patient_idx)
         self.patients_number_free -= 1
+
+    def deteriorate(self, patient_idx):
+        """
+        Changes a patient's class.
+
+        Arguments:
+          + `patient_idx`: The index of the patient to deteriorate.
+        """
+        cost = get_cost(
+            state=self.state,
+            update_time=self.patients_deterioration_dates[patient_idx],
+            prev_time=self.now,
+            isolation_penalty=self.isolation_penalty
+        )
+        self.overall_cost += cost
+        self.accumulate_warmup_cost(
+            cost=cost,
+            update_time=self.patients_deterioration_dates[patient_idx]
+        )
+        self.now = self.patients_deterioration_dates[patient_idx]
+        self.state = ward.deteriorate_patient(
+            state=self.state,
+            patient_type=self.patients_patient_types[patient_idx],
+            block=self.patients_blocks[patient_idx]
+        )
+        self.patients_patient_types[patient_idx] += 1
+        det = self.deterioration_distributions[
+            self.patients_patient_types[patient_idx]
+        ].sample()
+        self.patients_deterioration_dates[patient_idx] = self.now + det
 
     def learn(self, patient_type, action):
         """

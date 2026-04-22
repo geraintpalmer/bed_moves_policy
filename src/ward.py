@@ -111,9 +111,9 @@ def insert_patient(state, patient_type, to_block):
     Arguments:
       + `state` an array of 27 integers {0, 1, 2, 3} representing
            the state of the ward.
-      + `patient_type`: the type of the patient being moved, either
+      + `patient_type`: the type of the patient being inserted, either
            2: 'red', 1: 'amber', or 0: 'green'
-      + `to_block`: the block the patient is moved to
+      + `to_block`: the block the patient inserted to
 
     Returns: a numpy array representing the state after the insert.
     """
@@ -129,9 +129,9 @@ def remove_patient(state, patient_type, from_block):
     Arguments:
       + `state` an array of 27 integers {0, 1, 2, 3} representing
            the state of the ward.
-      + `patient_type`: the type of the patient being moved, either
+      + `patient_type`: the type of the patient being removed, either
            2: 'red', 1: 'amber', or 0: 'green'
-      + `from_block`: the block the patient was moved from
+      + `from_block`: the block the patient was removed from
 
     Returns: a numpy array representing the state after removing the
                patient.
@@ -139,6 +139,24 @@ def remove_patient(state, patient_type, from_block):
     state[(patient_type * 9) + from_block] -= 1
     return state
 
+@njit(cache=True)
+def deteriorate_patient(state, patient_type, block):
+    """
+    Returns the state that results from an Gren patient deteriorating
+    into an Amber patient.
+
+    Arguments:
+      + `state` an array of 27 integers {0, 1, 2, 3} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient deteriorating, either
+           1: 'amber', or 0: 'green'
+      + `block`: the block the deteriorating patient is
+
+    Returns: a numpy array representing the state after the deterioration.
+    """
+    state[(patient_type * 9) + block] -= 1
+    state[((patient_type + 1) * 9) + block] += 1
+    return state
 
 @njit(cache=True)
 def get_available_insert_moves(state):
