@@ -417,6 +417,7 @@ class WardTraining(WardSimulation):
                 action=action,
                 hash_weights=ward.hash_weights
             )
+    
     def setup_qvals(self, initial_keys, initial_qvals):
         """
         Sets up the Qvals and hits dictionaries

@@ -17,6 +17,19 @@ empty_state = np.array(
 
 max_capacities = np.array([3, 2, 2, 3, 2, 2, 1, 1, 1], dtype=np.int32)
 
+adjacency_matrix = np.array(
+    [
+        [0, 1, 0, 1, 0, 0, 0, 0, 0],
+        [1, 0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ], dtype=np.int32
+)
 
 @njit(cache=True)
 def get_hash_state_only(state, patient_type, hash_weights):
@@ -104,6 +117,27 @@ def get_penalty_per_time_unit(state, isolation_penalty):
 
 
 @njit(cache=True)
+def get_move_penalty(from_block, to_block, patient_type, move_penalties, adjacency_matrix):
+    """
+    Calculates the penalty for moving a patient from block to block.
+
+    Arguments:
+      + `from_block`: the block the patient was removed from
+      + `to_block`: the block the patient inserted to
+      + `patient_type`: the type of the patient being removed, either
+           2: 'red', 1: 'amber', or 0: 'green'
+      + `move_penalties`: a 2x3 numpy array of penalties, where the columns
+           indicate patient types, and the rows indicate if the moves are
+           adjacent or not.
+      + `adjacency_matrix`: an 9x9 numpy matrix with entries 1 or 0 indicating
+           of the blocks are adjacent or not.
+
+    Returns: a numerical penalty for the bed moves.
+    """
+    adj = 1 - adjacency_matrix[from_block, to_block]
+    return move_penalties[adj, patient_type]
+
+@njit(cache=True)
 def insert_patient(state, patient_type, to_block):
     """
     Returns the state that results from inserting a patient.
@@ -118,6 +152,27 @@ def insert_patient(state, patient_type, to_block):
     Returns: a numpy array representing the state after the insert.
     """
     state[(patient_type * 9) + to_block] += 1
+    return state
+
+
+@njit(cache=True)
+def move_patient(state, patient_type, to_block, from_block):
+    """
+    Returns the state that results from moving a patient.
+
+    Arguments:
+      + `state` an array of 27 integers {0, 1, 2, 3} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient being removed, either
+           2: 'red', 1: 'amber', or 0: 'green'
+      + `to_block`: the block the patient inserted to
+      + `from_block`: the block the patient was removed from
+
+    Returns: a numpy array representing the state after moving the
+               patient.
+    """
+    state[(patient_type * 9) + to_block] += 1
+    state[(patient_type * 9) + from_block] -= 1
     return state
 
 
@@ -171,3 +226,52 @@ def get_available_insert_moves(state):
     """
     occupancy = state[0:9] + state[9:18] + state[18:27]
     return (max_capacities > occupancy).nonzero()[0]
+
+
+@njit(cache=True)
+def get_available_actions(state, patient_type):
+    """
+    Lists all available actions that can happend when a patient of type
+    `patient_type` arrives when the ward is in state `state`.
+    An action takes the form:
+
+    (a, b, c)
+
+    where:
+      - a is the block that the new patient will be inserted into
+      - b is the type of patient to moved from block a
+      - c is the block that patient will move to.
+
+    In cases where no bed moved happen, we have (a = c) and (b = patient_type).
+
+    Arguments:
+      + `state` an array of 27 integers {0, 1, 2, 3} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient to move, either
+           2: 'red', 1: 'amber', or 0: 'green'
+
+    Returns: an Mx3 array, where each row is an (a, b, c) action.
+    """
+    # (9 blocks to place directly) + (9 * 8 possible moves from 2 different types of patient)
+    max_num_actions = 9 + (9 * 2 * 8)
+    actions = np.empty((max_num_actions, 3), dtype=np.int32)
+    count = 0
+    available_blocks = get_available_insert_moves(state)
+    # Case A: Direct Insert (to_block == insert_block)
+    for insert_block in available_blocks:
+        actions[count, 0] = insert_block
+        actions[count, 1] = patient_type
+        actions[count, 2] = insert_block
+        count += 1
+    # Case B: Bed Move (to_block != insert_block)
+    for insert_block in range(9):
+        for moving_patient_type in range(3):
+            if moving_patient_type != patient_type and state[(moving_patient_type * 9) + insert_block] > 0:
+                for to_block in available_blocks:
+                    if to_block != insert_block:
+                        actions[count, 0] = insert_block
+                        actions[count, 1] = moving_patient_type
+                        actions[count, 2] = to_block
+                        count += 1
+    return actions[:count]
+
