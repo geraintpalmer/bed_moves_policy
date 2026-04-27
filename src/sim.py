@@ -440,7 +440,8 @@ class WardTraining(WardSimulation):
                 discount_factor=self.discount_factor,
                 just_chose_best=self.just_chose_best,
                 prev_best_Q=self.prev_best_Q,
-                default_future_reward=self.average_reward
+                default_future_reward=self.average_reward,
+                actions_pool=self.actions_pool
             )
         else:
             self.hash_state = ward.get_hash_stateaction(

@@ -29,6 +29,7 @@ def test_merge_sorted_qvals():
 
 
 def test_get_best_future_reward():
+    actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
     state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -52,7 +53,8 @@ def test_get_best_future_reward():
         patient_type=0,
         Qvals=Qvals,
         just_chose_best=False,
-        prev_best_Q=48.9
+        prev_best_Q=48.9,
+        actions_pool=actions_pool
     )
     assert Q == -35.1
 
@@ -61,12 +63,14 @@ def test_get_best_future_reward():
         patient_type=0,
         Qvals=Qvals,
         just_chose_best=True,
-        prev_best_Q=-48.9
+        prev_best_Q=-48.9,
+        actions_pool=actions_pool
     )
     assert Q == -48.9
 
 
 def test_update_Q_values():
+    actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
     state = np.array(
         (3, 2, 2, 3, 2, 1, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -116,7 +120,8 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=-300,
-        default_future_reward=-10
+        default_future_reward=-10,
+        actions_pool=actions_pool
     )
     assert next_hash_state == 48504485040001606
     assert len(Qvals) == 4
@@ -136,7 +141,8 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=-300,
-        default_future_reward=-10
+        default_future_reward=-10,
+        actions_pool=actions_pool
     )
     assert next_hash_state == 48504485040001606
     assert len(Qvals) == 4
@@ -156,7 +162,8 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=True,
         prev_best_Q=-10000,
-        default_future_reward=-10
+        default_future_reward=-10,
+        actions_pool=actions_pool
     )
     assert next_hash_state == 48504485040001606
     assert len(Qvals) == 4
@@ -165,6 +172,7 @@ def test_update_Q_values():
     assert Qvals[hash_state + 505] == -308.75 - 4500.0
 
 def test_update_Q_values_default_future():
+    actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
     state = np.array(
         (3, 2, 2, 3, 2, 1, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -206,7 +214,8 @@ def test_update_Q_values_default_future():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=300,
-        default_future_reward=0.2
+        default_future_reward=0.2,
+        actions_pool=actions_pool
     )
 
     assert next_hash_state == 48504485040001606

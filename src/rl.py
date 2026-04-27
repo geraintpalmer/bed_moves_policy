@@ -83,7 +83,7 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
 
 
 @njit(cache=True)
-def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_best_Q):
+def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_best_Q, actions_pool):
     """
     Returns the maximum future reward if taking the optimal action
     when in the future state.
@@ -97,6 +97,8 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
       + `just_chose_best`: a Boolean representing if the
              simulation chose the best action in the previous step
       + `prev_best_Q`: the previously chosen best q-value
+      + `actions_pool`: a pre-assigned numpy empty array of
+           size 9 + (9 * 2 * 8)
 
     Returns: the maximum expected future reward from following the
       best actions from this state onwards.
@@ -104,7 +106,7 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
     if just_chose_best:
         return prev_best_Q
 
-    available_as = ward.get_available_actions(state=state, patient_type=patient_type)
+    actions_pool, valid_count = ward.get_available_actions(state=state, patient_type=patient_type, actions_pool=actions_pool)
     hash_state_only = ward.get_hash_state_only(
         state=state,
         patient_type=patient_type,
@@ -112,8 +114,8 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
     )
 
     best_Q = -np.float32(np.inf)
-    for a in available_as:
-        hash_state = hash_state_only + a
+    for i in range(valid_count):
+        hash_state = hash_state_only + actions_pool[i]
         if hash_state in Qvals:
             Q = Qvals[hash_state]
             if Q > best_Q:
@@ -135,7 +137,8 @@ def update_Q_values(
     discount_factor,
     just_chose_best,
     prev_best_Q,
-    default_future_reward
+    default_future_reward,
+    actions_pool
 ):
     """
     Updates the Q-values according to the Q-learning update:
@@ -159,6 +162,8 @@ def update_Q_values(
       + `prev_best_Q`: the previously chosen best q-value
       + `default_future_reward`: the future reward given if all
            future actions unexplored
+      + `actions_pool`: a pre-assigned numpy empty array of
+           size 9 + (9 * 2 * 8)
 
     Returns: (updates the Qvals and hits dictionaries) and returns
              the hash state of the newly reached state.
@@ -168,7 +173,8 @@ def update_Q_values(
         patient_type=next_patient_type,
         Qvals=Qvals,
         just_chose_best=just_chose_best,
-        prev_best_Q=prev_best_Q
+        prev_best_Q=prev_best_Q,
+        actions_pool=actions_pool
     )
     if np.isinf(best_future_reward):
         best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)

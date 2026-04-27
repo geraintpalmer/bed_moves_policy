@@ -55,6 +55,7 @@ def evaluate(
             ciw.dists.Exponential(rate=0.2)
         ],
         isolation_penalty=8,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=epsilon,
         seed=seed,
         initial_keys=initial_keys,
