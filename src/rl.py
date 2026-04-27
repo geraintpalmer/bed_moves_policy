@@ -104,7 +104,7 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
     if just_chose_best:
         return prev_best_Q
 
-    available_as = ward.get_available_insert_moves(state=state)
+    available_as = ward.get_available_actions(state=state, patient_type=patient_type)
     hash_state_only = ward.get_hash_state_only(
         state=state,
         patient_type=patient_type,

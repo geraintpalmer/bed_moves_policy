@@ -48,7 +48,7 @@ def find_next_activity_date(dates):
     return dates[idx], idx
 
 @njit(cache=True)
-def get_cost(state, update_time, prev_time, isolation_penalty):
+def get_state_cost(state, update_time, prev_time, isolation_penalty):
     """
     Gets the cost for the time interval between now and the last update time.
 
@@ -76,6 +76,7 @@ class WardSimulation:
         los_distributions,
         deterioration_distributions,
         isolation_penalty,
+        move_penalties,
         epsilon,
         seed,
         learning_rate=None,
@@ -116,6 +117,7 @@ class WardSimulation:
         self.los_distributions = los_distributions
         self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
         self.isolation_penalty = np.float32(isolation_penalty)
+        self.move_penalties = move_penalties
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -143,6 +145,7 @@ class WardSimulation:
         self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
+        self.actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
         self.patients_deterioration_dates = np.ones(17) * np.inf
@@ -201,8 +204,9 @@ class WardSimulation:
             next_arrival, patient_type = find_next_arrival_date(
                 next_arrivals=self.next_arrivals
             )
-            if self.patients_number_free == 0:
+            if self.patients_number_free == 17:
                 next_exit = float('inf')
+                next_deterioration = float('inf')
             else:
                 next_exit, patient_idx = find_next_activity_date(
                     dates=self.patients_exit_dates
@@ -242,15 +246,27 @@ class WardSimulation:
         self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
         det = self.deterioration_distributions[patient_type].sample()
-        a = self.decide_action(patient_type)
 
-        if a is not None:
-            cost = get_cost(
+        if self.patients_number_free > 0:
+            a = self.decide_action(patient_type)
+            a1, a2, a3 = ward.dehash_action(action_hash=a)
+            
+            state_cost = get_state_cost(
                 state=self.state,
                 update_time=next_arrival,
                 prev_time=self.now,
                 isolation_penalty=self.isolation_penalty
             )
+            move_cost = ward.get_move_penalty(
+                from_block=a1,
+                to_block=a3,
+                patient_type=a2,
+                arriving_patient_type=patient_type,
+                move_penalties=self.move_penalties,
+                adjacency_matrix=ward.adjacency_matrix
+            )
+            cost = state_cost + move_cost
+
             self.overall_cost += cost
             self.accumulate_warmup_cost(
                 cost=cost,
@@ -258,18 +274,33 @@ class WardSimulation:
             )
             self.now = next_arrival
             self.learn(patient_type, a)
-            idx = self.patients_free_indices[-1]
-            self.patients_patient_types[idx] = patient_type
-            self.patients_exit_dates[idx] = self.now + los
-            self.patients_deterioration_dates[idx] = self.now + det
-            self.patients_blocks[idx] = a
-            self.patients_free_indices.pop()
-            self.patients_number_free += 1
 
+            if not ((a3 == a1) and (a2 == patient_type)):
+                move_idx = ward.find_idx_of_patient_to_move(
+                    block=a1,
+                    patient_type=a2,
+                    patients_blocks=self.patients_blocks,
+                    patients_types=self.patients_patient_types
+                )
+                self.patients_blocks[move_idx] = a3
+                self.state = ward.move_patient(
+                    state=self.state,
+                    patient_type=a2,
+                    to_block=a3,
+                    from_block=a1
+                )
+
+            arrival_idx = self.patients_free_indices[-1]
+            self.patients_patient_types[arrival_idx] = patient_type
+            self.patients_exit_dates[arrival_idx] = self.now + los
+            self.patients_deterioration_dates[arrival_idx] = self.now + det
+            self.patients_blocks[arrival_idx] = a1
+            self.patients_free_indices.pop()
+            self.patients_number_free -= 1
             self.state = ward.insert_patient(
                 state=self.state,
                 patient_type=patient_type,
-                to_block=a
+                to_block=a1
             )
 
     def exit(self, patient_idx):
@@ -279,7 +310,7 @@ class WardSimulation:
         Arguments:
           + `patient_idx`: The index of the patient to remove.
         """
-        cost = get_cost(
+        cost = get_state_cost(
             state=self.state,
             update_time=self.patients_exit_dates[patient_idx],
             prev_time=self.now,
@@ -301,7 +332,7 @@ class WardSimulation:
         self.patients_deterioration_dates[patient_idx] = np.inf
         self.patients_blocks[patient_idx] = -1
         self.patients_free_indices.append(patient_idx)
-        self.patients_number_free -= 1
+        self.patients_number_free += 1
 
     def deteriorate(self, patient_idx):
         """
@@ -310,7 +341,7 @@ class WardSimulation:
         Arguments:
           + `patient_idx`: The index of the patient to deteriorate.
         """
-        cost = get_cost(
+        cost = get_state_cost(
             state=self.state,
             update_time=self.patients_deterioration_dates[patient_idx],
             prev_time=self.now,
@@ -370,11 +401,12 @@ class WardTraining(WardSimulation):
 
         Returns: an action.
         """
-        a, Qa = chooser.choose_arriving_block(
+        a, Qa = chooser.choose_action(
             state=self.state,
             patient_type=patient_type,
             epsilon=self.epsilon,
-            Qvals=self.Qvals
+            Qvals=self.Qvals,
+            actions_pool=self.actions_pool
         )
         self.just_chose_best = Qa is not None
         self.prev_best_Q = Qa
@@ -456,7 +488,8 @@ class WardEvaluation(WardSimulation):
         a = chooser.exploit_policy(
             state=self.state,
             patient_type=patient_type,
-            policy=self.policy
+            policy=self.policy,
+            actions_pool=self.actions_pool
         )
         return a
 

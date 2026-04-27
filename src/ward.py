@@ -2,9 +2,9 @@ import numpy as np
 from numba import njit
 
 hash_weights = np.array(
-    (16e13, 243e10, 9e10, 16e8, 243e5, 9e5, 256e2, 32e2, 4e2,
-      4e13,  81e10, 3e10,  4e8,  81e5, 3e5, 128e2, 16e2, 2e2,
-      1e13,  27e10, 1e10,  1e8,  27e5, 1e5,  64e2,  8e2, 1e2
+    (16e11, 243e8, 9e8, 16e6, 243e3, 9e3, 256, 32, 4,
+      4e11,  81e8, 3e8,  4e6,  81e3, 3e3, 128, 16, 2,
+      1e11,  27e8, 1e8,  1e6,  27e3, 1e3,  64,  8, 1
     ), dtype=np.int64
 )
 
@@ -44,23 +44,41 @@ def get_hash_state_only(state, patient_type, hash_weights):
     Returns: an integer representation of the state, with 0 placeholder
     for an action.
     """
-    return (hash_weights * state).sum() + (patient_type * 10)
+    return (10000 * (hash_weights * state).sum()) + (patient_type * 1000)
+
+
+@njit(cache=True)
+def dehash_action(action_hash):
+    """
+    Returns an action from the hashed action:
+    abc --> (a, b, c)
+
+    Arguments:
+      + `action_hash`: a three digit integer
+
+    Returns: a 1x3 numpt array
+    """
+    a3 = action_hash % 10
+    a2 = (action_hash // 10) % 10
+    a1 = (action_hash // 100) % 10
+    return a1, a2, a3
 
 
 @njit(cache=True)
 def get_hash_stateaction(state, patient_type, action, hash_weights):
     """
-    Returns a hashable version of the state.
+    Returns a hashable version of the state-action pair.
 
     Arguments:
       + `state`: a numpy array representing the state of the system,
       + `patient_type`: an integer representing the arriving customer
            type.
-      + `action`: the block to insert a patient.
+      + `action`: a three digit integer representing the action.
 
     Returns: an integer representation of the state-action pair.
     """
-    return get_hash_state_only(state, patient_type, hash_weights) + action
+    hash_state_only = get_hash_state_only(state, patient_type, hash_weights)
+    return hash_state_only + action
 
 
 @njit(cache=True)
@@ -76,7 +94,7 @@ def get_state_action_from_hashstate(hash_state):
       + `hash_state_only`: the hash state representing the state only
       + `action`: the action
     """
-    action = (hash_state % 10)
+    action = (hash_state % 1000)
     hash_state_only = hash_state - action
     return hash_state_only, action
 
@@ -117,14 +135,16 @@ def get_penalty_per_time_unit(state, isolation_penalty):
 
 
 @njit(cache=True)
-def get_move_penalty(from_block, to_block, patient_type, move_penalties, adjacency_matrix):
+def get_move_penalty(from_block, to_block, patient_type, arriving_patient_type, move_penalties, adjacency_matrix):
     """
     Calculates the penalty for moving a patient from block to block.
 
     Arguments:
       + `from_block`: the block the patient was removed from
       + `to_block`: the block the patient inserted to
-      + `patient_type`: the type of the patient being removed, either
+      + `patient_type`: the type of the patient being moved, either
+           2: 'red', 1: 'amber', or 0: 'green'
+      + `arriving_patient_type`: the type of the patient arriving, either
            2: 'red', 1: 'amber', or 0: 'green'
       + `move_penalties`: a 2x3 numpy array of penalties, where the columns
            indicate patient types, and the rows indicate if the moves are
@@ -134,8 +154,10 @@ def get_move_penalty(from_block, to_block, patient_type, move_penalties, adjacen
 
     Returns: a numerical penalty for the bed moves.
     """
-    adj = 1 - adjacency_matrix[from_block, to_block]
-    return move_penalties[adj, patient_type]
+    if not ((from_block == to_block) and (patient_type == arriving_patient_type)):
+        adj = 1 - adjacency_matrix[from_block, to_block]
+        return move_penalties[adj, patient_type]
+    return 0.0
 
 @njit(cache=True)
 def insert_patient(state, patient_type, to_block):
@@ -229,7 +251,7 @@ def get_available_insert_moves(state):
 
 
 @njit(cache=True)
-def get_available_actions(state, patient_type):
+def get_available_actions(state, patient_type, actions_pool):
     """
     Lists all available actions that can happend when a patient of type
     `patient_type` arrives when the ward is in state `state`.
@@ -249,29 +271,46 @@ def get_available_actions(state, patient_type):
            the state of the ward.
       + `patient_type`: the type of the patient to move, either
            2: 'red', 1: 'amber', or 0: 'green'
+      + `actions_pool`: a pre-assigned numpy empty array of
+           size 9 + (9 * 2 * 8)
 
-    Returns: an Mx3 array, where each row is an (a, b, c) action.
+    Returns: an array of actions, where each row is an integer abc, and the
+             count of valid actions.
     """
     # (9 blocks to place directly) + (9 * 8 possible moves from 2 different types of patient)
-    max_num_actions = 9 + (9 * 2 * 8)
-    actions = np.empty((max_num_actions, 3), dtype=np.int32)
-    count = 0
+    valid_count = 0
     available_blocks = get_available_insert_moves(state)
     # Case A: Direct Insert (to_block == insert_block)
     for insert_block in available_blocks:
-        actions[count, 0] = insert_block
-        actions[count, 1] = patient_type
-        actions[count, 2] = insert_block
-        count += 1
+        actions_pool[valid_count] = (100 * insert_block) + (10 * patient_type) + insert_block
+        valid_count += 1
     # Case B: Bed Move (to_block != insert_block)
     for insert_block in range(9):
         for moving_patient_type in range(3):
             if moving_patient_type != patient_type and state[(moving_patient_type * 9) + insert_block] > 0:
                 for to_block in available_blocks:
                     if to_block != insert_block:
-                        actions[count, 0] = insert_block
-                        actions[count, 1] = moving_patient_type
-                        actions[count, 2] = to_block
-                        count += 1
-    return actions[:count]
+                        actions_pool[valid_count] = (100 * insert_block) + (10 * moving_patient_type) + to_block
+                        valid_count += 1
+    return actions_pool, valid_count
 
+
+@njit(cache=True)
+def find_idx_of_patient_to_move(block, patient_type, patients_blocks, patients_types):
+    """
+    Finds the index of the patient who matches both the block and patient type.
+
+    Arguments:
+      + `block`: the block we want to match
+      + `patient_type`: the patient type we want to match
+      + `patients_blocks`: a numpy array of length 17 representing the blocks
+            where each of the patients are
+      + `patients_types`: a numpy array of length 17 representing the patient
+            types of each patient
+
+    Returns: an index where they match.
+    """
+    for i in range(17):
+        if (patients_types[i] == patient_type) and (block == patients_blocks[i]):
+            return i
+    return None

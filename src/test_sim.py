@@ -54,13 +54,13 @@ def test_find_next_activity_date():
     assert i == 11
 
 
-def test_get_cost():
+def test_get_state_cost():
     S = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    cost = sim.get_cost(
+    cost = sim.get_state_cost(
         state=S,
         update_time=11,
         prev_time=0,
@@ -74,7 +74,7 @@ def test_get_cost():
          0, 0, 0, 0, 0, 0, 1, 1, 1)
     )
 
-    cost = sim.get_cost(
+    cost = sim.get_state_cost(
         state=S,
         update_time=28.3,
         prev_time=26.3,
@@ -100,6 +100,7 @@ def test_WardSimulation_arrival_and_exit():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=2.0,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         learning_rate=0.5,
@@ -168,7 +169,7 @@ def test_WardSimulation_arrival_and_exit():
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([100000])
+    keys = np.array([10000303])
     qval = np.array([2.5])
     hits = np.array([34])
     
@@ -188,6 +189,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         learning_rate=0.5,
@@ -196,10 +198,10 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time(2)
-    assert 100003 in S.Qvals
+    assert 10000303 in S.Qvals
     assert 22 not in S.Qvals
     assert 162521625229227 not in S.Qvals
-    assert 100003 in S.hits
+    assert 10000303 in S.hits
     assert 22 not in S.hits
     assert 162521625229227 not in S.hits
 
@@ -224,6 +226,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         learning_rate=0.5,
@@ -232,10 +235,10 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time(2)
-    assert 100003 in S.Qvals
+    assert 10000303 in S.Qvals
     assert 22 in S.Qvals
     assert 162521625229227 not in S.Qvals
-    assert 100003 in S.hits
+    assert 10000303 in S.hits
     assert 22 in S.hits
     assert 162521625229227 not in S.hits
 
@@ -260,6 +263,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         learning_rate=0.5,
@@ -268,10 +272,10 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time(2)
-    assert 100003 in S.Qvals
+    assert 10000303 in S.Qvals
     assert 22 not in S.Qvals
     assert 162521625229227 in S.Qvals
-    assert 100003 in S.hits
+    assert 10000303 in S.hits
     assert 22 not in S.hits
     assert 162521625229227 in S.hits
 
@@ -292,14 +296,15 @@ def test_using_warmup():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         warmup=50.0
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time(40.0)
-    assert S.overall_cost == 580.697
-    assert S.warmup_cost == 580.697
+    assert S.overall_cost == 720.5559
+    assert S.warmup_cost == 720.5559
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -317,14 +322,15 @@ def test_using_warmup():
             ciw.dists.Deterministic(float('inf'))
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         warmup=50.0
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time(60.0)
-    assert S.overall_cost == 853.48846
-    assert S.warmup_cost == 694.4404
+    assert S.overall_cost == 1015.9095
+    assert S.warmup_cost == 845.1346
 
 
 def test_deterioration():
@@ -344,6 +350,7 @@ def test_deterioration():
             ciw.dists.Deterministic(value=2.0)
         ],
         isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
         warmup=50.0
