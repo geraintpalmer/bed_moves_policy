@@ -40,7 +40,7 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
 
     keys_n = np.zeros(unique_count, dtype=np.int64)
     vals_n = np.zeros(unique_count, dtype=np.float32)
-    hits_n = np.zeros(unique_count, dtype=np.int32)
+    hits_n = np.zeros(unique_count, dtype=np.int16)
 
     idx_1 = 0
     idx_2 = 0
@@ -206,7 +206,7 @@ def update_Q_values(
     if hash_state in Q_index_map:
         idx = np.int64(Q_index_map[hash_state])
         oldQ = qval_array[idx]
-        h = hits_array[idx] + np.int32(1)
+        h = hits_array[idx] + np.int16(1)
     else:
         if max_idx >= len(qval_array): # skip learning, no space left for new state-action pairs
             return next_hash_state, max_idx
@@ -215,7 +215,7 @@ def update_Q_values(
         Q_index_map[hash_state] = np.int32(max_idx)
         max_idx += np.int32(1)
         oldQ = np.float32(0.0)
-        h = np.int32(1)
+        h = np.int16(1)
 
     newQ = (
         ((1.0 - learning_rate) * oldQ)
@@ -226,7 +226,7 @@ def update_Q_values(
         ))
     )
     qval_array[idx] = np.float32(newQ)
-    hits_array[idx] = np.int32(h)
+    hits_array[idx] = np.int16(h)
     return next_hash_state, max_idx
 
 
@@ -248,7 +248,7 @@ def initialise_qvals(initial_states_array, initial_qval_array, states_array, qva
         s = initial_states_array[i]
         states_array[i] = s
         qval_array[i] = initial_qval_array[i]
-        hits_array[i] = np.int32(0)
+        hits_array[i] = np.int16(0)
         Q_index_map[s] = np.int32(i)
 
 
@@ -290,7 +290,7 @@ def block_sort_arrays(states_array, qval_array, hits_array, m, max_idx):
       + `q_arr` the numpy array of q-values
       + `hits_arr` the numpy array of numbers of hits
     """
-    n = len(states_array)
+    max_idx = np.int64(max_idx)
     states_array = states_array[:max_idx+1]
     qval_array = qval_array[:max_idx+1]
     hits_array = hits_array[:max_idx+1]

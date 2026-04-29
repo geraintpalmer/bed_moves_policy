@@ -6,13 +6,13 @@ from numba import typed, types
 import math
 
 def test_merge_sorted_qvals():
-    keys1 = np.array([1, 4, 5, 9, 11, 16])
-    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 8.0])
-    hits1 = np.array([1, 1, 5, 2, 3, 0])
+    keys1 = np.array([1, 4, 5, 9, 11, 16], dtype=np.int64)
+    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 8.0], dtype=np.float32)
+    hits1 = np.array([1, 1, 5, 2, 3, 0], dtype=np.int16)
 
-    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14, 16])
-    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 8.0])
-    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4, 0])
+    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14, 16], dtype=np.int64)
+    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 8.0], dtype=np.float32)
+    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4, 0], dtype=np.int16)
 
     keys, vals, hits = rl.merge_sorted_qvals(
         keys1=keys1,
@@ -25,7 +25,7 @@ def test_merge_sorted_qvals():
 
     assert np.array_equal(keys, np.array([1, 2, 4, 5, 6, 9, 10, 11, 12, 14, 16], dtype=np.int64))
     assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5, 8.0], dtype=np.float32))
-    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0], dtype=np.int32))
+    assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0], dtype=np.int16))
 
 
 def test_get_best_future_reward():
@@ -104,7 +104,7 @@ def test_update_Q_values():
     Q_index_map[hash_state + np.int64(808)] = np.int32(2)
     states = np.array([hash_state + 606, hash_state + 707, hash_state + 808, 0, 0, 0], dtype=np.int64)
     Qvals = np.array([-150.0, -100.0, -160.0, 0.0, 0.0, 0.0], dtype=np.float32)
-    hits = np.array([1, 1, 1, 0, 0, 0], dtype=np.int32)
+    hits = np.array([1, 1, 1, 0, 0, 0], dtype=np.int16)
 
     next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+505,
@@ -221,7 +221,7 @@ def test_update_Q_values_default_future():
         value_type=types.int32
     )
     Qvals = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
-    hits = np.array([0, 0, 0, 0, 0], dtype=np.int32)
+    hits = np.array([0, 0, 0, 0, 0], dtype=np.int16)
     states = np.array([0, 0, 0, 0, 0], dtype=np.int64)
 
     next_hash_state, max_idx = rl.update_Q_values(
@@ -255,43 +255,43 @@ def test_update_Q_values_default_future():
 
 
 def test_initialise_qvals():
-    # keys1 = np.array([1, 4, 5, 9, 11, 12], dtype=np.int64)
-    # vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0], dtype=np.float32)
-    # hits1 = np.array([1, 1, 5, 2, 3, 0], dtype=np.int32)
-    # Q_index_map = typed.Dict.empty(
-    #     key_type=types.int64,
-    #     value_type=types.int32
-    # )
-    # states = np.empty(8, dtype=np.int64)
-    # qvals = np.empty(8, dtype=np.float32)
-    # hits = np.empty(8, dtype=np.int32)
+    keys1 = np.array([1, 4, 5, 9, 11, 12], dtype=np.int64)
+    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0], dtype=np.float32)
+    hits1 = np.array([1, 1, 5, 2, 3, 0], dtype=np.int16)
+    Q_index_map = typed.Dict.empty(
+        key_type=types.int64,
+        value_type=types.int32
+    )
+    states = np.zeros(8, dtype=np.int64)
+    qvals = np.zeros(8, dtype=np.float32)
+    hits = np.zeros(8, dtype=np.int16)
 
-    # rl.initialise_qvals(
-    #     initial_states_array=keys1,
-    #     initial_qval_array=vals1,
-    #     states_array=states,
-    #     qval_array=qvals,
-    #     hits_array=hits,
-    #     Q_index_map=Q_index_map
-    # )
+    rl.initialise_qvals(
+        initial_states_array=keys1,
+        initial_qval_array=vals1,
+        states_array=states,
+        qval_array=qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map
+    )
 
-    # assert np.array_equal(states, np.array([1, 4, 5, 9, 11, 12, 0, 0], dtype=np.int64))
-    # assert np.array_equal(qvals, np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0, 0.0, 0.0], dtype=np.float32))
-    # assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int32))
-    # assert len(Q_index_map) == 6
-    # for i in range(6):
-    #     assert Q_index_map[states[i]] == i
+    assert np.array_equal(states, np.array([1, 4, 5, 9, 11, 12, 0, 0], dtype=np.int64))
+    assert np.array_equal(qvals, np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0, 0.0, 0.0], dtype=np.float32))
+    assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int16))
+    assert len(Q_index_map) == 6
+    for i in range(6):
+        assert Q_index_map[states[i]] == i
 
     keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14], dtype=np.int64)
     vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5], dtype=np.float32)
-    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4], dtype=np.int32)
+    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4], dtype=np.int16)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
     )
     states = np.zeros(12, dtype=np.int64)
     qvals = np.zeros(12, dtype=np.float32)
-    hits = np.zeros(12, dtype=np.int32)
+    hits = np.zeros(12, dtype=np.int16)
 
     rl.initialise_qvals(
         initial_states_array=keys2,
@@ -303,7 +303,7 @@ def test_initialise_qvals():
     )
     assert np.array_equal(states, np.array([2, 5, 6, 9, 10, 11, 12, 14, 0, 0, 0, 0], dtype=np.int64))
     assert np.array_equal(qvals, np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 0.0, 0.0, 0.0, 0.0], dtype=np.float32))
-    assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int32))
+    assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int16))
     assert len(Q_index_map) == 8
     for i in range(8):
         assert Q_index_map[states[i]] == i
@@ -351,7 +351,7 @@ def test_initialise_policy():
 def test_block_sort_arrays():
     states_array = np.array([ 111,  222,  333,  444,  666,  888,  999,  555,  777,   0,   0,   0,   0,   0], dtype=np.int64)
     qval_array =   np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -3.3, -2.2, -7.7, -6.6, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
-    hits_array =   np.array([   4,    1,    7,    8,    9,    2,    3,    5,    6,   0,   0,   0,   0,   0], dtype=np.int32)
+    hits_array =   np.array([   4,    1,    7,    8,    9,    2,    3,    5,    6,   0,   0,   0,   0,   0], dtype=np.int16)
     m = 5
     max_idx = 8
 
@@ -366,4 +366,4 @@ def test_block_sort_arrays():
     assert max_idx2 == 8
     assert np.array_equal(states2, np.array([111, 222, 333, 444, 666, 555, 777, 888, 999], dtype=np.int64))
     assert np.array_equal(qval2, np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -7.7, -6.6, -3.3, -2.2], dtype=np.float32))
-    assert np.array_equal(hits2, np.array([4, 1, 7, 8, 9, 5, 6, 2, 3], dtype=np.int32))
+    assert np.array_equal(hits2, np.array([4, 1, 7, 8, 9, 5, 6, 2, 3], dtype=np.int16))

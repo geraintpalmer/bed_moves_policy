@@ -173,7 +173,7 @@ def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
     keys = np.array([2525], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
-    hits = np.array([34], dtype=np.int32)
+    hits = np.array([34], dtype=np.int16)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -208,7 +208,7 @@ def test_can_simulate_with_initial_Qvals():
     # Now repeat for an action I won't encounter
     keys = np.array([22], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
-    hits = np.array([34], dtype=np.int32)
+    hits = np.array([34], dtype=np.int16)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -243,7 +243,7 @@ def test_can_simulate_with_initial_Qvals():
     # Now repeat for a state I won't encounter
     keys = np.array([162521625229227], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
-    hits = np.array([34], dtype=np.int32)
+    hits = np.array([34], dtype=np.int16)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -274,7 +274,7 @@ def test_can_simulate_with_initial_Qvals():
     assert np.int64(2525) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
-p
+
 def test_using_warmup():
     S = sim.WardEvaluation(
         arrival_distributions=[

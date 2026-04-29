@@ -477,7 +477,7 @@ class WardTraining(WardSimulation):
         )
         self.states = np.zeros(self.M, dtype=np.int64)
         self.Qvals = np.zeros(self.M, dtype=np.float32)
-        self.hits = np.zeros(self.M, dtype=np.int32)
+        self.hits = np.zeros(self.M, dtype=np.int16)
         self.m = 0
 
         if initial_keys is not None:
