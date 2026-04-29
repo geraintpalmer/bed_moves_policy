@@ -58,13 +58,13 @@ def train(
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=epsilon,
         seed=seed,
+        max_time=max_time,
         learning_rate=learning_rate,
         discount_factor=discount_factor,
         initial_keys=initial_keys,
         initial_qvals=initial_qvals
     )
     S.simulate_until_max_time(
-        max_time=max_time,
         shared_progress_array=progress_array,
         trial=trial
     )

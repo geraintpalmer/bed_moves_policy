@@ -38,9 +38,9 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
     unique_count += (len(keys1) - idx_1) + (len(keys2) - idx_2)
 
 
-    keys_n = np.empty(unique_count, dtype=np.int64)
-    vals_n = np.empty(unique_count, dtype=np.float32)
-    hits_n = np.empty(unique_count, dtype=np.int32)
+    keys_n = np.zeros(unique_count, dtype=np.int64)
+    vals_n = np.zeros(unique_count, dtype=np.float32)
+    hits_n = np.zeros(unique_count, dtype=np.int32)
 
     idx_1 = 0
     idx_2 = 0
@@ -83,7 +83,15 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
 
 
 @njit(cache=True)
-def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_best_Q, actions_pool):
+def get_best_future_reward(
+    state,
+    patient_type,
+    qval_array,
+    Q_index_map,
+    just_chose_best,
+    prev_best_Q,
+    actions_pool
+):
     """
     Returns the maximum future reward if taking the optimal action
     when in the future state.
@@ -106,7 +114,11 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
     if just_chose_best:
         return prev_best_Q
 
-    actions_pool, valid_count = ward.get_available_actions(state=state, patient_type=patient_type, actions_pool=actions_pool)
+    actions_pool, valid_count = ward.get_available_actions(
+        state=state,
+        patient_type=patient_type,
+        actions_pool=actions_pool
+    )
     hash_state_only = ward.get_hash_state_only(
         state=state,
         patient_type=patient_type,
@@ -116,8 +128,9 @@ def get_best_future_reward(state, patient_type, Qvals, just_chose_best, prev_bes
     best_Q = -np.float32(np.inf)
     for i in range(valid_count):
         hash_state = hash_state_only + actions_pool[i]
-        if hash_state in Qvals:
-            Q = Qvals[hash_state]
+        if hash_state in Q_index_map:
+            idx = Q_index_map[hash_state]
+            Q = qval_array[np.int64(idx)]
             if Q > best_Q:
                 best_Q = Q
 
@@ -130,8 +143,11 @@ def update_Q_values(
     next_state,
     next_patient_type,
     next_action,
-    Qvals,
-    hits,
+    states_array,
+    qval_array,
+    hits_array,
+    Q_index_map,
+    max_idx,
     reward,
     learning_rate,
     discount_factor,
@@ -171,7 +187,8 @@ def update_Q_values(
     best_future_reward = get_best_future_reward(
         state=next_state,
         patient_type=next_patient_type,
-        Qvals=Qvals,
+        qval_array=qval_array,
+        Q_index_map=Q_index_map,
         just_chose_best=just_chose_best,
         prev_best_Q=prev_best_Q,
         actions_pool=actions_pool
@@ -179,11 +196,26 @@ def update_Q_values(
     if np.isinf(best_future_reward):
         best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
 
-    oldQ = np.float32(0.0)
-    oldhits = np.int32(0)
-    if hash_state in Qvals:
-        oldQ = Qvals[hash_state]
-        oldhits = hits[hash_state]
+    next_hash_state = ward.get_hash_stateaction(
+        state=next_state,
+        patient_type=next_patient_type,
+        action=next_action,
+        hash_weights=ward.hash_weights
+    )
+
+    if hash_state in Q_index_map:
+        idx = np.int64(Q_index_map[hash_state])
+        oldQ = qval_array[idx]
+        h = hits_array[idx] + np.int32(1)
+    else:
+        if max_idx >= len(qval_array): # skip learning, no space left for new state-action pairs
+            return next_hash_state, max_idx
+
+        idx = np.int64(max_idx)
+        Q_index_map[hash_state] = np.int32(max_idx)
+        max_idx += np.int32(1)
+        oldQ = np.float32(0.0)
+        h = np.int32(1)
 
     newQ = (
         ((1.0 - learning_rate) * oldQ)
@@ -193,37 +225,31 @@ def update_Q_values(
             )
         ))
     )
-    Qvals[hash_state] = np.float32(newQ)
-    hits[hash_state] = np.int32(oldhits + 1)
-
-    next_hash_state = ward.get_hash_stateaction(
-        state=next_state,
-        patient_type=next_patient_type,
-        action=next_action,
-        hash_weights=ward.hash_weights
-    )
-    return next_hash_state
+    qval_array[idx] = np.float32(newQ)
+    hits_array[idx] = np.int32(h)
+    return next_hash_state, max_idx
 
 
 
 @njit(cache=True)
-def initialise_qvals(keys_array, qval_array, Qvals, hits):
+def initialise_qvals(initial_states_array, initial_qval_array, states_array, qval_array, hits_array, Q_index_map):
     """
-    Initialises Qvals dictionary with some previously learned
-    Q-values.
+    Initialises Q-values data structure.
 
     Arguments:
-      + `keys_array`: a numpy array containing the hashed stateaction pairs
-      + `qval_array`: a numpy array containing the learned q-values
-      + `Qvals`: an empty typed dictionary for the Q-values
-      + `hits`: an empty typed dictionary for the hits.
+      + `initial_states_array`: a numpy array containing the initial hashed stateaction pairs
+      + `initial_qval_array`: a numpy array containing the initial qvalues
+      + `states_array`: an empty numpy array for the hashed stateaction pairs
+      + `qval_array`: an empty numpy array for the learned q-values
+      + `hits_array`: an empty numpy array for the hits
+      + `Q_index_map`: an empty typed dictionary for mapping states to indices
     """
-    for k, v in zip(
-        keys_array,
-        qval_array
-    ):
-        Qvals[k] = v
-        hits[k] = np.int32(0)
+    for i in range(len(initial_states_array)):
+        s = initial_states_array[i]
+        states_array[i] = s
+        qval_array[i] = initial_qval_array[i]
+        hits_array[i] = np.int32(0)
+        Q_index_map[s] = np.int32(i)
 
 
 @njit(cache=True)
@@ -250,7 +276,7 @@ def initialise_policy(keys_array, qval_array, policy):
 
 
 @njit(cache=True)
-def get_arrays_from_dicts(Qvals, hits):
+def block_sort_arrays(states_array, qval_array, hits_array, m, max_idx):
     """
     Gets numpy arrays from the Numba typed dictionary.
 
@@ -264,15 +290,16 @@ def get_arrays_from_dicts(Qvals, hits):
       + `q_arr` the numpy array of q-values
       + `hits_arr` the numpy array of numbers of hits
     """
-    n = len(Qvals)
-    keys_arr = np.empty(n, dtype=np.int64)
-    q_arr = np.empty(n, dtype=np.float32)
-    hits_arr = np.empty(n, dtype=np.int32)
-    
-    i = 0
-    for k, v in Qvals.items():
-        keys_arr[i] = k
-        q_arr[i] = v
-        hits_arr[i] = hits[k]
-        i += 1
-    return n, keys_arr, q_arr, hits_arr
+    n = len(states_array)
+    states_array = states_array[:max_idx+1]
+    qval_array = qval_array[:max_idx+1]
+    hits_array = hits_array[:max_idx+1]
+
+    newfound_states = states_array[m:]
+    idx_order = np.argsort(newfound_states)
+
+    states_array[m:] = states_array[m:][idx_order]
+    qval_array[m:] = qval_array[m:][idx_order]
+    hits_array[m:] = hits_array[m:][idx_order]
+
+    return max_idx, states_array, qval_array, hits_array

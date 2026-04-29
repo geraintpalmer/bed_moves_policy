@@ -28,14 +28,14 @@ def test_choose_best_action():
     state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     patient_type = 1
-    actions_pool = np.array([616, 717, 826, 0, 0, 0, 0, 0, 0])
+    actions_pool = np.array([616, 717, 826, 0, 0, 0, 0, 0, 0], dtype=np.int64)
     valid_count = 3
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
     hash_state = ward.get_hash_state_only(
         state=state,
@@ -43,36 +43,43 @@ def test_choose_best_action():
         hash_weights=ward.hash_weights
     )
 
-    Qvals[hash_state + 616] = 55.4
-    Qvals[hash_state + 717] = 35.1
-    Qvals[hash_state + 826] = 78.2
+    Q_index_map[hash_state + np.int64(616)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(717)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(826)] = np.int32(2)
+    Qvals = np.array([55.4, 35.1, 78.2], dtype=np.float32)
     a, Qa = chooser.choose_best_action(
         state=state,
         patient_type=1,
         actions_pool=actions_pool,
         valid_count=valid_count,
-        Qvals=Qvals
+        Q_index_map=Q_index_map,
+        qval_array=Qvals
     )
     assert a == 826
-    assert Qa == 78.2
+    assert Qa == np.float32(78.2)
 
-    Qvals[hash_state + 616] = 155.4
-    Qvals[hash_state + 717] = 35.1
-    Qvals[hash_state + 826] = 78.2
+    Q_index_map[hash_state + np.int64(616)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(717)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(826)] = np.int32(2)
+    Qvals = np.array([155.4, 35.1, 78.2], dtype=np.float32)
+
     a, Qa = chooser.choose_best_action(
         state=state,
         patient_type=1,
         actions_pool=actions_pool,
         valid_count=valid_count,
-        Qvals=Qvals
+        Q_index_map=Q_index_map,
+        qval_array=Qvals
     )
     assert a == 616
-    assert Qa == 155.4
+    assert Qa == np.float32(155.4)
 
     # Test randomly chooses in a tie
-    Qvals[hash_state + 616] = 0.0
-    Qvals[hash_state + 717] = 0.0
-    Qvals[hash_state + 826] = 0.0
+    Q_index_map[hash_state + np.int64(616)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(717)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(826)] = np.int32(2)
+    Qvals = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+
     chosen_actions = []
     N = 100000
     for i in range(N):
@@ -81,7 +88,8 @@ def test_choose_best_action():
             patient_type=1,
             actions_pool=actions_pool,
             valid_count=valid_count,
-            Qvals=Qvals
+            Q_index_map=Q_index_map,
+            qval_array=Qvals
         )
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
@@ -96,33 +104,34 @@ def test_choose_action_10():
     S = np.array(
         (2, 1, 1, 3, 2, 2, 1, 1, 1,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
     hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
     hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    Qvals[hashS0] = 0.35
-    Qvals[hashS1] = 1.56
-    Qvals[hashS2] = 0.98
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Qvals=Qvals, actions_pool=actions_pool)
+    Q_index_map[hashS0] = np.int32(0)
+    Q_index_map[hashS1] = np.int32(1)
+    Q_index_map[hashS2] = np.int32(2)
+    Qvals = np.array([0.35, 1.56, 0.98], dtype=np.float32)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
-    assert Qa == 1.56
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Qvals=Qvals, actions_pool=actions_pool)
+    assert Qa == np.float32(1.56)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
-    assert Qa == 1.56
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Qvals=Qvals, actions_pool=actions_pool)
+    assert Qa == np.float32(1.56)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
-    assert Qa == 1.56
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Qvals=Qvals, actions_pool=actions_pool)
+    assert Qa == np.float32(1.56)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
-    assert Qa == 1.56
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Qvals=Qvals, actions_pool=actions_pool)
+    assert Qa == np.float32(1.56)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=1.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
-    assert Qa == 1.56
+    assert Qa == np.float32(1.56)
 
 
 def test_choose_action_epsilon_00():
@@ -131,52 +140,53 @@ def test_choose_action_epsilon_00():
     S9 = np.array(
         (3, 2, 2, 3, 2, 2, 1, 1, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     S = np.array(
         (2, 1, 1, 3, 2, 2, 1, 1, 1,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
     hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
     hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    Qvals[hashS0] = 0.35
-    Qvals[hashS1] = 1.56
-    Qvals[hashS2] = 0.98
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    Q_index_map[hashS0] = np.int32(0)
+    Q_index_map[hashS1] = np.int32(1)
+    Q_index_map[hashS2] = np.int32(2)
+    Qvals = np.array([0.35, 1.56, 0.98], dtype=np.float32)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 101
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 202
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 202
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 0
     assert Qa is None
 
-    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 808
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 808
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 808
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 808
     assert Qa is None
-    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Qvals=Qvals, actions_pool=actions_pool)
+    a, Qa = chooser.choose_action(state=S9, patient_type=0, epsilon=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
     assert a == 808
     assert Qa is None
 
@@ -187,23 +197,24 @@ def test_choose_action_epsilon_07():
     S = np.array(
         (2, 1, 1, 3, 2, 2, 1, 1, 1,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
     hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
     hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    Qvals[hashS0] = 0.35
-    Qvals[hashS1] = 1.56
-    Qvals[hashS2] = 0.98
+    Q_index_map[hashS0] = np.int32(0)
+    Q_index_map[hashS1] = np.int32(1)
+    Q_index_map[hashS2] = np.int32(2)
+    Qvals = np.array([0.35, 1.56, 0.98], dtype=np.float32)
 
     N = 10000
     chosen_actions = []
     for _ in range(N):
-        a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.7, Qvals=Qvals, actions_pool=actions_pool)
+        a, Qa = chooser.choose_action(state=S, patient_type=0, epsilon=0.7, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool)
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
     assert round(n_chosen_actions[0] / N, 5) == 0.1012

@@ -20,7 +20,7 @@ def choose_random_action(actions_pool, valid_count):
 
 
 @njit(cache=True)
-def choose_best_action(state, patient_type, actions_pool, valid_count, Qvals):
+def choose_best_action(state, patient_type, actions_pool, valid_count, Q_index_map, qval_array):
     """
     Chooses the best action.
 
@@ -46,21 +46,22 @@ def choose_best_action(state, patient_type, actions_pool, valid_count, Qvals):
     available_actions_Q = np.zeros(valid_count)
     for i in range(valid_count):
         key = hash_state_only + actions_pool[i]
-        if key in Qvals:
-            available_actions_Q[i] = Qvals[key]
+        if key in Q_index_map:
+            idx = Q_index_map[key]
+            available_actions_Q[i] = qval_array[np.int64(idx)]
 
     Qs_with_rnd = (
         available_actions_Q + (
-            np.random.random(valid_count) * 10e-13
+            np.random.random(valid_count).astype(np.float32) * np.float32(10e-6)
         )
     )
 
-    idx = Qs_with_rnd.argmax()
-    return actions_pool[idx], available_actions_Q[idx]
+    aidx = Qs_with_rnd.argmax()
+    return actions_pool[aidx], available_actions_Q[aidx]
 
 
 @njit(cache=True)
-def choose_action(state, patient_type, epsilon, Qvals, actions_pool):
+def choose_action(state, patient_type, epsilon, Q_index_map, qval_array, actions_pool):
     """
     Randomly chooses an action (1-epsilon) of the time.
     Otherwise chooses the best.
@@ -91,7 +92,8 @@ def choose_action(state, patient_type, epsilon, Qvals, actions_pool):
             patient_type=patient_type,
             actions_pool=actions_pool,
             valid_count=valid_count,
-            Qvals=Qvals
+            Q_index_map=Q_index_map,
+            qval_array=qval_array
         )
         return a, Qa
 

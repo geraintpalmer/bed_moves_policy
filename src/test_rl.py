@@ -33,40 +33,43 @@ def test_get_best_future_reward():
     state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
-    Qvals = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.float64
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
         patient_type=0,
         hash_weights=ward.hash_weights
     )
-    Qvals[hash_state + 606] = -55.4
-    Qvals[hash_state + 707] = -35.1
-    Qvals[hash_state + 808] = -78.2
+    Q_index_map = typed.Dict.empty(
+        key_type=types.int64,
+        value_type=types.int32
+    )
+    Q_index_map[hash_state + np.int64(606)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(707)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(808)] = np.int32(2)
+    Qvals = np.array([-55.4, -35.1, -78.2], dtype=np.float32)
 
     Q = rl.get_best_future_reward(
         state=state,
         patient_type=0,
-        Qvals=Qvals,
+        Q_index_map=Q_index_map,
+        qval_array=Qvals,
         just_chose_best=False,
-        prev_best_Q=48.9,
+        prev_best_Q=np.float32(-48.9),
         actions_pool=actions_pool
     )
-    assert Q == -35.1
+    assert Q == np.float32(-35.1)
 
     Q = rl.get_best_future_reward(
         state=state,
         patient_type=0,
-        Qvals=Qvals,
+        Q_index_map=Q_index_map,
+        qval_array=Qvals,
         just_chose_best=True,
-        prev_best_Q=-48.9,
+        prev_best_Q=np.float32(-48.9),
         actions_pool=actions_pool
     )
-    assert Q == -48.9
+    assert Q == np.float32(-48.9)
 
 
 def test_update_Q_values():
@@ -74,7 +77,7 @@ def test_update_Q_values():
     state = np.array(
         (3, 2, 2, 3, 2, 1, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
@@ -84,7 +87,7 @@ def test_update_Q_values():
     next_state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
@@ -92,91 +95,110 @@ def test_update_Q_values():
         hash_weights=ward.hash_weights
     )
 
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    Qvals[next_hash_state + 606] = -150.0
-    Qvals[next_hash_state + 707] = -100.0
-    Qvals[next_hash_state + 808] = -160.0
+    Q_index_map[hash_state + np.int64(606)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(707)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(808)] = np.int32(2)
+    states = np.array([hash_state + 606, hash_state + 707, hash_state + 808, 0, 0, 0], dtype=np.int64)
+    Qvals = np.array([-150.0, -100.0, -160.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    hits = np.array([1, 1, 1, 0, 0, 0], dtype=np.int32)
 
-    hits = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.int64
-    )
-    hits[hash_state + 606] = 1
-    hits[hash_state + 707] = 1
-    hits[hash_state + 808] = 1
-
-    next_hash_state = rl.update_Q_values(
+    next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+505,
         next_state=next_state,
         next_patient_type=1,
         next_action=606,
-        Qvals=Qvals,
-        hits=hits,
+        states_array=states,
+        qval_array=Qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map,
+        max_idx=np.int32(3),
         reward=-200,
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=False,
-        prev_best_Q=-300,
-        default_future_reward=-10,
+        prev_best_Q=np.float32(-300),
+        default_future_reward=np.float32(-10),
         actions_pool=actions_pool
     )
     assert next_hash_state == 48504485040001606
-    assert len(Qvals) == 4
-    assert len(hits) == 4
-    assert hits[hash_state + 505] == 1
-    assert Qvals[hash_state + 505] == -145.0
+    assert len(Qvals) == 6
+    assert len(hits) == 6
+    assert len(states) == 6
+    assert len(Q_index_map) == 4
+    assert max_idx == 4
+    assert Q_index_map[hash_state + 505] == 3
+    assert Qvals[3] == np.float32(-145.0)
+    assert hits[3] == 1
 
-    next_hash_state = rl.update_Q_values(
+    next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+505,
         next_state=next_state,
         next_patient_type=1,
         next_action=606,
-        Qvals=Qvals,
-        hits=hits,
+        states_array=states,
+        qval_array=Qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map,
+        max_idx=np.int32(4),
         reward=-1000,
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=False,
-        prev_best_Q=-300,
-        default_future_reward=-10,
+        prev_best_Q=np.float32(-300),
+        default_future_reward=np.float32(-10),
         actions_pool=actions_pool
     )
-    assert next_hash_state == 48504485040001606
-    assert len(Qvals) == 4
-    assert len(hits) == 4
-    assert hits[hash_state + 505] == 2
-    assert Qvals[hash_state + 505] == -617.5
 
-    next_hash_state = rl.update_Q_values(
+    assert next_hash_state == 48504485040001606
+    assert len(Qvals) == 6
+    assert len(hits) == 6
+    assert len(states) == 6
+    assert len(Q_index_map) == 4
+    assert max_idx == 4
+    assert Q_index_map[hash_state + 505] == 3
+    assert Qvals[3] == np.float32(-617.5)
+    assert hits[3] == 2
+
+    next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+505,
         next_state=next_state,
         next_patient_type=1,
         next_action=606,
-        Qvals=Qvals,
-        hits=hits,
+        states_array=states,
+        qval_array=Qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map,
+        max_idx=np.int32(4),
         reward=0,
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=True,
-        prev_best_Q=-10000,
-        default_future_reward=-10,
+        prev_best_Q=np.float32(-10000),
+        default_future_reward=np.float32(-10),
         actions_pool=actions_pool
     )
+
     assert next_hash_state == 48504485040001606
-    assert len(Qvals) == 4
-    assert len(hits) == 4
-    assert hits[hash_state + 505] == 3
-    assert Qvals[hash_state + 505] == -308.75 - 4500.0
+    assert len(Qvals) == 6
+    assert len(hits) == 6
+    assert len(states) == 6
+    assert len(Q_index_map) == 4
+    assert max_idx == 4
+    assert Q_index_map[hash_state + 505] == 3
+    assert Qvals[3] == np.float32(-308.75 - 4500.0)
+    assert hits[3] == 3
+
 
 def test_update_Q_values_default_future():
     actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
     state = np.array(
         (3, 2, 2, 3, 2, 1, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
@@ -186,7 +208,7 @@ def test_update_Q_values_default_future():
     next_state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
@@ -194,105 +216,98 @@ def test_update_Q_values_default_future():
         hash_weights=ward.hash_weights
     )
 
-    Qvals = typed.Dict.empty(
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    hits = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.int64
-    )
-    next_hash_state = rl.update_Q_values(
+    Qvals = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    hits = np.array([0, 0, 0, 0, 0], dtype=np.int32)
+    states = np.array([0, 0, 0, 0, 0], dtype=np.int64)
+
+    next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+505,
         next_state=next_state,
         next_patient_type=1,
         next_action=606,
-        Qvals=Qvals,
-        hits=hits,
-        reward=200,
+        states_array=states,
+        qval_array=Qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map,
+        max_idx=np.int32(0),
+        reward=np.float32(200),
         learning_rate=0.5,
         discount_factor=0.9,
         just_chose_best=False,
-        prev_best_Q=300,
-        default_future_reward=0.2,
+        prev_best_Q=np.float32(-300),
+        default_future_reward=np.float32(0.2),
         actions_pool=actions_pool
     )
 
     assert next_hash_state == 48504485040001606
-    assert len(Qvals) == 1
-    assert len(hits) == 1
-    assert hits[hash_state + 505] == 1
-    assert Qvals[hash_state + 505] == np.float32((0.5 * 200) + (0.5 * (0.9 * (0.2 / 0.1))))
+    assert len(Qvals) == 5
+    assert len(hits) == 5
+    assert len(states) == 5
+    assert len(Q_index_map) == 1
+    assert max_idx == 1
+    assert Q_index_map[hash_state + 505] == 0
+    assert Qvals[0] == np.float32((0.5 * 200) + (0.5 * (0.9 * (0.2 / 0.1))))
+    assert hits[0] == 1
 
 
 def test_initialise_qvals():
-    keys1 = np.array([1, 4, 5, 9, 11, 12])
-    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0])
-    hits1 = np.array([1, 1, 5, 2, 3, 0])
-    Qvals1 = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.float64
-    )
-    Hits1 = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.int64
-    )
-    rl.initialise_qvals(
-        keys_array=keys1,
-        qval_array=vals1,
-        Qvals=Qvals1,
-        hits=Hits1
-    )
-    assert len(Qvals1) == 6
-    assert len(Hits1) == 6
-    assert Qvals1[1] == 0.5
-    assert Qvals1[4] == 1.5
-    assert Qvals1[5] == 2.0
-    assert Qvals1[9] == 1.5
-    assert Qvals1[11] == 4.5
-    assert Qvals1[12] == 6.0
-    assert Hits1[1] == 0
-    assert Hits1[4] == 0
-    assert Hits1[5] == 0
-    assert Hits1[9] == 0
-    assert Hits1[11] == 0
-    assert Hits1[12] == 0
+    # keys1 = np.array([1, 4, 5, 9, 11, 12], dtype=np.int64)
+    # vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0], dtype=np.float32)
+    # hits1 = np.array([1, 1, 5, 2, 3, 0], dtype=np.int32)
+    # Q_index_map = typed.Dict.empty(
+    #     key_type=types.int64,
+    #     value_type=types.int32
+    # )
+    # states = np.empty(8, dtype=np.int64)
+    # qvals = np.empty(8, dtype=np.float32)
+    # hits = np.empty(8, dtype=np.int32)
 
-    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14])
-    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5])
-    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4])
-    Qvals2 = typed.Dict.empty(
+    # rl.initialise_qvals(
+    #     initial_states_array=keys1,
+    #     initial_qval_array=vals1,
+    #     states_array=states,
+    #     qval_array=qvals,
+    #     hits_array=hits,
+    #     Q_index_map=Q_index_map
+    # )
+
+    # assert np.array_equal(states, np.array([1, 4, 5, 9, 11, 12, 0, 0], dtype=np.int64))
+    # assert np.array_equal(qvals, np.array([0.5, 1.5, 2.0, 1.5, 4.5, 6.0, 0.0, 0.0], dtype=np.float32))
+    # assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int32))
+    # assert len(Q_index_map) == 6
+    # for i in range(6):
+    #     assert Q_index_map[states[i]] == i
+
+    keys2 = np.array([2, 5, 6, 9, 10, 11, 12, 14], dtype=np.int64)
+    vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5], dtype=np.float32)
+    hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4], dtype=np.int32)
+    Q_index_map = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.float64
+        value_type=types.int32
     )
-    Hits2 = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.int64
-    )
+    states = np.zeros(12, dtype=np.int64)
+    qvals = np.zeros(12, dtype=np.float32)
+    hits = np.zeros(12, dtype=np.int32)
+
     rl.initialise_qvals(
-        keys_array=keys2,
-        qval_array=vals2,
-        Qvals=Qvals2,
-        hits=Hits2
+        initial_states_array=keys2,
+        initial_qval_array=vals2,
+        states_array=states,
+        qval_array=qvals,
+        hits_array=hits,
+        Q_index_map=Q_index_map
     )
-    assert len(Qvals2) == 8
-    assert len(Hits2) == 8
-    assert Qvals2[2] == 1.5
-    assert Qvals2[5] == 5.0
-    assert Qvals2[6] == 1.0
-    assert Qvals2[9] == 1.0
-    assert Qvals2[10] == 5.5
-    assert Qvals2[11] == 6.0
-    assert Qvals2[12] == 4.5
-    assert Qvals2[14] == 1.5
-    assert Hits2[2] == 0
-    assert Hits2[5] == 0
-    assert Hits2[6] == 0
-    assert Hits2[9] == 0
-    assert Hits2[10] == 0
-    assert Hits2[11] == 0
-    assert Hits2[12] == 0
-    assert Hits2[14] == 0
+    assert np.array_equal(states, np.array([2, 5, 6, 9, 10, 11, 12, 14, 0, 0, 0, 0], dtype=np.int64))
+    assert np.array_equal(qvals, np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 0.0, 0.0, 0.0, 0.0], dtype=np.float32))
+    assert np.array_equal(hits, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.int32))
+    assert len(Q_index_map) == 8
+    for i in range(8):
+        assert Q_index_map[states[i]] == i
+
 
 
 def test_initialise_policy():
@@ -333,26 +348,22 @@ def test_initialise_policy():
     assert policy[44000] == 505
 
 
-def test_get_arrays_from_dicts():
-    Qvals = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.float64
+def test_block_sort_arrays():
+    states_array = np.array([ 111,  222,  333,  444,  666,  888,  999,  555,  777,   0,   0,   0,   0,   0], dtype=np.int64)
+    qval_array =   np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -3.3, -2.2, -7.7, -6.6, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    hits_array =   np.array([   4,    1,    7,    8,    9,    2,    3,    5,    6,   0,   0,   0,   0,   0], dtype=np.int32)
+    m = 5
+    max_idx = 8
+
+    max_idx2, states2, qval2, hits2 = rl.block_sort_arrays(
+        states_array=states_array,
+        qval_array=qval_array,
+        hits_array=hits_array,
+        m=m,
+        max_idx=8
     )
-    Qvals[99900096] = 50.4
-    Qvals[99900097] = 100.4
-    Qvals[99900098] = 60.4
 
-    hits = typed.Dict.empty(
-        key_type=types.int64,
-        value_type=types.int64
-    )
-    hits[99900096] = 1
-    hits[99900097] = 6
-    hits[99900098] = 2
-
-    n, k, q, h = rl.get_arrays_from_dicts(Qvals, hits)
-
-    assert n == 3
-    assert np.array_equal(k, np.array([99900096, 99900097, 99900098]))
-    assert np.array_equal(q, np.array([50.4, 100.4, 60.4], dtype=np.float32))
-    assert np.array_equal(h, np.array([1, 6, 2]))
+    assert max_idx2 == 8
+    assert np.array_equal(states2, np.array([111, 222, 333, 444, 666, 555, 777, 888, 999], dtype=np.int64))
+    assert np.array_equal(qval2, np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -7.7, -6.6, -3.3, -2.2], dtype=np.float32))
+    assert np.array_equal(hits2, np.array([4, 1, 7, 8, 9, 5, 6, 2, 3], dtype=np.int32))

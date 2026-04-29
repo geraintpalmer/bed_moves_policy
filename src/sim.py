@@ -79,11 +79,13 @@ class WardSimulation:
         move_penalties,
         epsilon,
         seed,
+        max_time,
         learning_rate=None,
         discount_factor=None,
         initial_keys=None,
         initial_qvals=None,
-        warmup=0.0
+        warmup=0.0,
+        M=None
     ):
         """
         Initialises the simulation object.
@@ -102,6 +104,7 @@ class WardSimulation:
                unit of not being in an isolation ward.
           + `epsilon`: a probability, float between 0 and 1
                (low: explore more, high: exploit more)
+          + `max_time`: the time to stop the simulation (positive float)
           + `learning_rate`: the learning rate of the Q-learning
                algorithm (a number between 0 and 1)
           + `discount_factor`: the discount factor of the Q-learning
@@ -113,11 +116,15 @@ class WardSimulation:
           + `warmup`: when evaluating, the date at which to begin
                accumulating the cost.
         """
+        ciw.seed(seed)
+        np.random.seed(seed)
+        numba_seed(seed)
+
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
         self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
         self.isolation_penalty = np.float32(isolation_penalty)
-        self.move_penalties = move_penalties
+        self.move_penalties = move_penalties.astype(np.float32)
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -125,9 +132,6 @@ class WardSimulation:
         self.just_chose_best = False
         self.prev_best_Q = np.float32(0.0)
 
-        ciw.seed(seed)
-        np.random.seed(seed)
-        numba_seed(seed)
         self.next_arrivals = np.array(
             [
                 self.arrival_distributions[0].sample(),
@@ -145,7 +149,7 @@ class WardSimulation:
         self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
-        self.actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
+        self.actions_pool = np.zeros(9 + (9 * 2 * 8), dtype=np.int32)
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
         self.patients_deterioration_dates = np.ones(17) * np.inf
@@ -155,6 +159,11 @@ class WardSimulation:
 
         self.state = ward.empty_state.copy()
         self.hash_state = None
+        self.max_time = max_time
+        if M is not None:
+            self.M = M
+        else:
+            self.M = 2 * np.ceil(1.2 * (max_time / sum((1/d.mean) for d in arrival_distributions))).astype(np.int64)
         self.setup_qvals(initial_keys, initial_qvals)
 
     def setup_qvals(self, initial_keys, initial_qvals):
@@ -182,7 +191,6 @@ class WardSimulation:
 
     def simulate_until_max_time(
         self,
-        max_time,
         shared_progress_array=None,
         trial=None
     ):
@@ -190,17 +198,16 @@ class WardSimulation:
         Simulates the ward for a given amount of time.
 
         Arguments:
-          + `max_time`: the time to stop the simulation (positive float)
           + `shared_progress_array`: A multiprocessing array containing
                the progress of each of the parallel trials.
           + `trial`: The number of the current trial (used for the
                multiprocessing progress bar).
         """
         if shared_progress_array is not None:
-            self.update_interval = max_time / 100
+            self.update_interval = self.max_time / 100
             self.update_threshold = self.update_interval
 
-        while self.now < max_time:
+        while self.now < self.max_time:
             next_arrival, patient_type = find_next_arrival_date(
                 next_arrivals=self.next_arrivals
             )
@@ -231,7 +238,7 @@ class WardSimulation:
                     self.update_threshold += self.update_interval
 
         if shared_progress_array is not None:
-            shared_progress_array[trial] = max_time
+            shared_progress_array[trial] = self.max_time
 
     def arrival(self, next_arrival, patient_type):
         """
@@ -378,15 +385,16 @@ class WardSimulation:
 
     def return_Qvals(self):
         """
-        Transforms the dictionary of Q-values into a tuple of three
-        numpy arrays (keys, Qs, hits).
+        Transforms the states, qvals, and hits arrays into
+        aligned block-sorted versions, and returns them.
         """
-        n, k, q, h = rl.get_arrays_from_dicts(self.Qvals, self.hits)
-        idx = np.argsort(k)
-        k = k[idx]
-        q = q[idx]
-        h = h[idx]
-        return n, k, q, h
+        return rl.block_sort_arrays(
+            states_array=self.states,
+            qval_array=self.Qvals,
+            hits_array=self.hits,
+            m=self.m,
+            max_idx=self.max_idx
+        )
 
 
 
@@ -405,7 +413,8 @@ class WardTraining(WardSimulation):
             state=self.state,
             patient_type=patient_type,
             epsilon=self.epsilon,
-            Qvals=self.Qvals,
+            Q_index_map=self.Q_index_map,
+            qval_array=self.Qvals,
             actions_pool=self.actions_pool
         )
         self.just_chose_best = Qa is not None
@@ -428,13 +437,16 @@ class WardTraining(WardSimulation):
         self.average_reward += ((R - self.average_reward) / self.n_rewards)
 
         if self.hash_state is not None:
-            self.hash_state = rl.update_Q_values(
+            self.hash_state, self.max_idx = rl.update_Q_values(
                 hash_state=self.hash_state,
                 next_state=self.state,
                 next_patient_type=patient_type,
                 next_action=action,
-                Qvals=self.Qvals,
-                hits=self.hits,
+                states_array=self.states,
+                qval_array=self.Qvals,
+                hits_array=self.hits,
+                Q_index_map=self.Q_index_map,
+                max_idx=self.max_idx,
                 reward=R,
                 learning_rate=self.learning_rate,
                 discount_factor=self.discount_factor,
@@ -459,20 +471,25 @@ class WardTraining(WardSimulation):
           + `initial_keys`: a numpy array of hashed stateaction pairs
           + `initial_qvals`: a numpy array of q-values
         """
-        self.Qvals = typed.Dict.empty(
-            key_type=types.int64,
-            value_type=types.float32
-        )
-        self.hits = typed.Dict.empty(
+        self.Q_index_map = typed.Dict.empty(
             key_type=types.int64,
             value_type=types.int32
         )
+        self.states = np.zeros(self.M, dtype=np.int64)
+        self.Qvals = np.zeros(self.M, dtype=np.float32)
+        self.hits = np.zeros(self.M, dtype=np.int32)
+        self.m = 0
+
         if initial_keys is not None:
+            self.m = len(initial_keys)
+            self.max_idx = np.int32(len(initial_keys))
             rl.initialise_qvals(
-                keys_array=initial_keys,
-                qval_array=initial_qvals,
-                Qvals=self.Qvals,
-                hits=self.hits
+                initial_states_array=initial_keys,
+                initial_qval_array=initial_qvals,
+                states_array=self.states,
+                qval_array=self.Qvals,
+                hits_array=self.hits,
+                Q_index_map=self.Q_index_map
             )
 
 class WardEvaluation(WardSimulation):

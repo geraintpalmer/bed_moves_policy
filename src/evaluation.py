@@ -57,12 +57,12 @@ def evaluate(
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=epsilon,
         seed=seed,
+        max_time=max_time,
         initial_keys=initial_keys,
         initial_qvals=initial_qvals,
         warmup=warmup
     )
     S.simulate_until_max_time(
-        max_time=max_time,
         shared_progress_array=progress_array,
         trial=trial
     )

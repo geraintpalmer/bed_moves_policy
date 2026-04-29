@@ -103,6 +103,7 @@ def test_WardSimulation_arrival_and_exit():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=500.0,
         learning_rate=0.5,
         discount_factor=0.9
     )
@@ -129,10 +130,11 @@ def test_WardSimulation_arrival_and_exit():
     assert np.min(S.patients_exit_dates) == np.inf
     assert np.max(S.patients_exit_dates) == np.inf
     assert S.now == 0.0
+    assert S.max_time == 500.0
     assert np.array_equal(S.state, expected_state_before)
     assert np.array_equal(S.patients_free_indices, [i for i in range(17)])
 
-    S.arrival(next_arrival=5, patient_type=0)
+    S.arrival(next_arrival=5.0, patient_type=0)
 
     assert np.array_equal(S.next_arrivals, np.array([10.0, 9.0, 11.0]))
     assert S.now == 5.0
@@ -169,9 +171,9 @@ def test_WardSimulation_arrival_and_exit():
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([10000303])
-    qval = np.array([2.5])
-    hits = np.array([34])
+    keys = np.array([2525], dtype=np.int64)
+    qval = np.array([2.5], dtype=np.float32)
+    hits = np.array([34], dtype=np.int32)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -192,23 +194,21 @@ def test_can_simulate_with_initial_Qvals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=2.0,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
         initial_qvals=qval
     )
-    S.simulate_until_max_time(2)
-    assert 10000303 in S.Qvals
-    assert 22 not in S.Qvals
-    assert 162521625229227 not in S.Qvals
-    assert 10000303 in S.hits
-    assert 22 not in S.hits
-    assert 162521625229227 not in S.hits
+    S.simulate_until_max_time()
+    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(22) not in S.Q_index_map
+    assert np.int64(162521625229227) not in S.Q_index_map
 
     # Now repeat for an action I won't encounter
-    keys = np.array([22])
-    qval = np.array([2.5])
-    hits = np.array([34])
+    keys = np.array([22], dtype=np.int64)
+    qval = np.array([2.5], dtype=np.float32)
+    hits = np.array([34], dtype=np.int32)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -229,23 +229,21 @@ def test_can_simulate_with_initial_Qvals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=2.0,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
         initial_qvals=qval
     )
-    S.simulate_until_max_time(2)
-    assert 10000303 in S.Qvals
-    assert 22 in S.Qvals
-    assert 162521625229227 not in S.Qvals
-    assert 10000303 in S.hits
-    assert 22 in S.hits
-    assert 162521625229227 not in S.hits
+    S.simulate_until_max_time()
+    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(22) in S.Q_index_map
+    assert np.int64(162521625229227) not in S.Q_index_map
 
     # Now repeat for a state I won't encounter
-    keys = np.array([162521625229227])
-    qval = np.array([2.5])
-    hits = np.array([34])
+    keys = np.array([162521625229227], dtype=np.int64)
+    qval = np.array([2.5], dtype=np.float32)
+    hits = np.array([34], dtype=np.int32)
     
     S = sim.WardTraining(
         arrival_distributions=[
@@ -266,19 +264,17 @@ def test_can_simulate_with_initial_Qvals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=2.0,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
         initial_qvals=qval
     )
-    S.simulate_until_max_time(2)
-    assert 10000303 in S.Qvals
-    assert 22 not in S.Qvals
-    assert 162521625229227 in S.Qvals
-    assert 10000303 in S.hits
-    assert 22 not in S.hits
-    assert 162521625229227 in S.hits
-
+    S.simulate_until_max_time()
+    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(22) not in S.Q_index_map
+    assert np.int64(162521625229227) in S.Q_index_map
+p
 def test_using_warmup():
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -299,10 +295,11 @@ def test_using_warmup():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=40.0,
         warmup=50.0
     )
     # Simulate for less than the warmup time
-    S.simulate_until_max_time(40.0)
+    S.simulate_until_max_time()
     assert S.overall_cost == 720.5559
     assert S.warmup_cost == 720.5559
 
@@ -325,10 +322,11 @@ def test_using_warmup():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
+        max_time=60.0,
         warmup=50.0
     )
     # Simulate for more than the warmup time
-    S.simulate_until_max_time(60.0)
+    S.simulate_until_max_time()
     assert S.overall_cost == 1015.9095
     assert S.warmup_cost == 845.1346
 
@@ -353,7 +351,8 @@ def test_deterioration():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         epsilon=0.0,
         seed=0,
-        warmup=50.0
+        max_time=6.0, # only one arrival
+        warmup=50.0,
     )
 
     S_A = np.array(
@@ -367,10 +366,32 @@ def test_deterioration():
          0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     
-    S.simulate_until_max_time(6.0) # only one arrival
+    S.simulate_until_max_time()
     assert S.now == 7.0
     assert np.array_equal(S.state, S_A)
 
-    S.simulate_until_max_time(8.0) # only one arrival, but deteriorates
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=7.0),
+            ciw.dists.Deterministic(value=13.0),
+            ciw.dists.Deterministic(value=22.0)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        epsilon=0.0,
+        seed=0,
+        max_time=8.0, # only one arrival, but deteriorates
+        warmup=50.0,
+    )
+    S.simulate_until_max_time()
     assert S.now == 9.0
     assert np.array_equal(S.state, S_B)
