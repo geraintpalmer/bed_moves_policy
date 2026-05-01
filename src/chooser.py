@@ -43,7 +43,7 @@ def choose_best_action(state, patient_type, actions_pool, valid_count, Q_index_m
         hash_weights=ward.hash_weights
     )
 
-    available_actions_Q = np.zeros(valid_count)
+    available_actions_Q = np.empty(valid_count)
     for i in range(valid_count):
         key = hash_state_only + actions_pool[i]
         if key in Q_index_map:

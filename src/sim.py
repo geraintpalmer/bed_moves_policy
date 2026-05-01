@@ -149,7 +149,7 @@ class WardSimulation:
         self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
-        self.actions_pool = np.zeros(9 + (9 * 2 * 8), dtype=np.int32)
+        self.actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
         self.patients_deterioration_dates = np.ones(17) * np.inf
@@ -163,7 +163,7 @@ class WardSimulation:
         if M is not None:
             self.M = M
         else:
-            self.M = 2 * np.ceil(1.2 * (max_time / sum((1/d.mean) for d in arrival_distributions))).astype(np.int64)
+            self.M = np.ceil(2 * max_time * sum((1/d.mean) for d in arrival_distributions)).astype(np.int64)
         self.setup_qvals(initial_keys, initial_qvals)
 
     def setup_qvals(self, initial_keys, initial_qvals):
@@ -475,10 +475,11 @@ class WardTraining(WardSimulation):
             key_type=types.int64,
             value_type=types.int32
         )
-        self.states = np.zeros(self.M, dtype=np.int64)
-        self.Qvals = np.zeros(self.M, dtype=np.float32)
-        self.hits = np.zeros(self.M, dtype=np.int16)
+        self.states = np.empty(self.M, dtype=np.int64)
+        self.Qvals = np.empty(self.M, dtype=np.float32)
+        self.hits = np.empty(self.M, dtype=np.int16)
         self.m = 0
+        self.max_idx = np.int32(0)
 
         if initial_keys is not None:
             self.m = len(initial_keys)

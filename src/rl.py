@@ -4,7 +4,7 @@ from math import exp
 from numba import njit
 
 @njit(cache=True)
-def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
+def get_unique_tails(keys1, vals1, hits1, keys2, vals2, hits2):
     """
     Merges two sorted arrays of keys, vals, and hits.
 
@@ -37,10 +37,9 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
         unique_count += 1
     unique_count += (len(keys1) - idx_1) + (len(keys2) - idx_2)
 
-
-    keys_n = np.zeros(unique_count, dtype=np.int64)
-    vals_n = np.zeros(unique_count, dtype=np.float32)
-    hits_n = np.zeros(unique_count, dtype=np.int16)
+    keys_n = np.empty(unique_count, dtype=np.int64)
+    vals_n = np.empty(unique_count, dtype=np.float32)
+    hits_n = np.empty(unique_count, dtype=np.int16)
 
     idx_1 = 0
     idx_2 = 0
@@ -80,6 +79,29 @@ def merge_sorted_qvals(keys1, vals1, hits1, keys2, vals2, hits2):
         idx_n += 1
 
     return keys_n, vals_n, hits_n
+
+@njit(cache=True)
+def update_master_head_inplace(vals1, hits1, vals2, hits2):
+    """
+    Updates the master arrays of keys, vals, and hits with the new updates.
+
+    Arguments
+      - `vals1`: a sorted numpy array of float64, the Q-values
+           associated with the state-action pairs
+      - `hits1`: a sorted numpy array of int64, the number of
+           hits per state-action pair
+      - `vals2`: a sorted numpy array of float64, the Q-values
+           associated with the state-action pairs
+      - `hits2`: a sorted numpy array of int64, the number of
+           hits per state-action pair
+    """
+    for i in range(len(hits1)):
+        sum_hits = hits1[i] + hits2[i]
+        if sum_hits == 0:
+            vals1[i] = vals1[i]
+        else:
+            vals1[i] = ((vals1[i] * hits1[i]) + (vals2[i] * hits2[i])) / sum_hits
+        hits1[i] = sum_hits
 
 
 @njit(cache=True)
@@ -291,9 +313,9 @@ def block_sort_arrays(states_array, qval_array, hits_array, m, max_idx):
       + `hits_arr` the numpy array of numbers of hits
     """
     max_idx = np.int64(max_idx)
-    states_array = states_array[:max_idx+1]
-    qval_array = qval_array[:max_idx+1]
-    hits_array = hits_array[:max_idx+1]
+    states_array = states_array[:max_idx]
+    qval_array = qval_array[:max_idx]
+    hits_array = hits_array[:max_idx]
 
     newfound_states = states_array[m:]
     idx_order = np.argsort(newfound_states)

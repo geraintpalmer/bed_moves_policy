@@ -146,16 +146,10 @@ if __name__ == '__main__':
                         if not finished_mask[i] and res.ready():
                             data = res.get()
                             unique_states_per_trial[stage][i] = data[0]
-                            new_keys, new_qvals, new_hits = rl.merge_sorted_qvals(
+                            keys, qvals, hits = rl.merge_sorted_qvals(
                                 keys, qvals, hits, data[1], data[2], data[3]
                             )
                             data = None
-                            keys = new_keys.copy()
-                            del new_keys
-                            qvals = new_qvals.copy()
-                            del new_qvals
-                            hits = new_hits.copy()
-                            del new_hits
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
                             gc.collect()

@@ -395,3 +395,60 @@ def test_deterioration():
     S.simulate_until_max_time()
     assert S.now == 9.0
     assert np.array_equal(S.state, S_B)
+
+
+def test_initial_array_preallocations():
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Exponential(rate=0.5),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.5)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        epsilon=0.0,
+        seed=0,
+        max_time=100.0,
+        warmup=50.0,
+    )
+    # should initialise to 800
+    assert len(S.states) == 800
+    assert len(S.Qvals) == 800
+    assert len(S.hits) == 800
+
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Exponential(rate=0.5),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.5)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        epsilon=0.0,
+        seed=0,
+        max_time=100.0,
+        warmup=50.0,
+        M=1357
+    )
+    # should initialise to 1357
+    assert len(S.states) == 1357
+    assert len(S.Qvals) == 1357
+    assert len(S.hits) == 1357

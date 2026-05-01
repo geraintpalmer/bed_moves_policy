@@ -5,7 +5,7 @@ import numpy as np
 from numba import typed, types
 import math
 
-def test_merge_sorted_qvals():
+def test_get_unique_tails():
     keys1 = np.array([1, 4, 5, 9, 11, 16], dtype=np.int64)
     vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 8.0], dtype=np.float32)
     hits1 = np.array([1, 1, 5, 2, 3, 0], dtype=np.int16)
@@ -14,7 +14,7 @@ def test_merge_sorted_qvals():
     vals2 = np.array([1.5, 5.0, 1.0, 1.0, 5.5, 6.0, 4.5, 1.5, 8.0], dtype=np.float32)
     hits2 = np.array([3, 10, 1, 3, 2, 3, 1, 4, 0], dtype=np.int16)
 
-    keys, vals, hits = rl.merge_sorted_qvals(
+    keys, vals, hits = rl.get_unique_tails(
         keys1=keys1,
         vals1=vals1,
         hits1=hits1,
@@ -27,6 +27,54 @@ def test_merge_sorted_qvals():
     assert np.array_equal(vals, np.array([0.5, 1.5, 1.5, 4.0, 1.0, 1.2, 5.5, 5.25, 4.5, 1.5, 8.0], dtype=np.float32))
     assert np.array_equal(hits, np.array([1, 3, 1, 15, 1, 5, 2, 6, 1, 4, 0], dtype=np.int16))
 
+
+def test_update_master_head_inplace():
+    vals1 = np.array([0.5, 1.5, 2.0, 1.5, 4.5, 8.0], dtype=np.float32)
+    hits1 = np.array([  1,   1,   5,   2,   3,   0], dtype=np.int16)
+    vals2 = np.array([1.5, 5.0, 2.0, 1.0, 5.5, 8.0], dtype=np.float32)
+    hits2 = np.array([  3,   9,   1,   3,   2,   0], dtype=np.int16)
+    rl.update_master_head_inplace(vals1, hits1, vals2, hits2)
+
+    assert np.array_equal(hits1, np.array([4, 10, 6, 5, 5, 0], dtype=np.int16))
+    assert np.array_equal(vals1, np.array([1.25, 4.65, 2.0, 1.2, 4.9, 8.0], dtype=np.float32))
+
+
+def test_update_and_merge_together():
+    keys1 = np.array([111, 222, 666, 777, 999, 444, 888], dtype=np.int64)
+    keys2 = np.array([111, 222, 666, 777, 999, 333, 555, 888], dtype=np.int64)
+    vals1 = np.array([0.5, 1.5, 2.5, 0.5, 1.0, 1.0, 2.5], dtype=np.float32)
+    vals2 = np.array([1.5, 2.0, 1.0, 0.5, 1.0, 3.0, 3.5, 1.0], dtype=np.float32)
+    hits1 = np.array([  0,   1,   2,   0,   1,   4,   1], dtype=np.int16)
+    hits2 = np.array([  2,   1,   1,   0,   3,   2,   1,   4], dtype=np.int16)
+    M = 5
+
+    rl.update_master_head_inplace(vals1[:M], hits1[:M], vals2[:M], hits2[:M])
+    keyst, valst, hitst = rl.get_unique_tails(
+        keys1=keys1[M:],
+        vals1=vals1[M:],
+        hits1=hits1[M:],
+        keys2=keys2[M:],
+        vals2=vals2[M:],
+        hits2=hits2[M:]
+    )
+    keys = np.concatenate([keys1[:M], keyst])
+    vals = np.concatenate([vals1[:M], valst])
+    hits = np.concatenate([hits1[:M], hitst])
+
+    assert np.array_equal(keys, np.array([111, 222, 666, 777, 999, 333, 444, 555, 888], dtype=np.int64))
+    assert np.array_equal(hits, np.array([2, 2, 3, 0, 4, 2, 4, 1, 5], dtype=np.int16))
+    assert np.array_equal(vals, np.array([1.5, 1.75, 2.0, 0.5, 1.0, 3.0, 1.0, 3.5, 1.3], dtype=np.float32))
+
+
+def test_can_update_empty_arrays():
+    qvals1 = np.array([], dtype=np.float32)
+    hits1 = np.array([], dtype=np.int16)
+    qvals2 = np.array([3.3, 4.1], dtype=np.float32)
+    hits2 = np.array([5, 6], dtype=np.int16)
+    M = 0
+    rl.update_master_head_inplace(qvals1, hits1, qvals2, hits2)
+    assert np.array_equal(qvals1, np.array([], dtype=np.float32))
+    assert np.array_equal(hits1, np.array([], dtype=np.int16))
 
 def test_get_best_future_reward():
     actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)

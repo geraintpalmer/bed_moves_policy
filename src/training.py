@@ -35,6 +35,8 @@ def train(
     seed,
     trial,
     progress_array,
+    M,
+    experiment
 ):
     """
     Runs
@@ -62,13 +64,21 @@ def train(
         learning_rate=learning_rate,
         discount_factor=discount_factor,
         initial_keys=initial_keys,
-        initial_qvals=initial_qvals
+        initial_qvals=initial_qvals,
+        M=M
     )
     S.simulate_until_max_time(
         shared_progress_array=progress_array,
         trial=trial
     )
-    return S.return_Qvals()
+    max_idx, states_array, qval_array, hits_array = S.return_Qvals()
+    states_filename = f"{experiment}/results/tmp/states_trial_{trial}.npy"
+    qval_filename = f"{experiment}/results/tmp/qvals_trial_{trial}.npy"
+    hits_filename = f"{experiment}/results/tmp/hits_trial_{trial}.npy"
+    np.save(states_filename, states_array)
+    np.save(qval_filename, qval_array)
+    np.save(hits_filename, hits_array)
+    return max_idx
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -94,10 +104,14 @@ if __name__ == '__main__':
     unique_states_per_trial = {s: {t: None for t in range(trials_per_stage)} for s in range(1, n_stages+1)}
     unique_states_per_stage = {s: None for s in range(1, n_stages+1)}
     
-    keys = None
-    qvals = None
+    keys = np.array([], dtype=np.int64)
+    qvals = np.array([], dtype=np.float32)
+    hits = np.array([], dtype=np.int16)
+
     multiprocessing.set_start_method("spawn", force=True)
     manager = multiprocessing.Manager()
+    M = None
+    prev_key_length = 0
     
     for stage in range(1, n_stages+1):
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
@@ -112,17 +126,16 @@ if __name__ == '__main__':
                 qvals,
                 seeds[t],
                 t,
-                progress_array
+                progress_array,
+                M,
+                args.experiment
             ) for t in range(trials_per_stage)
         ]
 
-        with multiprocessing.Pool(processes=n_threads) as pool:
+        with multiprocessing.Pool(processes=n_threads, maxtasksperchild=1) as pool:
             results = [pool.apply_async(train, args) for args in args_list]
             del args_list
-            gc.collect()
-            keys = np.array([], dtype=np.int64)
-            qvals = np.array([], dtype=np.float32)
-            hits = np.array([], dtype=np.float32)
+            gc.collect(2)
             finished_mask = [False] * trials_per_stage
 
             with tqdm.tqdm(
@@ -141,30 +154,73 @@ if __name__ == '__main__':
 
                     for i, res in enumerate(results):
                         if not finished_mask[i] and res.ready():
-                            data = res.get()
-                            unique_states_per_trial[stage][i] = data[0]
-                            new_keys, new_qvals, new_hits = rl.merge_sorted_qvals(
-                                keys, qvals, hits, data[1], data[2], data[3]
+                            j = res.get()
+                            unique_states_per_trial[stage][i] = j
+
+                            new_states = np.load(f"{args.experiment}results/tmp/states_trial_{i}.npy", mmap_mode='r')
+                            new_qvals = np.load(f"{args.experiment}results/tmp/qvals_trial_{i}.npy", mmap_mode='r')
+                            new_hits = np.load(f"{args.experiment}results/tmp/hits_trial_{i}.npy", mmap_mode='r')
+
+                            rl.update_master_head_inplace(
+                                qvals[:prev_key_length], hits[:prev_key_length], new_qvals[:prev_key_length], new_hits[:prev_key_length]
                             )
-                            data = None
-                            keys = new_keys.copy()
-                            del new_keys
-                            qvals = new_qvals.copy()
-                            del new_qvals
-                            hits = new_hits.copy()
-                            del new_hits
+                            new_states_tail = new_states[prev_key_length:].copy()
+                            new_qvals_tail  = new_qvals[prev_key_length:].copy()
+                            new_hits_tail   = new_hits[prev_key_length:].copy()
+                            new_states = None
+                            new_qvals = None
+                            new_hits = None
+                            os.remove(f"{args.experiment}results/tmp/states_trial_{i}.npy")
+                            os.remove(f"{args.experiment}results/tmp/qvals_trial_{i}.npy")
+                            os.remove(f"{args.experiment}results/tmp/hits_trial_{i}.npy")
+                            gc.collect(2)
+
+                            keyst, qvalst, hitst = rl.get_unique_tails(keys[prev_key_length:], qvals[prev_key_length:], hits[prev_key_length:], new_states_tail, new_qvals_tail, new_hits_tail)
+                            del new_states_tail
+                            del new_qvals_tail
+                            del new_hits_tail
+                            gc.collect(2)
+
+                            keys_temp = np.empty(prev_key_length + len(keyst), dtype=np.int64)
+                            keys_temp[:prev_key_length] = keys[:prev_key_length]
+                            keys_temp[prev_key_length:] = keyst
+                            keys = keys_temp
+                            del keyst
+                            gc.collect(2)
+                            qvals_temp = np.empty(prev_key_length + len(qvalst), dtype=np.float32)
+                            qvals_temp[:prev_key_length] = qvals[:prev_key_length]
+                            qvals_temp[prev_key_length:] = qvalst
+                            qvals = qvals_temp
+                            del qvalst
+                            gc.collect(2)
+                            hits_temp = np.empty(prev_key_length + len(hitst), dtype=np.int16)
+                            hits_temp[:prev_key_length] = hits[:prev_key_length]
+                            hits_temp[prev_key_length:] = hitst
+                            hits = hits_temp
+                            del hitst
+                            gc.collect(2)
+
                             results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                             finished_mask[i] = True
-                            gc.collect()
+                            gc.collect(2)
                             trim_memory()
                     
                     time.sleep(1) # Don't burn CPU checking the array
                 pbar.update((max_time * trials_per_stage) - last_min_progress)
 
-        filename = f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.savez(filename, keys=keys, vals=qvals, hits=hits)
-        unique_states_per_stage[stage] = len(keys)
+        gc.collect(2)
 
+        filename = f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(epsilons[stage-1], 3)}.npz"
+        np.save(filename, keys)
+        filename = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npz"
+        np.save(filename, qvals)
+        filename = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon_{round(epsilons[stage-1], 3)}.npz"
+        np.save(filename, hits)
+
+        key_length = len(keys)
+        M = np.ceil(key_length + ((key_length - prev_key_length) * 1.1)).astype(np.int64)
+        prev_key_length = key_length
+        unique_states_per_stage[stage] = key_length
         seed += trials_per_stage
 
     unique_states = pd.DataFrame(
