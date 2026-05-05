@@ -85,8 +85,7 @@ def test_get_best_future_reward():
     )
     hash_state = ward.get_hash_state_only(
         state=state,
-        patient_type=0,
-        hash_weights=ward.hash_weights
+        patient_type=0
     )
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
@@ -129,8 +128,7 @@ def test_update_Q_values():
     )
     hash_state = ward.get_hash_state_only(
         state=state,
-        patient_type=0,
-        hash_weights=ward.hash_weights
+        patient_type=0
     )
     next_state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
@@ -139,8 +137,7 @@ def test_update_Q_values():
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
-        patient_type=0,
-        hash_weights=ward.hash_weights
+        patient_type=0
     )
 
     Q_index_map = typed.Dict.empty(
@@ -250,8 +247,7 @@ def test_update_Q_values_default_future():
     )
     hash_state = ward.get_hash_state_only(
         state=state,
-        patient_type=0,
-        hash_weights=ward.hash_weights
+        patient_type=0
     )
     next_state = np.array(
         (3, 2, 2, 3, 2, 2, 0, 0, 0,
@@ -260,8 +256,7 @@ def test_update_Q_values_default_future():
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
-        patient_type=1,
-        hash_weights=ward.hash_weights
+        patient_type=1
     )
 
     Q_index_map = typed.Dict.empty(

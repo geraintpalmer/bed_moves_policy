@@ -39,8 +39,7 @@ def test_choose_best_action():
     )
     hash_state = ward.get_hash_state_only(
         state=state,
-        patient_type=1,
-        hash_weights=ward.hash_weights
+        patient_type=1
     )
 
     Q_index_map[hash_state + np.int64(616)] = np.int32(0)
@@ -106,9 +105,9 @@ def test_choose_action_10():
          0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
+    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0)
+    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101)
+    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
@@ -147,9 +146,9 @@ def test_choose_action_epsilon_00():
          0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
+    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0)
+    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101)
+    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
@@ -199,9 +198,9 @@ def test_choose_action_epsilon_07():
          0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, hash_weights=ward.hash_weights)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, hash_weights=ward.hash_weights)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, hash_weights=ward.hash_weights)
+    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0)
+    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101)
+    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32

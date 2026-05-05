@@ -47,8 +47,7 @@ def choose_best_action(
     """
     hash_state_only = ward.get_hash_state_only(
         state=state,
-        patient_type=patient_type,
-        hash_weights=ward.hash_weights
+        patient_type=patient_type
     )
 
     available_actions_Q = np.empty(valid_count)
@@ -137,8 +136,7 @@ def exploit_policy(state, patient_type, policy, actions_pool):
     """
     hash_state_only = ward.get_hash_state_only(
         state=state,
-        patient_type=patient_type,
-        hash_weights=ward.hash_weights
+        patient_type=patient_type
     )
     if hash_state_only in policy:
         return policy[hash_state_only]

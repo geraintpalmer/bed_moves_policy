@@ -32,7 +32,7 @@ adjacency_matrix = np.array(
 )
 
 @njit(cache=True)
-def get_hash_state_only(state, patient_type, hash_weights):
+def get_hash_state_only(state, patient_type):
     """
     Returns a hashable version of the state - not including the action.
 
@@ -67,7 +67,7 @@ def dehash_action(action_hash):
 
 
 @njit(cache=True)
-def get_hash_stateaction(state, patient_type, action, hash_weights):
+def get_hash_stateaction(state, patient_type, action):
     """
     Returns a hashable version of the state-action pair.
 
@@ -81,7 +81,7 @@ def get_hash_stateaction(state, patient_type, action, hash_weights):
 
     Returns: an integer representation of the state-action pair.
     """
-    hash_state_only = get_hash_state_only(state, patient_type, hash_weights)
+    hash_state_only = get_hash_state_only(state, patient_type)
     return hash_state_only + action
 
 
@@ -144,8 +144,7 @@ def get_move_penalty(
   to_block,
   patient_type,
   arriving_patient_type,
-  move_penalties,
-  adjacency_matrix
+  move_penalties
 ):
     """
     Calculates the penalty for moving a patient from block to block.
@@ -160,8 +159,6 @@ def get_move_penalty(
       + `move_penalties`: a 2x3 numpy array of penalties, where the columns
            indicate patient types, and the rows indicate if the moves are
            adjacent or not.
-      + `adjacency_matrix`: an 9x9 numpy matrix with entries 1 or 0 indicating
-           of the blocks are adjacent or not.
 
     Returns: a numerical penalty for the bed moves.
     """
@@ -185,7 +182,6 @@ def insert_patient(state, patient_type, to_block):
     Returns: a numpy array representing the state after the insert.
     """
     state[(patient_type * 9) + to_block] += 1
-    return state
 
 
 @njit(cache=True)
@@ -206,7 +202,6 @@ def move_patient(state, patient_type, to_block, from_block):
     """
     state[(patient_type * 9) + to_block] += 1
     state[(patient_type * 9) + from_block] -= 1
-    return state
 
 
 @njit(cache=True)
@@ -225,7 +220,6 @@ def remove_patient(state, patient_type, from_block):
                patient.
     """
     state[(patient_type * 9) + from_block] -= 1
-    return state
 
 @njit(cache=True)
 def deteriorate_patient(state, patient_type, block):
@@ -244,7 +238,6 @@ def deteriorate_patient(state, patient_type, block):
     """
     state[(patient_type * 9) + block] -= 1
     state[((patient_type + 1) * 9) + block] += 1
-    return state
 
 @njit(cache=True)
 def get_available_insert_moves(state):

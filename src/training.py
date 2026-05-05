@@ -30,8 +30,8 @@ def train(
     learning_rate,
     discount_factor,
     epsilon,
-    initial_keys,
-    initial_qvals,
+    initial_keys_path,
+    initial_qvals_path,
     seed,
     trial,
     progress_array,
@@ -41,6 +41,13 @@ def train(
     """
     Runs
     """
+    if initial_keys_path is not None:
+        initial_keys = np.load(initial_keys_path, mmap_mode='r')
+        initial_qvals = np.load(initial_qvals_path, mmap_mode='r')
+    else:
+        initial_keys = None
+        initial_qvals = None
+
     S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(rate=1.5),
@@ -107,6 +114,8 @@ if __name__ == '__main__':
     keys = np.array([], dtype=np.int64)
     qvals = np.array([], dtype=np.float32)
     hits = np.array([], dtype=np.int16)
+    keys_path = None
+    qvals_path = None
 
     multiprocessing.set_start_method("spawn", force=True)
     manager = multiprocessing.Manager()
@@ -122,8 +131,8 @@ if __name__ == '__main__':
                 learning_rate,
                 discount_factor,
                 epsilons[stage-1],
-                keys,
-                qvals,
+                keys_path,
+                qvals_path,
                 seeds[t],
                 t,
                 progress_array,
@@ -210,12 +219,12 @@ if __name__ == '__main__':
 
         gc.collect(2)
 
-        filename = f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.save(filename, keys)
-        filename = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.save(filename, qvals)
-        filename = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon_{round(epsilons[stage-1], 3)}.npz"
-        np.save(filename, hits)
+        keys_path = f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(epsilons[stage-1], 3)}.npy"
+        np.save(keys_path, keys)
+        qvals_path = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npy"
+        np.save(qvals_path, qvals)
+        hits_path = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon_{round(epsilons[stage-1], 3)}.npy"
+        np.save(hits_path, hits)
 
         key_length = len(keys)
         M = np.ceil(key_length + ((key_length - prev_key_length) * 1.1)).astype(np.int64)

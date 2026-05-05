@@ -6,8 +6,7 @@ def test_get_hash_state_only():
     hash_states = [
         ward.get_hash_state_only(
             state=ward.empty_state,
-            patient_type=p,
-            hash_weights=ward.hash_weights
+            patient_type=p
         ) for p in range(3)
     ]
     assert hash_states == [000, 1000, 2000]
@@ -20,8 +19,7 @@ def test_get_hash_state_only():
     hash_states = [
         ward.get_hash_state_only(
             state=S,
-            patient_type=p,
-            hash_weights=ward.hash_weights
+            patient_type=p
         ) for p in range(3)
     ]
     assert hash_states == [10000, 11000, 12000]
@@ -34,8 +32,7 @@ def test_get_hash_state_only():
     hash_states = [
         ward.get_hash_state_only(
             state=S,
-            patient_type=p,
-            hash_weights=ward.hash_weights
+            patient_type=p
         ) for p in range(3)
     ]
     assert hash_states == [40000, 41000, 42000]
@@ -48,8 +45,7 @@ def test_get_hash_state_only():
     hash_states = [
         ward.get_hash_state_only(
             state=S,
-            patient_type=p,
-            hash_weights=ward.hash_weights
+            patient_type=p
         ) for p in range(3)
     ]
     assert hash_states == [2920000, 2921000, 2922000]
@@ -61,8 +57,7 @@ def test_get_hash_state_only():
     )
     hash_state = ward.get_hash_state_only(
         state=S,
-        patient_type=2,
-        hash_weights=ward.hash_weights
+        patient_type=2
     )
     assert hash_state == 16252162522922000
 
@@ -72,7 +67,6 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=ward.empty_state,
             patient_type=1,
-            hash_weights=ward.hash_weights, 
             action=((100 * a) +  (10 * 1) + a)
         ) for a in range(9)
     ]
@@ -87,7 +81,6 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=2,
-            hash_weights=ward.hash_weights,
             action=np.array(a)
         ) for a in [20, 121, 222, 323, 424, 525, 626, 727]
     ]
@@ -102,7 +95,6 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=0,
-            hash_weights=ward.hash_weights,
             action=np.array(a)
         ) for a in [ 20, 121, 222, 323, 424, 525, 626, 727,
                     800, 801, 802, 803, 804, 805, 806, 807]
@@ -121,7 +113,6 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=1,
-            hash_weights=ward.hash_weights,
             action=np.array(a)
         ) for a in [ 10, 111, 212, 313, 414, 515,
                     600, 601, 602, 603, 604, 605,
@@ -263,13 +254,13 @@ def test_get_move_penalty():
             [5.5, 6.5, 7.5]
         ]
     )
-    assert ward.get_move_penalty(0, 1, 0, 0, move_penalties, ward.adjacency_matrix) == 5.0
-    assert ward.get_move_penalty(0, 7, 0, 0, move_penalties, ward.adjacency_matrix) == 5.5
-    assert ward.get_move_penalty(0, 1, 1, 0, move_penalties, ward.adjacency_matrix) == 6.0
-    assert ward.get_move_penalty(0, 7, 1, 0, move_penalties, ward.adjacency_matrix) == 6.5
-    assert ward.get_move_penalty(0, 1, 2, 0, move_penalties, ward.adjacency_matrix) == 7.0
-    assert ward.get_move_penalty(0, 7, 2, 0, move_penalties, ward.adjacency_matrix) == 7.5
-    assert ward.get_move_penalty(5, 5, 1, 1, move_penalties, ward.adjacency_matrix) == 0.0
+    assert ward.get_move_penalty(0, 1, 0, 0, move_penalties) == 5.0
+    assert ward.get_move_penalty(0, 7, 0, 0, move_penalties) == 5.5
+    assert ward.get_move_penalty(0, 1, 1, 0, move_penalties) == 6.0
+    assert ward.get_move_penalty(0, 7, 1, 0, move_penalties) == 6.5
+    assert ward.get_move_penalty(0, 1, 2, 0, move_penalties) == 7.0
+    assert ward.get_move_penalty(0, 7, 2, 0, move_penalties) == 7.5
+    assert ward.get_move_penalty(5, 5, 1, 1, move_penalties) == 0.0
 
 
 def test_insert_patient():
@@ -283,24 +274,34 @@ def test_insert_patient():
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.insert_patient(S.copy(), 0, 1)
-    assert np.array_equal(newS, expected_newS)
+    ward.insert_patient(S, 0, 1)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 1)
     )
-    newS = ward.insert_patient(S.copy(), 2, 8)
-    assert np.array_equal(newS, expected_newS)
+    ward.insert_patient(S, 2, 8)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 2, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.insert_patient(S.copy(), 1, 2)
-    assert np.array_equal(newS, expected_newS)
+    ward.insert_patient(S, 1, 2)
+    assert np.array_equal(S, expected_newS)
 
 
 def test_remove_patient():
@@ -314,24 +315,34 @@ def test_remove_patient():
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.remove_patient(S.copy(), 0, 1)
-    assert np.array_equal(newS, expected_newS)
+    ward.remove_patient(S, 0, 1)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 0, 0)
     )
-    newS = ward.remove_patient(S.copy(), 2, 7)
-    assert np.array_equal(newS, expected_newS)
+    ward.remove_patient(S, 2, 7)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.remove_patient(S.copy(), 1, 3)
-    assert np.array_equal(newS, expected_newS)
+    ward.remove_patient(S, 1, 3)
+    assert np.array_equal(S, expected_newS)
 
 
 def test_move_patient():
@@ -345,24 +356,34 @@ def test_move_patient():
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.move_patient(S.copy(), 0, 8, 1)
-    assert np.array_equal(newS, expected_newS)
+    ward.move_patient(S, 0, 8, 1)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 1, 0, 1, 1, 0, 0)
     )
-    newS = ward.move_patient(S.copy(), 2, 3, 7)
-    assert np.array_equal(newS, expected_newS)
+    ward.move_patient(S, 2, 3, 7)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 0, 1, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.move_patient(S.copy(), 1, 4, 3)
-    assert np.array_equal(newS, expected_newS)
+    ward.move_patient(S, 1, 4, 3)
+    assert np.array_equal(S, expected_newS)
 
 
 def test_deteriorate_patient():
@@ -376,32 +397,47 @@ def test_deteriorate_patient():
          0, 0, 0, 1, 0, 0, 0, 0, 0,
          0, 0, 1, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.deteriorate_patient(S.copy(), 1, 2)
-    assert np.array_equal(newS, expected_newS)
+    ward.deteriorate_patient(S, 1, 2)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 2, 0, 0, 0, 0, 0,
          0, 0, 1, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 1, 0, 1, 1, 1, 0)
     )
-    newS = ward.deteriorate_patient(S.copy(), 1, 3)
-    assert np.array_equal(newS, expected_newS)
+    ward.deteriorate_patient(S, 1, 3)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 1, 0, 2, 0, 0, 0, 0, 0,
          0, 1, 1, 1, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.deteriorate_patient(S.copy(), 0, 1)
-    assert np.array_equal(newS, expected_newS)
+    ward.deteriorate_patient(S, 0, 1)
+    assert np.array_equal(S, expected_newS)
 
+    S = np.array(
+        (0, 2, 0, 2, 0, 0, 0, 0, 0,
+         0, 0, 1, 1, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 1, 1, 1, 0)
+    )
     expected_newS = np.array(
         (0, 2, 0, 1, 0, 0, 0, 0, 0,
          0, 0, 1, 2, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 1, 1, 1, 0)
     )
-    newS = ward.deteriorate_patient(S.copy(), 0, 3)
-    assert np.array_equal(newS, expected_newS)
+    ward.deteriorate_patient(S, 0, 3)
+    assert np.array_equal(S, expected_newS)
 
 
 def test_get_available_insert_moves():

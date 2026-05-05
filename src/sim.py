@@ -22,12 +22,14 @@ def find_next_arrival_date(next_arrivals):
 
     Returns: the date of the next arrival and the patient type.
     """
-    t0, t1, t2 = next_arrivals[0], next_arrivals[1], next_arrivals[2]
+    t0 = next_arrivals[0]
+    t1 = next_arrivals[1]
+    t2 = next_arrivals[2]
     if t0 <= t1 and t0 <= t2:
-        return next_arrivals[0], 0
+        return t0, 0
     if t1 <= t2:
-        return next_arrivals[1], 1
-    return next_arrivals[2], 2
+        return t1, 1
+    return t2, 2
 
 
 @njit(cache=True)
@@ -183,14 +185,16 @@ class WardSimulation:
           + `cost`: the cost incurred during the last interval
           + `update_time`: the date of the end of the interval
         """
-        if update_time <= self.warmup:
-            self.warmup_cost += cost
-        if (update_time > self.warmup) and self.pre_warmup:
-            residual_cost = np.float32(cost * (
-                (update_time - self.now) / (update_time - self.warmup)
-            ))
-            self.warmup_cost += residual_cost
-            self.pre_warmup = False
+        if self.pre_warmup:
+            if update_time <= self.warmup:
+                self.warmup_cost += cost
+            else:
+                residual_cost = np.float32(cost * (
+                    (update_time - self.now) / (update_time - self.warmup)
+                ))
+                self.warmup_cost += residual_cost
+                self.pre_warmup = False
+
 
     def simulate_until_max_time(
         self,
@@ -206,34 +210,45 @@ class WardSimulation:
           + `trial`: The number of the current trial (used for the
                multiprocessing progress bar).
         """
+        next_exit = float('inf')
+        next_deterioration = float('inf')
+        next_arrival, patient_type = find_next_arrival_date(
+            next_arrivals=self.next_arrivals
+        )
+
         if shared_progress_array is not None:
             self.update_interval = self.max_time / 100
             self.update_threshold = self.update_interval
 
         while self.now < self.max_time:
-            next_arrival, patient_type = find_next_arrival_date(
-                next_arrivals=self.next_arrivals
-            )
-            if self.patients_number_free == 17:
-                next_exit = float('inf')
-                next_deterioration = float('inf')
-            else:
-                next_exit, patient_idx = find_next_activity_date(
-                    dates=self.patients_exit_dates
-                )
-                next_deterioration, deteriorating_index = find_next_activity_date(
-                    dates=self.patients_deterioration_dates
-                )
-
             if (next_arrival <= next_exit) and (next_arrival <= next_deterioration):
                 self.arrival(
                     next_arrival=next_arrival,
                     patient_type=patient_type
                 )
+                next_arrival, patient_type = find_next_arrival_date(
+                    next_arrivals=self.next_arrivals
+                )
+                next_deterioration, deteriorating_index = find_next_activity_date(
+                    dates=self.patients_deterioration_dates
+                )
+                next_exit, patient_idx = find_next_activity_date(
+                    dates=self.patients_exit_dates
+                )
             elif (next_deterioration <= next_exit):
                 self.deteriorate(patient_idx=deteriorating_index)
+                next_deterioration, deteriorating_index = find_next_activity_date(
+                    dates=self.patients_deterioration_dates
+                )
             else:
                 self.exit(patient_idx=patient_idx)
+                if patient_idx == deteriorating_index:
+                    next_deterioration, deteriorating_index = find_next_activity_date(
+                        dates=self.patients_deterioration_dates
+                    )
+                next_exit, patient_idx = find_next_activity_date(
+                    dates=self.patients_exit_dates
+                )
 
             if shared_progress_array is not None:
                 if self.now > self.update_threshold:
@@ -242,6 +257,7 @@ class WardSimulation:
 
         if shared_progress_array is not None:
             shared_progress_array[trial] = self.max_time
+
 
     def arrival(self, next_arrival, patient_type):
         """
@@ -272,8 +288,7 @@ class WardSimulation:
                 to_block=a3,
                 patient_type=a2,
                 arriving_patient_type=patient_type,
-                move_penalties=self.move_penalties,
-                adjacency_matrix=ward.adjacency_matrix
+                move_penalties=self.move_penalties
             )
             cost = state_cost + move_cost
 
@@ -293,7 +308,7 @@ class WardSimulation:
                     patients_types=self.patients_patient_types
                 )
                 self.patients_blocks[move_idx] = a3
-                self.state = ward.move_patient(
+                ward.move_patient(
                     state=self.state,
                     patient_type=a2,
                     to_block=a3,
@@ -307,7 +322,7 @@ class WardSimulation:
             self.patients_blocks[arrival_idx] = a1
             self.patients_free_indices.pop()
             self.patients_number_free -= 1
-            self.state = ward.insert_patient(
+            ward.insert_patient(
                 state=self.state,
                 patient_type=patient_type,
                 to_block=a1
@@ -320,19 +335,20 @@ class WardSimulation:
         Arguments:
           + `patient_idx`: The index of the patient to remove.
         """
+        update_time = self.patients_exit_dates[patient_idx]
         cost = get_state_cost(
             state=self.state,
-            update_time=self.patients_exit_dates[patient_idx],
+            update_time=update_time,
             prev_time=self.now,
             isolation_penalty=self.isolation_penalty
         )
         self.overall_cost += cost
         self.accumulate_warmup_cost(
             cost=cost,
-            update_time=self.patients_exit_dates[patient_idx]
+            update_time=update_time
         )
-        self.now = self.patients_exit_dates[patient_idx]
-        self.state = ward.remove_patient(
+        self.now = update_time
+        ward.remove_patient(
             state=self.state,
             patient_type=self.patients_patient_types[patient_idx],
             from_block=self.patients_blocks[patient_idx]
@@ -351,19 +367,20 @@ class WardSimulation:
         Arguments:
           + `patient_idx`: The index of the patient to deteriorate.
         """
+        update_time = self.patients_deterioration_dates[patient_idx]
         cost = get_state_cost(
             state=self.state,
-            update_time=self.patients_deterioration_dates[patient_idx],
+            update_time=update_time,
             prev_time=self.now,
             isolation_penalty=self.isolation_penalty
         )
         self.overall_cost += cost
         self.accumulate_warmup_cost(
             cost=cost,
-            update_time=self.patients_deterioration_dates[patient_idx]
+            update_time=update_time
         )
-        self.now = self.patients_deterioration_dates[patient_idx]
-        self.state = ward.deteriorate_patient(
+        self.now = update_time
+        ward.deteriorate_patient(
             state=self.state,
             patient_type=self.patients_patient_types[patient_idx],
             block=self.patients_blocks[patient_idx]
@@ -462,8 +479,7 @@ class WardTraining(WardSimulation):
             self.hash_state = ward.get_hash_stateaction(
                 state=self.state,
                 patient_type=patient_type,
-                action=action,
-                hash_weights=ward.hash_weights
+                action=action
             )
     
     def setup_qvals(self, initial_keys, initial_qvals):
@@ -482,11 +498,11 @@ class WardTraining(WardSimulation):
         self.Qvals = np.empty(self.M, dtype=np.float32)
         self.hits = np.empty(self.M, dtype=np.int16)
         self.m = 0
-        self.max_idx = np.int32(0)
+        self.max_idx = 0
 
         if initial_keys is not None:
             self.m = len(initial_keys)
-            self.max_idx = np.int32(len(initial_keys))
+            self.max_idx = len(initial_keys)
             rl.initialise_qvals(
                 initial_states_array=initial_keys,
                 initial_qval_array=initial_qvals,

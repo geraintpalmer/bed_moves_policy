@@ -452,3 +452,35 @@ def test_initial_array_preallocations():
     assert len(S.states) == 1357
     assert len(S.Qvals) == 1357
     assert len(S.hits) == 1357
+
+
+def test_long_run():
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Exponential(rate=0.5),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(rate=1.0),
+            ciw.dists.Exponential(rate=1.5),
+            ciw.dists.Exponential(rate=0.5)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=2.0)
+        ],
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        epsilon=0.5,
+        learning_rate=0.5,
+        discount_factor=0.8,
+        seed=0,
+        max_time=10000.0,
+        warmup=1000.0
+    )
+    S.simulate_until_max_time()
+
+    assert S.overall_cost == 191317.31
+    assert S.max_idx == 36575
+    assert len(S.Q_index_map) == 36575
