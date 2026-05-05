@@ -20,19 +20,27 @@ def choose_random_action(actions_pool, valid_count):
 
 
 @njit(cache=True)
-def choose_best_action(state, patient_type, actions_pool, valid_count, Q_index_map, qval_array):
+def choose_best_action(
+    state,
+    patient_type,
+    actions_pool,
+    valid_count,
+    Q_index_map,
+    qval_array
+):
     """
     Chooses the best action.
 
     Arguments:
-      + `state` a 9x3 matrix of integers {0, 1, 2, 3} representing
+      + `state` a numpy array of 27 integers {0, 1, 2, 3} representing
            the state of the ward.
       + `patient_type`: the type of the patient arriving, either
            2: 'red', 1: 'amber', or 0: 'green'
       + `actions_pool`: a pre-assigned numpy empty array of
            size 9 + (9 * 2 * 8)
       + `valid_count`: the number of actions that are valid
-      + `Qvals`: dictionary of stateaction to q-values
+      + `Q_index_map`: dictionary of stateaction to indices
+      + `qval_array`: array of q-values
 
     Returns: an action, and the Q-value associated with that
              state-best-action pair
@@ -61,7 +69,14 @@ def choose_best_action(state, patient_type, actions_pool, valid_count, Q_index_m
 
 
 @njit(cache=True)
-def choose_action(state, patient_type, epsilon, Q_index_map, qval_array, actions_pool):
+def choose_action(
+    state,
+    patient_type,
+    epsilon,
+    Q_index_map,
+    qval_array,
+    actions_pool
+):
     """
     Randomly chooses an action (1-epsilon) of the time.
     Otherwise chooses the best.
@@ -73,7 +88,8 @@ def choose_action(state, patient_type, epsilon, Q_index_map, qval_array, actions
            2: 'red', 1: 'amber', or 0: 'green'
       + `epsilon`: a probability, float between 0 and 1
            (low: explore more, high: exploit more)
-      + `Qvals`: a dictionary of stateaction to q-values
+      + `Q_index_map`: dictionary of stateaction to indices
+      + `qval_array`: array of q-values
       + `actions_pool`: a pre-assigned numpy empty array of
            size 9 + (9 * 2 * 8)
 
@@ -110,7 +126,8 @@ def exploit_policy(state, patient_type, policy, actions_pool):
     Choose an action by exploiting the policy.
 
     Arguments:
-      + `state`: a numpy array representing the current state the ward is in
+      + `state` a numpy array of 27 integers {0, 1, 2, 3} representing
+           the state of the ward.
       + `patient_type`: the type of the arriving patient (0, 1, or 2)
       + `policy`: the Numba typed dictionary mapping hash states to best actions
       + `actions_pool`: a pre-assigned numpy empty array of

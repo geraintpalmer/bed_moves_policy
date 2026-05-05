@@ -40,6 +40,8 @@ def get_hash_state_only(state, patient_type, hash_weights):
       + `state`: a numpy array representing the state of the system,
       + `patient_type`: an integer representing the arriving customer
            type.
+      + `hash_weights`: the array of weights that convert the state to
+           a hash via a dot product.
 
     Returns: an integer representation of the state, with 0 placeholder
     for an action.
@@ -74,6 +76,8 @@ def get_hash_stateaction(state, patient_type, action, hash_weights):
       + `patient_type`: an integer representing the arriving customer
            type.
       + `action`: a three digit integer representing the action.
+      + `hash_weights`: the array of weights that convert the state to
+           a hash via a dot product.
 
     Returns: an integer representation of the state-action pair.
     """
@@ -135,7 +139,14 @@ def get_penalty_per_time_unit(state, isolation_penalty):
 
 
 @njit(cache=True)
-def get_move_penalty(from_block, to_block, patient_type, arriving_patient_type, move_penalties, adjacency_matrix):
+def get_move_penalty(
+  from_block,
+  to_block,
+  patient_type,
+  arriving_patient_type,
+  move_penalties,
+  adjacency_matrix
+):
     """
     Calculates the penalty for moving a patient from block to block.
 
@@ -277,7 +288,6 @@ def get_available_actions(state, patient_type, actions_pool):
     Returns: an array of actions, where each row is an integer abc, and the
              count of valid actions.
     """
-    # (9 blocks to place directly) + (9 * 8 possible moves from 2 different types of patient)
     valid_count = 0
     available_blocks = get_available_insert_moves(state)
     # Case A: Direct Insert (to_block == insert_block)
@@ -296,7 +306,12 @@ def get_available_actions(state, patient_type, actions_pool):
 
 
 @njit(cache=True)
-def find_idx_of_patient_to_move(block, patient_type, patients_blocks, patients_types):
+def find_idx_of_patient_to_move(
+    block,
+    patient_type,
+    patients_blocks,
+    patients_types
+):
     """
     Finds the index of the patient who matches both the block and patient type.
 

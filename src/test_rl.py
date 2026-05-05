@@ -408,10 +408,10 @@ def test_block_sort_arrays():
         qval_array=qval_array,
         hits_array=hits_array,
         m=m,
-        max_idx=8
+        max_idx=9
     )
 
-    assert max_idx2 == 8
+    assert max_idx2 == 9
     assert np.array_equal(states2, np.array([111, 222, 333, 444, 666, 555, 777, 888, 999], dtype=np.int64))
     assert np.array_equal(qval2, np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -7.7, -6.6, -3.3, -2.2], dtype=np.float32))
     assert np.array_equal(hits2, np.array([4, 1, 7, 8, 9, 5, 6, 2, 3], dtype=np.int16))

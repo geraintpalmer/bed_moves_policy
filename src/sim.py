@@ -115,6 +115,9 @@ class WardSimulation:
           + `initial_qvals`: a numpy arrays of q-values.
           + `warmup`: when evaluating, the date at which to begin
                accumulating the cost.
+          + `M`: an integer, the maximum number of state-action pairs that
+               can be explored. Default is None, uses a naive estimate
+               based on the arrival rates and max_time.
         """
         ciw.seed(seed)
         np.random.seed(seed)

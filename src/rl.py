@@ -6,21 +6,21 @@ from numba import njit
 @njit(cache=True)
 def get_unique_tails(keys1, vals1, hits1, keys2, vals2, hits2):
     """
-    Merges two sorted arrays of keys, vals, and hits.
+    Merges the tails of two sorted sets of keys, vals, and hits arrays.
 
     Arguments
       - `keys1`: a sorted numpy array of int64, the state-action
-           pair hashes
-      - `vals1`: a sorted numpy array of float64, the Q-values
-           associated with the state-action pairs
-      - `hits1`: a sorted numpy array of int64, the number of
-           hits per state-action pair
+           pair hashes (tail of trial 1)
+      - `vals1`: a sorted numpy array of float32, the Q-values
+           associated with the state-action pairs (tail of trial 1)
+      - `hits1`: a sorted numpy array of int16, the number of
+           hits per state-action pair (tail of trial 1)
       - `keys2`: a sorted numpy array of int64, the state-action
-           pair hashes
-      - `vals2`: a sorted numpy array of float64, the Q-values
-           associated with the state-action pairs
-      - `hits2`: a sorted numpy array of int64, the number of
-           hits per state-action pair
+           pair hashes (tail of trial 2)
+      - `vals2`: a sorted numpy array of float32, the Q-values
+           associated with the state-action pairs (tail of trial 2)
+      - `hits2`: a sorted numpy array of int16, the number of
+           hits per state-action pair (tail of trial 2)
     Returns: the same three arrays merge-sorted.
     """
     idx_1 = 0
@@ -83,17 +83,18 @@ def get_unique_tails(keys1, vals1, hits1, keys2, vals2, hits2):
 @njit(cache=True)
 def update_master_head_inplace(vals1, hits1, vals2, hits2):
     """
-    Updates the master arrays of keys, vals, and hits with the new updates.
+    Updates the heads of the master arrays of keys, vals,
+    and hits with the new updates.
 
     Arguments
-      - `vals1`: a sorted numpy array of float64, the Q-values
-           associated with the state-action pairs
-      - `hits1`: a sorted numpy array of int64, the number of
-           hits per state-action pair
-      - `vals2`: a sorted numpy array of float64, the Q-values
-           associated with the state-action pairs
-      - `hits2`: a sorted numpy array of int64, the number of
-           hits per state-action pair
+      - `vals1`: a head of a numpy array of float32, the Q-values
+           associated with the state-action pairs (master array)
+      - `hits1`: a head of numpy array of int16, the number of
+           hits per state-action pair (master array)
+      - `vals2`: a head of numpy array of float32, the Q-values
+           associated with the state-action pairs (new array)
+      - `hits2`: a sorted numpy array of int16, the number of
+           hits per state-action pair (new array)
     """
     for i in range(len(hits1)):
         sum_hits = hits1[i] + hits2[i]
@@ -123,7 +124,8 @@ def get_best_future_reward(
           system has just reached
       + `patient_type`: an integer representing the arriving
           customer type
-      + `Qvals`: a dictionary of stateaction to q-values
+      + `Q_index_map`: dictionary of stateaction to indices
+      + `qval_array`: array of of q-values
       + `just_chose_best`: a Boolean representing if the
              simulation chose the best action in the previous step
       + `prev_best_Q`: the previously chosen best q-value
@@ -183,13 +185,18 @@ def update_Q_values(
 
     Arguments:
       + `hash_state`: the hash state to update
-      + `state`: a numpy array representing the state the
+      + `next_state`: a numpy array representing the state the
            system has just reached
-      + `patient_type`: an integer representing the arriving
+      + `next_patient_type`: an integer representing the arriving
            customer type
-      + `action`: the action that has been chosen
-      + `Qvals`: a dictionary of stateaction to q-values
-      + `hits`: a dictionary of stateaction to hits
+      + `next_action`: the action that has been chosen
+      + `states_array`: array of states
+      + `qval_array`: array of of q-values
+      + `hits_array`: array of hits
+      + `Q_index_map`: dictionary of stateaction to indices
+      + `max_idx`: the number of state-action pairs for which a q-value
+           has been found, the next index to place any newly discovered
+           state-action.
       + `reward`: the reward obtained by reaching the next state
       + `learning_rate`: the learning rate of the Q-learning
            algorithm (a number between 0 and 1)
@@ -254,7 +261,14 @@ def update_Q_values(
 
 
 @njit(cache=True)
-def initialise_qvals(initial_states_array, initial_qval_array, states_array, qval_array, hits_array, Q_index_map):
+def initialise_qvals(
+    initial_states_array,
+    initial_qval_array,
+    states_array,
+    qval_array,
+    hits_array,
+    Q_index_map
+):
     """
     Initialises Q-values data structure.
 
@@ -300,17 +314,20 @@ def initialise_policy(keys_array, qval_array, policy):
 @njit(cache=True)
 def block_sort_arrays(states_array, qval_array, hits_array, m, max_idx):
     """
-    Gets numpy arrays from the Numba typed dictionary.
+    Sorts the tails of the states, qval, and hits arrays.
 
     Arguments:
-      + `Qvals`: a typed dictionary mapping hash states to Q-values
-      + `hits`: a typed dictionary mapping hash states to the number of hits.
+      + `states_array`: a numpy array containing the hashed stateaction pairs
+      + `qval_array`: a numpy array containing the learned q-values
+      + `hits_array`: a numpy array containing the number of hits for each stateaction pair
+      + `m`: the number of previously-learned stateactions, no need to sort these
+      + `max_idx`: the number of stateactions.
 
     Returns:
       + `n` the number of hash states discovered so far
-      + `keys_arr` the numpy array of hash states
-      + `q_arr` the numpy array of q-values
-      + `hits_arr` the numpy array of numbers of hits
+      + `states_array` the numpy array of hash states
+      + `qval_array` the numpy array of q-values
+      + `hits_array` the numpy array of numbers of hits
     """
     max_idx = np.int64(max_idx)
     states_array = states_array[:max_idx]
