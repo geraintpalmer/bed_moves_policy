@@ -484,3 +484,36 @@ def test_long_run():
     assert S.overall_cost == 191317.31
     assert S.max_idx == 36575
     assert len(S.Q_index_map) == 36575
+
+
+def test_give_policy():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=7.0),
+            ciw.dists.Deterministic(value=13.0),
+            ciw.dists.Deterministic(value=22.0)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        epsilon=0.0,
+        seed=0,
+        max_time=800.0,
+        initial_keys=np.array([11000, 33000, 22000, 44000], dtype=np.int64),
+        initial_policy=np.array([404, 101, 101, 505], dtype=np.int16),
+        warmup=50.0,
+    )
+
+    assert len(S.policy) == 4
+    assert S.policy[11000] == 404
+    assert S.policy[33000] == 101
+    assert S.policy[22000] == 101
+    assert S.policy[44000] == 505

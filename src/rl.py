@@ -1,7 +1,7 @@
 import numpy as np
 import ward
 from math import exp
-from numba import njit
+from numba import njit, typed, types
 
 worst_Q = np.finfo(np.float32).min
 check_worst = 0.99999 * np.finfo(np.float32).min
@@ -255,6 +255,7 @@ def update_Q_values(
             )
         ))
     )
+    states_array[idx] = hash_state
     qval_array[idx] = np.float32(newQ)
     hits_array[idx] = np.int16(h)
     return next_hash_state, max_idx
@@ -288,9 +289,24 @@ def initialise_qvals(
         hits_array[i] = np.int16(0)
         Q_index_map[s] = np.int32(i)
 
+@njit(cache=True)
+def initialise_policy_dict(keys_array, policy_array, policy):
+    """
+    Initialises policy dictionary with the previously
+    learned Q-values.
+
+    Arguments:
+      + `keys_array`: a numpy array containing the hashed states
+      + `policy_array`: a numpy array containing the learned q-values
+      + `policy`: an empty typed dictionary for the policy.
+    """
+    for i in range(len(keys_array)):
+        k = keys_array[i]
+        a = policy_array[i]
+        policy[k] = np.int32(a)
 
 @njit(cache=True)
-def initialise_policy(keys_array, qval_array, policy):
+def initialise_policy(keys_array, qval_array):
     """
     Initialises policy dictionary with the previously
     learned Q-values.
@@ -298,18 +314,34 @@ def initialise_policy(keys_array, qval_array, policy):
     Arguments:
       + `keys_array`: a numpy array containing the hashed stateaction pairs
       + `qval_array`: a numpy array containing the learned q-values
-      + `policy`: an empty typed dictionary for the policy.
     """
-    running_max = np.float32(0.0)
-    for k, v in zip(keys_array, qval_array):
+    best_indices = typed.Dict.empty(key_type=types.int64, value_type=types.int32)
+
+    for idx in range(len(keys_array)):
+        k = keys_array[idx]
+        qval = qval_array[idx]
         hash_state_only, a = ward.get_state_action_from_hashstate(k)
-        if hash_state_only in policy:
-            if running_max < v:
-                policy[hash_state_only] = a
-                running_max = v
+
+        if hash_state_only in best_indices:
+            prev_best_idx = best_indices[hash_state_only]
+            prev_best_Q = qval_array[prev_best_idx] 
+            if qval > prev_best_Q:
+                best_indices[hash_state_only] = np.int32(idx)
         else:
-            policy[hash_state_only] = a
-            running_max = v
+            best_indices[hash_state_only] = np.int32(idx)
+
+    j = len(best_indices)
+    out_keys_array = np.empty(j, dtype=np.int64)
+    out_policy_array = np.empty(j, dtype=np.int16)
+
+    for i, (k, idx) in enumerate(best_indices.items()):
+        out_keys_array[i] = k
+        stateaction = keys_array[idx]
+        hash_state_only, a = ward.get_state_action_from_hashstate(stateaction)
+        out_policy_array[i] = np.int16(a)
+
+    return out_keys_array, out_policy_array
+
 
 
 @njit(cache=True)

@@ -86,6 +86,7 @@ class WardSimulation:
         discount_factor=None,
         initial_keys=None,
         initial_qvals=None,
+        initial_policy=None,
         warmup=0.0,
         M=None
     ):
@@ -170,9 +171,9 @@ class WardSimulation:
             self.M = M
         else:
             self.M = np.ceil(2 * max_time * sum((1/d.mean) for d in arrival_distributions)).astype(np.int64)
-        self.setup_qvals(initial_keys, initial_qvals)
+        self.setup_qvals(initial_keys, initial_qvals, initial_policy)
 
-    def setup_qvals(self, initial_keys, initial_qvals):
+    def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
         """
         Placeholder for setting up qvals or policy.
         """
@@ -482,7 +483,7 @@ class WardTraining(WardSimulation):
                 action=action
             )
     
-    def setup_qvals(self, initial_keys, initial_qvals):
+    def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
         """
         Sets up the Qvals and hits dictionaries
 
@@ -494,9 +495,9 @@ class WardTraining(WardSimulation):
             key_type=types.int64,
             value_type=types.int32
         )
-        self.states = np.empty(self.M, dtype=np.int64)
-        self.Qvals = np.empty(self.M, dtype=np.float32)
-        self.hits = np.empty(self.M, dtype=np.int16)
+        self.states = np.zeros(self.M, dtype=np.int64)
+        self.Qvals = np.zeros(self.M, dtype=np.float32)
+        self.hits = np.zeros(self.M, dtype=np.int16)
         self.m = 0
         self.max_idx = 0
 
@@ -537,7 +538,7 @@ class WardEvaluation(WardSimulation):
         """
         pass
 
-    def setup_qvals(self, initial_keys, initial_qvals):
+    def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
         """
         Sets up the Qvals and hits dictionaries
         (when learning), or the policy (when evaluating)
@@ -551,8 +552,8 @@ class WardEvaluation(WardSimulation):
             value_type=types.int32
         )
         if initial_keys is not None:
-            rl.initialise_policy(
+            rl.initialise_policy_dict(
                 keys_array=initial_keys,
-                qval_array=initial_qvals,
+                policy_array=initial_policy,
                 policy=self.policy
             )

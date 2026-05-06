@@ -28,8 +28,8 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 def evaluate(
     max_time,
     epsilon,
-    initial_keys,
-    initial_qvals,
+    initial_keys_path,
+    initial_policy_path,
     warmup,
     seed,
     trial,
@@ -38,6 +38,13 @@ def evaluate(
     """
     Runs
     """
+    if initial_keys_path is not None:
+        initial_keys = np.load(initial_keys_path, mmap_mode='r')
+        initial_policy = np.load(initial_policy_path, mmap_mode='r')
+    else:
+        initial_keys = None
+        initial_policy = None
+
     S = sim.WardEvaluation(
         arrival_distributions=[
             ciw.dists.Exponential(1.5),
@@ -59,7 +66,7 @@ def evaluate(
         seed=seed,
         max_time=max_time,
         initial_keys=initial_keys,
-        initial_qvals=initial_qvals,
+        initial_policy=initial_policy,
         warmup=warmup
     )
     S.simulate_until_max_time(
@@ -96,12 +103,19 @@ if __name__ == '__main__':
     
     for stage in range(n_stages+1):
         if stage > 0:
-            data = np.load(f"{args.experiment}/results/stage_{stage}_overall_epsilon_{round(training_epsilons[stage-1], 3)}.npz")
-            keys =  data['keys'].astype(np.int64)
-            qvals = data['vals'].astype(np.float32)
+            keys = np.load(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.npy", mmap_mode='r')
+            qvals = np.load(f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(training_epsilons[stage-1], 3)}.npy", mmap_mode='r')
+            policy_keys, policy_actions = rl.initialise_policy(
+                keys_array=keys,
+                qval_array=qvals
+            )
+            policy_keys_path = f"{args.experiment}/results/stage_{stage}_overall_policykeys_epsilon_{round(training_epsilons[stage-1], 3)}.npy"
+            np.save(policy_keys_path, policy_keys)
+            policy_actions_path = f"{args.experiment}/results/stage_{stage}_overall_policyactions_epsilon_{round(training_epsilons[stage-1], 3)}.npy"
+            np.save(policy_actions_path, policy_actions)
         else:
-            keys = None
-            qvals = None
+            policy_keys_path = None
+            policy_actions_path = None
 
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
         seeds = [seed + trial for trial in range(trials_per_stage)]
@@ -109,8 +123,8 @@ if __name__ == '__main__':
             (
                 max_time,
                 eval_epsilons[stage],
-                keys,
-                qvals,
+                policy_keys_path,
+                policy_actions_path,
                 warmup,
                 seeds[t],
                 t,

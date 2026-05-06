@@ -353,16 +353,16 @@ def test_initialise_qvals():
 
 
 
-def test_initialise_policy():
-    keys = np.array([22101, 22202, 22303, 33101, 33202, 33303, 44101, 44202, 44303, 55101, 66202, 66303])
-    vals = np.array([  3.1,   2.1,   4.2,   7.2,   3.4,   4.3,   7.4,   8.8,   1.1,   3.2,   1.3,   1.4])
+def test_initialise_policy_dict():
+    policy_keys = np.array([22000, 44000, 33000, 66000, 55000], dtype=np.int64)
+    policy_actions = np.array([303, 202, 101, 303, 101], dtype=np.int16)
     policy = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.int64
+        value_type=types.int32
     )
-    rl.initialise_policy(
-        keys_array=keys,
-        qval_array=vals,
+    rl.initialise_policy_dict(
+        keys_array=policy_keys,
+        policy_array=policy_actions,
         policy=policy
     )
 
@@ -373,22 +373,46 @@ def test_initialise_policy():
     assert policy[55000] == 101
     assert policy[66000] == 303
 
-    keys = np.array([11101, 11404, 22101, 22909, 33202, 11202, 33404, 22808, 44505, 44808, 44303])
-    vals = np.array([  0.1,   0.4,   0.7,   0.5,   0.3,   0.2,   0.8,   0.1,   0.9,   0.7,   0.8])
+    policy_keys = np.array([11000, 33000, 22000, 44000], dtype=np.int64)
+    policy_actions = np.array([404, 101, 101, 505], dtype=np.int16)
     policy = typed.Dict.empty(
         key_type=types.int64,
-        value_type=types.int64
+        value_type=types.int32
     )
-    rl.initialise_policy(
-        keys_array=keys,
-        qval_array=vals,
+    rl.initialise_policy_dict(
+        keys_array=policy_keys,
+        policy_array=policy_actions,
         policy=policy
     )
     assert len(policy) == 4
     assert policy[11000] == 404
     assert policy[22000] == 101
-    assert policy[33000] == 404
+    assert policy[33000] == 101
     assert policy[44000] == 505
+
+
+def test_initialise_policy():
+    keys = np.array([22101, 22202, 44404, 22303, 33101, 33202, 66101, 33303, 44101, 44202, 44303, 55101, 66202, 66303, 22303])
+    vals = np.array([  3.1,   2.1,   2.1,   4.2,   7.2,   3.4,   0.8,   4.3,   7.4,   8.8,   1.1,   3.2,   1.3,   1.4,   1.0])
+    policy_keys, policy_actions = rl.initialise_policy(
+        keys_array=keys,
+        qval_array=vals
+    )
+    assert len(policy_keys) == 5
+    assert len(policy_actions) == 5
+    assert np.array_equal(policy_keys, np.array([22000, 44000, 33000, 66000, 55000], dtype=np.int64))
+    assert np.array_equal(policy_actions, np.array([303, 202, 101, 303, 101], dtype=np.int16))
+
+    keys = np.array([11101, 33101, 11404, 22101, 22909, 33202, 11202, 33404, 22808, 44505, 44808, 22303, 44303])
+    vals = np.array([  0.1,   1.0,   0.4,   0.7,   0.5,   0.3,   0.2,   0.8,   0.1,   0.9,   0.7,   0.5,   0.8])
+    policy_keys, policy_actions = rl.initialise_policy(
+        keys_array=keys,
+        qval_array=vals
+    )
+    assert len(policy_keys) == 4
+    assert len(policy_actions) == 4
+    assert np.array_equal(policy_keys, np.array([11000, 33000, 22000, 44000], dtype=np.int64))
+    assert np.array_equal(policy_actions, np.array([404, 101, 101, 505], dtype=np.int16))
 
 
 def test_block_sort_arrays():
