@@ -315,32 +315,27 @@ def initialise_policy(keys_array, qval_array):
       + `keys_array`: a numpy array containing the hashed stateaction pairs
       + `qval_array`: a numpy array containing the learned q-values
     """
-    best_indices = typed.Dict.empty(key_type=types.int64, value_type=types.int32)
+    sort_idx = np.argsort(keys_array)
+    n = len(keys_array)
+    out_keys = np.empty(n, dtype=np.int64)
+    out_actions = np.empty(n, dtype=np.int16)
+    prev_k = np.int64(-1)
+    prev_q = -np.inf
+    idx = -1
 
-    for idx in range(len(keys_array)):
-        k = keys_array[idx]
-        qval = qval_array[idx]
-        hash_state_only, a = ward.get_state_action_from_hashstate(k)
-
-        if hash_state_only in best_indices:
-            prev_best_idx = best_indices[hash_state_only]
-            prev_best_Q = qval_array[prev_best_idx] 
-            if qval > prev_best_Q:
-                best_indices[hash_state_only] = np.int32(idx)
-        else:
-            best_indices[hash_state_only] = np.int32(idx)
-
-    j = len(best_indices)
-    out_keys_array = np.empty(j, dtype=np.int64)
-    out_policy_array = np.empty(j, dtype=np.int16)
-
-    for i, (k, idx) in enumerate(best_indices.items()):
-        out_keys_array[i] = k
-        stateaction = keys_array[idx]
-        hash_state_only, a = ward.get_state_action_from_hashstate(stateaction)
-        out_policy_array[i] = np.int16(a)
-
-    return out_keys_array, out_policy_array
+    for i in sort_idx:
+        k, a = ward.get_state_action_from_hashstate(keys_array[i])
+        q = qval_array[i]
+        if k != prev_k:
+            idx += 1
+            out_keys[idx] = k
+            out_actions[idx] = np.int16(a)
+            prev_k = k
+            prev_q = q
+        elif q > prev_q:
+            out_actions[idx] = np.int16(a)
+    idx += 1
+    return out_keys[:idx], out_actions[:idx]
 
 
 

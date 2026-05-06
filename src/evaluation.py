@@ -103,7 +103,7 @@ if __name__ == '__main__':
     
     for stage in range(n_stages+1):
         if stage > 0:
-            keys = np.load(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.npy", mmap_mode='r')
+            keys = np.load(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.npy")
             qvals = np.load(f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(training_epsilons[stage-1], 3)}.npy", mmap_mode='r')
             policy_keys, policy_actions = rl.initialise_policy(
                 keys_array=keys,

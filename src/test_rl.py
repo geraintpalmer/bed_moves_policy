@@ -400,8 +400,8 @@ def test_initialise_policy():
     )
     assert len(policy_keys) == 5
     assert len(policy_actions) == 5
-    assert np.array_equal(policy_keys, np.array([22000, 44000, 33000, 66000, 55000], dtype=np.int64))
-    assert np.array_equal(policy_actions, np.array([303, 202, 101, 303, 101], dtype=np.int16))
+    assert np.array_equal(policy_keys, np.array([22000, 33000, 44000, 55000, 66000], dtype=np.int64))
+    assert np.array_equal(policy_actions, np.array([303, 101, 202, 101, 303], dtype=np.int16))
 
     keys = np.array([11101, 33101, 11404, 22101, 22909, 33202, 11202, 33404, 22808, 44505, 44808, 22303, 44303])
     vals = np.array([  0.1,   1.0,   0.4,   0.7,   0.5,   0.3,   0.2,   0.8,   0.1,   0.9,   0.7,   0.5,   0.8])
@@ -411,7 +411,7 @@ def test_initialise_policy():
     )
     assert len(policy_keys) == 4
     assert len(policy_actions) == 4
-    assert np.array_equal(policy_keys, np.array([11000, 33000, 22000, 44000], dtype=np.int64))
+    assert np.array_equal(policy_keys, np.array([11000, 22000, 33000, 44000], dtype=np.int64))
     assert np.array_equal(policy_actions, np.array([404, 101, 101, 505], dtype=np.int16))
 
 

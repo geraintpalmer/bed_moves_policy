@@ -223,8 +223,6 @@ if __name__ == '__main__':
         np.save(keys_path, keys)
         qvals_path = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npy"
         np.save(qvals_path, qvals)
-        hits_path = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon_{round(epsilons[stage-1], 3)}.npy"
-        np.save(hits_path, hits)
 
         key_length = len(keys)
         M = np.ceil(key_length + ((key_length - prev_key_length) * 1.1)).astype(np.int64)
