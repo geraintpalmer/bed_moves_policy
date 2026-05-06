@@ -50,9 +50,9 @@ def choose_best_action(
         patient_type=patient_type
     )
 
-    available_actions_Q = np.empty(valid_count)
+    available_actions_Q = np.zeros(valid_count)
     for i in range(valid_count):
-        key = hash_state_only + actions_pool[i]
+        key = hash_state_only + np.int64(actions_pool[i])
         if key in Q_index_map:
             idx = Q_index_map[key]
             available_actions_Q[i] = qval_array[np.int64(idx)]

@@ -19,15 +19,15 @@ max_capacities = np.array([3, 2, 2, 3, 2, 2, 1, 1, 1], dtype=np.int32)
 
 adjacency_matrix = np.array(
     [
-        [0, 1, 0, 1, 0, 0, 0, 0, 0],
-        [1, 0, 1, 0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 1, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 1, 0, 1, 1, 1, 1, 1],
+        [0, 2, 0, 1, 0, 1, 1, 1, 1],
+        [1, 0, 2, 1, 1, 0, 1, 1, 1],
+        [0, 1, 1, 2, 0, 1, 1, 1, 1],
+        [1, 0, 1, 0, 2, 0, 1, 1, 1],
+        [1, 1, 0, 1, 0, 2, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 2, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 2, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 2],
     ], dtype=np.int32
 )
 
@@ -162,10 +162,8 @@ def get_move_penalty(
 
     Returns: a numerical penalty for the bed moves.
     """
-    if not ((from_block == to_block) and (patient_type == arriving_patient_type)):
-        adj = 1 - adjacency_matrix[from_block, to_block]
-        return move_penalties[adj, patient_type]
-    return 0.0
+    adj = adjacency_matrix[from_block, to_block]
+    return move_penalties[adj, patient_type]
 
 @njit(cache=True)
 def insert_patient(state, patient_type, to_block):
@@ -319,6 +317,6 @@ def find_idx_of_patient_to_move(
     Returns: an index where they match.
     """
     for i in range(17):
-        if (patients_types[i] == patient_type) and (block == patients_blocks[i]):
+        if (patients_types[i] == patient_type) & (block == patients_blocks[i]):
             return i
-    return None
+    return -1

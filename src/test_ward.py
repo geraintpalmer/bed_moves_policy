@@ -251,7 +251,8 @@ def test_get_move_penalty():
     move_penalties = np.array(
         [
             [5.0, 6.0, 7.0],
-            [5.5, 6.5, 7.5]
+            [5.5, 6.5, 7.5],
+            [0.0, 0.0, 0.0]
         ]
     )
     assert ward.get_move_penalty(0, 1, 0, 0, move_penalties) == 5.0

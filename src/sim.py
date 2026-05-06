@@ -68,7 +68,7 @@ def get_state_cost(state, update_time, prev_time, isolation_penalty):
     )
     interval = update_time - prev_time
     cost = (interval * (resource_use + penalty))
-    return np.float32(cost)
+    return cost
 
 
 class WardSimulation:
@@ -129,7 +129,8 @@ class WardSimulation:
         self.los_distributions = los_distributions
         self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
         self.isolation_penalty = np.float32(isolation_penalty)
-        self.move_penalties = move_penalties.astype(np.float32)
+        self.move_penalties = np.zeros((3, 3), dtype=np.float32)
+        self.move_penalties[:2, :] = move_penalties
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -258,7 +259,6 @@ class WardSimulation:
         if shared_progress_array is not None:
             shared_progress_array[trial] = self.max_time
 
-
     def arrival(self, next_arrival, patient_type):
         """
         Generates a patient and decides where the patient should go.
@@ -300,7 +300,7 @@ class WardSimulation:
             self.now = next_arrival
             self.learn(patient_type, a)
 
-            if not ((a3 == a1) and (a2 == patient_type)):
+            if a3 != a1:
                 move_idx = ward.find_idx_of_patient_to_move(
                     block=a1,
                     patient_type=a2,
