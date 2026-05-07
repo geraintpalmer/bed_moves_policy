@@ -1,4 +1,4 @@
 max_time: 30000
 warmup: 5000
 n_stages: 21
-trials_per_stage: 60
+trials_per_stage: 100
