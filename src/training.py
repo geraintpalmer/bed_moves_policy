@@ -79,12 +79,20 @@ def train(
         trial=trial
     )
     max_idx, states_array, qval_array, hits_array = S.return_Qvals()
-    states_filename = f"{experiment}/results/tmp/states_trial_{trial}.npy"
-    qval_filename = f"{experiment}/results/tmp/qvals_trial_{trial}.npy"
-    hits_filename = f"{experiment}/results/tmp/hits_trial_{trial}.npy"
-    np.save(states_filename, states_array)
-    np.save(qval_filename, qval_array)
-    np.save(hits_filename, hits_array)
+    del S
+    gc.collect()
+    states_filename = f"{experiment}/results/tmp/states_trial_{trial}.bin"
+    qval_filename = f"{experiment}/results/tmp/qvals_trial_{trial}.bin"
+    hits_filename = f"{experiment}/results/tmp/hits_trial_{trial}.bin"
+    states_array.tofile(states_filename)
+    del states_array
+    gc.collect()
+    qval_array.tofile(qval_filename)
+    del qval_array
+    gc.collect()
+    hits_array.tofile(hits_filename)
+    del hits_array
+    gc.collect()
     return max_idx
 
 if __name__ == '__main__':
@@ -166,9 +174,9 @@ if __name__ == '__main__':
                             j = res.get()
                             unique_states_per_trial[stage][i] = j
 
-                            new_states = np.load(f"{args.experiment}results/tmp/states_trial_{i}.npy", mmap_mode='r')
-                            new_qvals = np.load(f"{args.experiment}results/tmp/qvals_trial_{i}.npy", mmap_mode='r')
-                            new_hits = np.load(f"{args.experiment}results/tmp/hits_trial_{i}.npy", mmap_mode='r')
+                            new_states = np.memmap(f"{args.experiment}results/tmp/states_trial_{i}.bin", dtype=np.int64)
+                            new_qvals = np.memmap(f"{args.experiment}results/tmp/qvals_trial_{i}.bin", dtype=np.float32)
+                            new_hits = np.memmap(f"{args.experiment}results/tmp/hits_trial_{i}.bin", dtype=np.int16)
 
                             rl.update_master_head_inplace(
                                 qvals[:prev_key_length], hits[:prev_key_length], new_qvals[:prev_key_length], new_hits[:prev_key_length]
@@ -179,9 +187,9 @@ if __name__ == '__main__':
                             new_states = None
                             new_qvals = None
                             new_hits = None
-                            os.remove(f"{args.experiment}results/tmp/states_trial_{i}.npy")
-                            os.remove(f"{args.experiment}results/tmp/qvals_trial_{i}.npy")
-                            os.remove(f"{args.experiment}results/tmp/hits_trial_{i}.npy")
+                            os.remove(f"{args.experiment}results/tmp/states_trial_{i}.bin")
+                            os.remove(f"{args.experiment}results/tmp/qvals_trial_{i}.bin")
+                            os.remove(f"{args.experiment}results/tmp/hits_trial_{i}.bin")
                             gc.collect(2)
 
                             keyst, qvalst, hitst = rl.get_unique_tails(keys[prev_key_length:], qvals[prev_key_length:], hits[prev_key_length:], new_states_tail, new_qvals_tail, new_hits_tail)
@@ -223,6 +231,8 @@ if __name__ == '__main__':
         np.save(keys_path, keys)
         qvals_path = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npy"
         np.save(qvals_path, qvals)
+        hits_path = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon{round(epsilons[stage-1], 3)}.npy"
+        np.save(hits_path, hits)
 
         key_length = len(keys)
         M = np.ceil(key_length + ((key_length - prev_key_length) * 1.1)).astype(np.int64)
