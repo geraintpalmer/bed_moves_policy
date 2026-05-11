@@ -30,7 +30,7 @@
 \usepackage{tcolorbox}
 
 
-\title{\bf Improving ICU Patient Bed Moves Policies with \{Simulation-Optimisation / Reinforcement Learning / Q-Learning / Unsupervised Learning / Approximate Dynamic Programming / Markov Decision Processes\}}
+\title{\bf Improving ICU Patient Bed Moves Policies with Reinforcement Learning Based Simulation-Optimisation}
 \author{Geraint I. Palmer-Liyu, Mark Tuson, Virginia Ahedo \& Paul R. Harper}
 
 \begin{document}
@@ -48,13 +48,121 @@ patients, etc.
 \end{tcolorbox}
 
 
-\section{MDP Formulation}
+\section{ICU Description}\label{sec:description}
+The ICU at UHW consists of 35 beds across 4 wards (named A3 North, A3 South, B3
+North, and B3 South), two single isolation units, and one double isolation unit.
+One bed is generally ring-fenced, left unoccupied, for emergencies.
+This is shown in Figure~\ref{fig:icu_map}.
+There are two additional units, Complex Care and the Post Anaesthetic Care Unit
+(PACU), which generally accomodate their own patient types (complex care and
+post anaesthetic patients respectively), spare beds can be used as surge, or
+overflow, for general ICU patients when needed.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{../images/icu.pdf}
+\end{center}
+\caption{Representation of the four ICU wards.
+Dashed lines separate isolation units, and the dotted box represents the
+ring-fenced bed.}
+\label{fig:icu_map}
+\end{figure}
+
+The model will consider three types of patient, categorised as Stage 2, Stage 3,
+or Stage 3-I patients:
+\begin{itemize}
+  \item Stage 2: these are the least severe patients.
+        When two Stage 2 patients occupy neighbouring beds, both can be cared
+        for by the same FTE nurse.
+  \item Stage 3: these patients require one to one attention from nurses,
+        regardless of patients in neighbouring beds;
+  \item Stage 3-I: these patients require isolation and one to one attention.
+        When an isolation unit is available, they must be admitted there.
+        If an isolation unit it occupied by a Stage 2 or Stage 3 patient, and
+        non-isolation bed is available, then the other patient must be moved to
+        the available bed and the new Stage 3-I patient must be admitted to the
+        isolation unit.
+        If they cannot be placed in an isolation unit at all, they are placed in
+        a shared unit, and will require their own FTE nurse similar to Stage 3
+        patients.
+        They will also incur a penalty cost for each time unit they are placed
+        in a shared block.
+\end{itemize}
+
+In order to make the problem tractable, we make the following simplifications
+and assumptions in the model:
+
+\begin{itemize}
+  \item the double isolation unit is treated as two separate isolation units.
+  The only time this assumption may be violated would be if occupied by a
+  patient with a contagous disease, in which case the second bed can then only
+  be occupied by a patient with the same contagous disease.
+  This is an uncommon enough occurance to ignore for modelling purposes.
+  \item general ICU patients are not admitted to Complex Care of PACU, if there
+  are beds available in the other four wards.
+  However, Stage 2 patients may be moved there as surge.
+  This is generally undesirable, and so incurs some penalty.
+  \item The ring-fenced bed is never used, it will not be modelled.
+\end{itemize}
+
+Data analysis shows that:
+
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-Here I am describing the simplified (trivial?) MDP which finds the policy of
-which block to place newly arriving patients. This will be expanded to include
-bed moved once this formulation has been tested and experimented with. 
+Parametrise these properly, referring back to Section~\ref{sec:background}.
+We can do some data analysis here.
 \end{tcolorbox}
 
+\begin{itemize}
+  \item Stage 2 patients arrive according to the Poisson process with rate $\lambda_2 = 3.0$,
+  \item Stage 3 patients arrive according to the Poisson process with rate $\lambda_3 = 2.0$,
+  \item Stage 3-I patients arrive according to the Poisson process with rate $\lambda_{3I} = 1.0$,
+  \item Stage 2 patients' lengths of stay is Exponentially distributed with rate $\mu_2 = 0.3$,
+  \item Stage 3 patients' lengths of stay is Exponentially distributed with rate $\mu_3 = 0.7$,
+  \item Stage 3-I patients' lengths of stay is Exponentially distributed with rate $\mu_{3I} = 0.4$.
+\end{itemize}
+
+\section{Problem Decomposition}
+The 35 bed ICU problem can be decomposed into two subproblems by introducing
+another assumption.
+Ignoring the ring-fenced bed, we can grouping wards A3 North and B3 South, and
+wards B3 North and A3 South, into two identical components each containing 17
+beds.
+We then introduce the assumption that newly arriving patient are sent to the
+component with the most free beds.
+This corresponds to a \textit{load-balancing} arrival discipline,
+a join-shortest-queue discipline that takes into consideration the number of
+occupied servers as well as queue length \cite{kingman61, gupta07}, which, due
+to Poisson thinning, can be modelled using single queue analysis (SQA) with a
+state-dependent arrival rate.
+This is shown in Figure~\ref{fig:decomposition}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../images/decomposition.pdf}
+\end{center}
+\caption{Representation of the load-balancing arrival discipline for the two
+identical subproblems.}
+\label{fig:decomposition}
+\end{figure}
+
+The state-dependent arrival rate can be found from a preliminary simulation,
+built using Ciw~\cite{palmer19}, and parametrised as above, and observing the
+proportion of arrivals that enter each component at each state.
+The resuling proportions are given in Figure~\ref{fig:sqa}.
+SQA now gives us that the arrival rate for each component, when the component's
+occupancy is $x$, is $\lambda_2 p(x)$, $\lambda_3 p(x)$, $\lambda_{3I} p(x)$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.4\textwidth]{../plt/sqa.pdf}
+\end{center}
+\caption{The proportion of the arrivals entering a single component,
+given the component's occupancy.}
+\label{fig:sqa}
+\end{figure}
+
+
+\section{MDP Formulation}
 We will consider the bed move policy problem as a Markov Decision Process (MDP),
 which is a tuple $(S, A, P, R)$, with states $s \in S$, actions $a \in A$,
 transition probabilities $p_{s, s', a} \in P$, and rewards $r_{s, s', a} \in R$.
@@ -83,22 +191,7 @@ walls.
 \label{fig:block_structure}
 \end{figure}
 
-The model will consider three types of patient, categorised as green, amber,
-or red patients:
-\begin{itemize}
-  \item Green: these are the least severe patients.
-        When there are multiple green patients occupying beds in the same block,
-        only one FTE nurse is required for the whole block;
-  \item Amber: these patients require one to one attention from nurses, they
-        will always require their own FTE nurse whichever block they are in,
-        and whichever patients are sharing their block;
-  \item Red: these patients require isolation and one to one attention.
-        If they cannot be places in an isolation unit, they are placed in a
-        shared unit, and will require their own FTE nurse similar to amber
-        patients.
-        They will also incur a penalty cost for each time unit they are placed
-        in a shared block.
-\end{itemize}
+
 
 Within a block it doesn't make a difference which bed a particular patient is
 in, as it won't have an effect on resource use or cost.
@@ -220,22 +313,9 @@ P = b \sum_{j=1}^{6} M_{3,j}
 
 
 \subsection{Simulation Model}
-The simulation model is parametrised by:
-
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-Parametrise these properly, referring back to Section~\ref{sec:background}.
-We can do some data analysis here.
-\end{tcolorbox}
-
-\begin{itemize}
-  \item Green patients arrive according to the Poisson distribution with rate 1.5,
-  \item Amber patients arrive according to the Poisson distribution with rate 1.0,
-  \item Red patients arrive according to the Poisson distribution with rate 0.5,
-  \item Green patients' lengths of stay is Exponentially distributed with rate 0.3,
-  \item Amber patients' lengths of stay is Exponentially distributed with rate 0.7,
-  \item Red patients' lengths of stay is Exponentially distributed with rate 0.4,
-  \item The isolation penalty $b=8$.
-\end{itemize}
+The simulation model is parametrised as described in
+Section~\ref{sec:description}.
+Additionally we parametrise the isolation penalty with $b=8$.
 
 
 \section{Reinforcement Learning Framework}\label{sec:rlframework}
@@ -413,6 +493,9 @@ stages.
 After each stage the combined $Q$-values are saved and so the incumbent policy
 can be evaluated by running the simulation, without any $Q$-learning, choosing
 actions based on that incumbent policy.
+
+
+\subsection{Pruning}
 
 
 \section{Experiments}
