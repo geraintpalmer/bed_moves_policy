@@ -77,11 +77,11 @@ def test_can_update_empty_arrays():
     assert np.array_equal(hits1, np.array([], dtype=np.int16))
 
 def test_get_best_future_reward():
-    actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
+    actions_pool = np.empty(16 * 17, dtype=np.int32)
     state = np.array(
-        (3, 2, 2, 3, 2, 2, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
@@ -120,20 +120,20 @@ def test_get_best_future_reward():
 
 
 def test_update_Q_values():
-    actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
+    actions_pool = np.empty(16 * 17, dtype=np.int32)
     state = np.array(
-        (3, 2, 2, 3, 2, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
         patient_type=0
     )
     next_state = np.array(
-        (3, 2, 2, 3, 2, 2, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
@@ -169,7 +169,7 @@ def test_update_Q_values():
         default_future_reward=np.float32(-10),
         actions_pool=actions_pool
     )
-    assert next_hash_state == 48504485040001606
+    assert next_hash_state == 2038124953510606
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -198,7 +198,7 @@ def test_update_Q_values():
         actions_pool=actions_pool
     )
 
-    assert next_hash_state == 48504485040001606
+    assert next_hash_state == 2038124953510606
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -227,7 +227,7 @@ def test_update_Q_values():
         actions_pool=actions_pool
     )
 
-    assert next_hash_state == 48504485040001606
+    assert next_hash_state == 2038124953510606
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -241,18 +241,18 @@ def test_update_Q_values():
 def test_update_Q_values_default_future():
     actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
     state = np.array(
-        (3, 2, 2, 3, 2, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state = ward.get_hash_state_only(
         state=state,
         patient_type=0
     )
     next_state = np.array(
-        (3, 2, 2, 3, 2, 2, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state = ward.get_hash_state_only(
         state=next_state,
@@ -286,7 +286,7 @@ def test_update_Q_values_default_future():
         actions_pool=actions_pool
     )
 
-    assert next_hash_state == 48504485040001606
+    assert next_hash_state == 2039619173410606
     assert len(Qvals) == 5
     assert len(hits) == 5
     assert len(states) == 5
@@ -392,26 +392,26 @@ def test_initialise_policy_dict():
 
 
 def test_initialise_policy():
-    keys = np.array([22101, 22202, 44404, 22303, 33101, 33202, 66101, 33303, 44101, 44202, 44303, 55101, 66202, 66303, 22303])
-    vals = np.array([  3.1,   2.1,   2.1,   4.2,   7.2,   3.4,   0.8,   4.3,   7.4,   8.8,   1.1,   3.2,   1.3,   1.4,   1.0])
+    keys = np.array([220101, 220202, 440404, 220303, 330101, 330202, 660101, 330303, 440101, 440202, 440303, 550101, 660202, 660303, 220303])
+    vals = np.array([   3.1,    2.1,    2.1,    4.2,    7.2,    3.4,    0.8,    4.3,    7.4,    8.8,    1.1,    3.2,    1.3,    1.4,    1.0])
     policy_keys, policy_actions = rl.initialise_policy(
         keys_array=keys,
         qval_array=vals
     )
     assert len(policy_keys) == 5
     assert len(policy_actions) == 5
-    assert np.array_equal(policy_keys, np.array([22000, 33000, 44000, 55000, 66000], dtype=np.int64))
+    assert np.array_equal(policy_keys, np.array([220000, 330000, 440000, 550000, 660000], dtype=np.int64))
     assert np.array_equal(policy_actions, np.array([303, 101, 202, 101, 303], dtype=np.int16))
 
-    keys = np.array([11101, 33101, 11404, 22101, 22909, 33202, 11202, 33404, 22808, 44505, 44808, 22303, 44303])
-    vals = np.array([  0.1,   1.0,   0.4,   0.7,   0.5,   0.3,   0.2,   0.8,   0.1,   0.9,   0.7,   0.5,   0.8])
+    keys = np.array([110101, 330101, 110404, 220101, 220909, 330202, 110202, 330404, 220808, 440505, 440808, 220303, 440303])
+    vals = np.array([   0.1,    1.0,    0.4,    0.7,    0.5,    0.3,    0.2,    0.8,    0.1,    0.9,    0.7,    0.5,    0.8])
     policy_keys, policy_actions = rl.initialise_policy(
         keys_array=keys,
         qval_array=vals
     )
     assert len(policy_keys) == 4
     assert len(policy_actions) == 4
-    assert np.array_equal(policy_keys, np.array([11000, 22000, 33000, 44000], dtype=np.int64))
+    assert np.array_equal(policy_keys, np.array([110000, 220000, 330000, 440000], dtype=np.int64))
     assert np.array_equal(policy_actions, np.array([404, 101, 101, 505], dtype=np.int16))
 
 
