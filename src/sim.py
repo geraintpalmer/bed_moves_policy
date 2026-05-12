@@ -156,7 +156,7 @@ class WardSimulation:
         self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
-        self.actions_pool = np.empty(9 + (9 * 2 * 8), dtype=np.int32)
+        self.actions_pool = np.empty(16 * 17, dtype=np.int32)
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
         self.patients_deterioration_dates = np.ones(17) * np.inf
