@@ -597,6 +597,14 @@ def test_get_available_actions():
     available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
     assert np.array_equal(available_moves[:valid_count], np.array([16, 316, 616, 916], dtype=np.int32))
 
+    S = np.array(
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    assert np.array_equal(available_moves[:valid_count], np.array([0, 101, 202], dtype=np.int32))
+
 
 def test_find_idx_of_patient_to_move():
     patients_blocks = np.array([0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 8, 8])

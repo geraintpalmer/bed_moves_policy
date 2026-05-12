@@ -314,7 +314,7 @@ def get_available_actions(state, patient_type, actions_pool):
     """
     valid_count = 0
 
-    isolation_full = (state[(0 * 16) + 15] + state[(1 * 16) + 15] + state[(2 * 16) + 15]) == 2
+    isolation_full = (state[15] + state[31] + state[47]) == 2
     isolation_full_with_3i = state[(2 * 16) + 15] == 2
 
     # First, check if Stage 3-I can go to isolation unit
@@ -342,15 +342,17 @@ def get_available_actions(state, patient_type, actions_pool):
     # Case B: Bed Move (to_block != insert_block)
     for insert_block in range(16):
         if state[(patient_type * 16) + insert_block] < max_capacities[insert_block]:
-            for to_block in available_blocks:
-                if insert_block != to_block:
-                    if not (isolation_full_with_3i and (insert_block == 15)):
-                        if not (insert_block == 15 and patient_type == 0 and state[15] > 0):
-                            actions_pool[valid_count] = (100 * insert_block) + to_block
-                            valid_count += 1
-            if (state[insert_block] > 0) and (patient_type != 0):
-                actions_pool[valid_count] = (100 * insert_block) + 16
-                valid_count += 1
+            col_sum = state[insert_block] + state[16 + insert_block] + state[32 + insert_block] 
+            if col_sum > 0:
+                for to_block in available_blocks:
+                    if insert_block != to_block:
+                        if not (isolation_full_with_3i and (insert_block == 15)):
+                            if not (insert_block == 15 and patient_type == 0 and state[15] > 0):
+                                actions_pool[valid_count] = (100 * insert_block) + to_block
+                                valid_count += 1
+                if (state[insert_block] > 0) and (patient_type != 0):
+                    actions_pool[valid_count] = (100 * insert_block) + 16
+                    valid_count += 1
     return actions_pool, valid_count
 
 
