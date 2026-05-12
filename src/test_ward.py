@@ -63,6 +63,19 @@ def test_get_hash_state_only():
 
 
 def test_get_hash_stateaction():
+    S = np.array(
+        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    Shash = ward.get_hash_stateaction(
+        state=S,
+        patient_type=2,
+        action=1104
+    )
+    assert Shash == 2025762603821104
+
+
     hash_states = [
         ward.get_hash_stateaction(
             state=ward.empty_state,

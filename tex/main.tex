@@ -533,42 +533,52 @@ Therefore in order to preserve memory, we define a reversible hash between
 state-action pairs $(s, a) = ((M, p), a)$ and 64-bit integers (from
 $-2^{63}$ to $2^{63} - 1$), that is a 19-digit integer.
 
-Consider $M$, each entry $M_{ij}$ is an integer in the range $[0, K_j]$, with
-$K_j \in \{1, 2, 3\}$, and so groups of columns have a limited set of
-configurations, which can be bounded.
-For example, columns 7, 8, 9, representing the isolation wards, and so
-$K_j = 1$ for all $j \in [7, 8, 9]$.
-Therefore there is at most $2^9 = 512$ configurations for these columns (this
-is an upper bound, as we have ignored the column sum constraint), and so we can
-assign a 3-digit integer value to the configuration of these three columns.
-Similar arguments gives that column 1 has at most $4^3 = 64$ configurations,
-columns 2 and 3 together have at most $3^6 = 729$ configurations, column 4 has
-at most $4^3 = 64$ configurations, and columns 5 and 6 together have at most
-$3^6 = 729$ configurations.
-Using positional concatenation we can therefore transform $M$ into a 13 digit
-number.
-Including the arriving patient type $p$ and action $a$ gives us a 15 digit
-number, well within the confines of 64-bit integers.
-This is a form of mixed radix encoding.
-Equation~\ref{eqn:hashing} gives this hashing, where
-$\langle A, B \rangle_F = Tr(A^T B)$ is the Frobenius inner
-product~\cite{calderolver25}, and the matrix $W$ is given in
+We do this with the follow form of mixed radix encoding, given by
+Equation~\ref{eqn:hashing}, where $\langle A, B \rangle_F = Tr(A^T B)$ is the
+Frobenius inner product~\cite{calderolver25}, and the matrix $W$ is given in
 Equation~\ref{eqn:hash_weights}.
 
 \begin{equation}\label{eqn:hashing}
-H((M, p), a)) = 100\langle M, W \rangle_F + 10p + a
+H((M, p), (b, d))) = 100000\langle M, W \rangle_F + 10000p + 100b + d
 \end{equation}
 
 \begin{equation}\label{eqn:hash_weights}
-W = \begin{pmatrix}
-\num{16e11} & \num{243e8} & \num{9e8} & \num{16e6} & \num{243e3} & \num{9e3} & 256 & 32 & 4 \\
- \num{4e11} &  \num{81e8} & \num{3e8} &  \num{4e6} &  \num{81e3} & \num{3e3} & 128 & 16 & 2 \\
- \num{1e11} &  \num{27e8} & \num{1e8} &  \num{1e6} &  \num{27e3} & \num{1e3} &  64 &  8 & 1
+W^T = \begin{pmatrix}
+3 \times 19 \times 4^{14} & 2 \times 19 \times 4^{14} & 1 \times 19 \times 4^{14} \\
+3 \times 19 \times 4^{13} & 2 \times 19 \times 4^{13} & 1 \times 19 \times 4^{13} \\
+3 \times 19 \times 4^{12} & 2 \times 19 \times 4^{12} & 1 \times 19 \times 4^{12} \\
+3 \times 19 \times 4^{11} & 2 \times 19 \times 4^{11} & 1 \times 19 \times 4^{11} \\
+3 \times 19 \times 4^{10} & 2 \times 19 \times 4^{10} & 1 \times 19 \times 4^{10} \\
+3 \times 19 \times 4^9 & 2 \times 19 \times 4^9 & 1 \times 19 \times 4^9 \\
+3 \times 19 \times 4^8 & 2 \times 19 \times 4^8 & 1 \times 19 \times 4^8 \\
+3 \times 19 \times 4^7 & 2 \times 19 \times 4^7 & 1 \times 19 \times 4^7 \\
+3 \times 19 \times 4^6 & 2 \times 19 \times 4^6 & 1 \times 19 \times 4^6 \\
+3 \times 19 \times 4^5 & 2 \times 19 \times 4^5 & 1 \times 19 \times 4^5 \\
+3 \times 19 \times 4^4 & 2 \times 19 \times 4^4 & 1 \times 19 \times 4^4 \\
+3 \times 19 \times 4^3 & 2 \times 19 \times 4^3 & 1 \times 19 \times 4^3 \\
+3 \times 19 \times 4^2 & 2 \times 19 \times 4^2 & 1 \times 19 \times 4^2 \\
+3 \times 19 \times 4^1 & 2 \times 19 \times 4^1 & 1 \times 19 \times 4^1 \\
+3 \times 19 & 2 \times 19 & 1 \times 19 \\
+9 & 3 & 1
 \end{pmatrix}
 \end{equation}
 
-As an example $H((M^{\star}, 1, 7) = 4893600107217$, where $M^{\star}$ is the
-ward state given in Equation~\ref{eqn:example_M}.
+The first 15 columns use a counting scheme in base 4, as there are only 4
+configurations for each of these columns.
+Now consider the 15th column, the entries are integers in $\{0, 1, 2\}$, and so
+the elements of this column can be counted in base 3.
+Noting however, due to the constraint that the sum of this column cannot exceed
+2, that the maximum value of this column would be 18, corresponding to
+$\left(\begin{smallmatrix}2\\0\\0\\\end{smallmatrix}\right)$, then we can use
+base 18 to count this entire column.
+Together then, $M$ can be represented by by numbers between 0 and 20401094655,
+that is by at most an 11 digit number.
+Now using positional concatenation (base 10) we can including the arriving
+patient type $p$ and action $a = (b, d)$ gives us a 16 digit
+number, well within the confines of 64-bit integers.
+
+As an example $H((M^{\star}, 2, (11, 4)) = 2025762603821104$, where $M^{\star}$
+is the ward state given in Equation~\ref{eqn:example_M}.
 
 
 \subsection{Training Framework}
