@@ -79,6 +79,7 @@ class WardSimulation:
         deterioration_distributions,
         isolation_penalty,
         move_penalties,
+        surge_penalty,
         epsilon,
         seed,
         max_time,
@@ -132,6 +133,7 @@ class WardSimulation:
         self.isolation_penalty = np.float32(isolation_penalty)
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
         self.move_penalties[:2, :] = move_penalties
+        self.surge_penalty = surge_penalty
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -276,7 +278,7 @@ class WardSimulation:
 
         if self.patients_number_free > 0:
             a = self.decide_action(patient_type)
-            a1, a2, a3 = ward.dehash_action(action_hash=a)
+            a1, a2 = ward.dehash_action(action_hash=a)            
             
             state_cost = get_state_cost(
                 state=self.state,
@@ -284,12 +286,14 @@ class WardSimulation:
                 prev_time=self.now,
                 isolation_penalty=self.isolation_penalty
             )
+            a3 = ward.find_patient_type_to_move(state=self.state, from_block=a1)
             move_cost = ward.get_move_penalty(
                 from_block=a1,
-                to_block=a3,
-                patient_type=a2,
+                to_block=a2,
+                patient_type=a3,
                 arriving_patient_type=patient_type,
-                move_penalties=self.move_penalties
+                move_penalties=self.move_penalties,
+                surge_penalty=self.surge_penalty
             )
             cost = state_cost + move_cost
 
@@ -301,20 +305,27 @@ class WardSimulation:
             self.now = next_arrival
             self.learn(patient_type, a)
 
-            if a3 != a1:
+            if a1 != a2:
                 move_idx = ward.find_idx_of_patient_to_move(
                     block=a1,
-                    patient_type=a2,
+                    patient_type=a3,
                     patients_blocks=self.patients_blocks,
                     patients_types=self.patients_patient_types
                 )
-                self.patients_blocks[move_idx] = a3
+                self.patients_blocks[move_idx] = a2
                 ward.move_patient(
                     state=self.state,
-                    patient_type=a2,
-                    to_block=a3,
+                    patient_type=a3,
+                    to_block=a2,
                     from_block=a1
                 )
+                if a2 == 16:
+                    self.patients_patient_types[move_idx] = -1
+                    self.patients_exit_dates[move_idx] = np.inf
+                    self.patients_deterioration_dates[move_idx] = np.inf
+                    self.patients_blocks[move_idx] = -1
+                    self.patients_free_indices.append(move_idx)
+                    self.patients_number_free += 1
 
             arrival_idx = self.patients_free_indices[-1]
             self.patients_patient_types[arrival_idx] = patient_type
@@ -328,6 +339,7 @@ class WardSimulation:
                 patient_type=patient_type,
                 to_block=a1
             )
+
 
     def exit(self, patient_idx):
         """

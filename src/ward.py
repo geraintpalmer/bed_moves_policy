@@ -71,7 +71,7 @@ def dehash_action(action_hash):
     Returns: a tuple
     """
     a2 = action_hash % 100
-    a1 = (action_hash // 100) % 10
+    a1 = action_hash // 100
     return a1, a2
 
 
@@ -216,24 +216,45 @@ def insert_patient(state, patient_type, to_block):
 
 
 @njit(cache=True)
-def move_patient(state, to_block, from_block):
+def move_patient(state, patient_type, to_block, from_block):
     """
     Returns the state that results from moving a patient.
 
     Arguments:
       + `state` an array of 48 integers {0, 1, 2} representing
            the state of the ward.
+      + `patient_type`: the type of the patient being inserted, either
+           2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
       + `to_block`: the block the patient inserted to
       + `from_block`: the block the patient was removed from
 
     Returns: a numpy array representing the state after moving the
                patient.
     """
+    find_patient_type_to_move(state=state, from_block=from_block)
+    state[(patient_type * 16) + from_block] -= 1
+    if to_block != 16:
+        state[(patient_type * 16) + to_block] += 1
+
+
+@njit(cache=True)
+def find_patient_type_to_move(state, from_block):
+    """
+    When moving a patient from block `from_block`,
+    returns the type of patient that is to be moved.
+
+    Arguments:
+      + `state` an array of 48 integers {0, 1, 2} representing
+           the state of the ward.
+      + `from_block`: the block the patient was removed from
+
+    Returns: an integer {0, 1, 2} representing the type of patient
+        to move.
+    """
     patient_type = 0
     while patient_type < 2 and state[(patient_type * 16) + from_block] == 0:
         patient_type += 1
-    state[(patient_type * 16) + to_block] += 1
-    state[(patient_type * 16) + from_block] -= 1
+    return patient_type
 
 
 @njit(cache=True)

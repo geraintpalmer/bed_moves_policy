@@ -56,9 +56,9 @@ def test_find_next_activity_date():
 
 def test_get_state_cost():
     S = np.array(
-        (0, 2, 0, 2, 0, 0, 0, 0, 0,
-         0, 0, 1, 1, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 1, 1, 1, 0)
+        (0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+         1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     cost = sim.get_state_cost(
         state=S,
@@ -69,9 +69,9 @@ def test_get_state_cost():
     assert cost == 99.0
 
     S = np.array(
-        (0, 2, 0, 2, 0, 0, 0, 0, 0,
-         0, 0, 1, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 1, 1, 1)
+        (0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
     )
 
     cost = sim.get_state_cost(
@@ -101,6 +101,7 @@ def test_WardSimulation_arrival_and_exit():
         ],
         isolation_penalty=2.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=500.0,
@@ -108,14 +109,14 @@ def test_WardSimulation_arrival_and_exit():
         discount_factor=0.9
     )
     expected_state_before = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     expected_state_after = np.array(
-        (0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     assert np.array_equal(S.next_arrivals, np.array([5.0, 9.0, 11.0]))
     assert len(S.patients_patient_types) == 17
@@ -171,7 +172,7 @@ def test_WardSimulation_arrival_and_exit():
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([2525], dtype=np.int64)
+    keys = np.array([21515], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
     hits = np.array([34], dtype=np.int16)
     
@@ -192,6 +193,7 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -201,7 +203,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(21515) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -227,6 +229,7 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -236,7 +239,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(21515) in S.Q_index_map
     assert np.int64(22) in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -262,6 +265,7 @@ def test_can_simulate_with_initial_Qvals():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -271,7 +275,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(2525) in S.Q_index_map
+    assert np.int64(21515) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
 
@@ -293,6 +297,7 @@ def test_using_warmup():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=40.0,
@@ -300,8 +305,8 @@ def test_using_warmup():
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 720.5559
-    assert S.warmup_cost == 720.5559
+    assert S.overall_cost == 752.5259
+    assert S.warmup_cost == 752.5259
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -320,6 +325,7 @@ def test_using_warmup():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=60.0,
@@ -327,8 +333,8 @@ def test_using_warmup():
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 1015.9095
-    assert S.warmup_cost == 845.1346
+    assert S.overall_cost == 1027.9943
+    assert S.warmup_cost == 886.7728
 
 
 def test_deterioration():
@@ -349,6 +355,7 @@ def test_deterioration():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=6.0, # only one arrival
@@ -356,14 +363,14 @@ def test_deterioration():
     )
 
     S_A = np.array(
-        (0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     S_B = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     
     S.simulate_until_max_time()
@@ -387,6 +394,7 @@ def test_deterioration():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
@@ -415,6 +423,7 @@ def test_initial_array_preallocations():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=100.0,
@@ -442,6 +451,7 @@ def test_initial_array_preallocations():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=100.0,
@@ -472,6 +482,7 @@ def test_long_run():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.5,
         learning_rate=0.5,
         discount_factor=0.8,
@@ -481,9 +492,9 @@ def test_long_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 191317.31
-    assert S.max_idx == 36575
-    assert len(S.Q_index_map) == 36575
+    assert S.overall_cost == 172185.78
+    assert S.max_idx == 35486
+    assert len(S.Q_index_map) == 35486
 
 
 def test_give_policy():
@@ -504,6 +515,7 @@ def test_give_policy():
         ],
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
         epsilon=0.0,
         seed=0,
         max_time=800.0,
