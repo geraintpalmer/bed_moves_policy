@@ -543,7 +543,7 @@ H((M, p), (b, d))) = 100000\langle M, W \rangle_F + 10000p + 100b + d
 \end{equation}
 
 \begin{equation}\label{eqn:hash_weights}
-W^T = \begin{pmatrix}
+W = \begin{pmatrix}
 3 \times 19 \times 4^{14} & 2 \times 19 \times 4^{14} & 1 \times 19 \times 4^{14} \\
 3 \times 19 \times 4^{13} & 2 \times 19 \times 4^{13} & 1 \times 19 \times 4^{13} \\
 3 \times 19 \times 4^{12} & 2 \times 19 \times 4^{12} & 1 \times 19 \times 4^{12} \\
@@ -560,7 +560,7 @@ W^T = \begin{pmatrix}
 3 \times 19 \times 4^1 & 2 \times 19 \times 4^1 & 1 \times 19 \times 4^1 \\
 3 \times 19 & 2 \times 19 & 1 \times 19 \\
 9 & 3 & 1
-\end{pmatrix}
+\end{pmatrix}^T
 \end{equation}
 
 The first 15 columns use a counting scheme in base 4, as there are only 4

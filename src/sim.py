@@ -77,6 +77,7 @@ class WardSimulation:
         arrival_distributions,
         los_distributions,
         deterioration_distributions,
+        occupancy_arrival_probs,
         isolation_penalty,
         move_penalties,
         surge_penalty,
@@ -130,6 +131,7 @@ class WardSimulation:
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
         self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
+        self.occupancy_arrival_probs = occupancy_arrival_probs
         self.isolation_penalty = np.float32(isolation_penalty)
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
         self.move_penalties[:2, :] = move_penalties
@@ -226,10 +228,15 @@ class WardSimulation:
 
         while self.now < self.max_time:
             if (next_arrival <= next_exit) and (next_arrival <= next_deterioration):
-                self.arrival(
-                    next_arrival=next_arrival,
-                    patient_type=patient_type
-                )
+                if np.random.random() < self.occupancy_arrival_probs[17 - self.patients_number_free]:
+                    self.arrival(
+                        next_arrival=next_arrival,
+                        patient_type=patient_type
+                    )
+                else:
+                    interarrival = self.arrival_distributions[patient_type].sample()
+                    self.next_arrivals[patient_type] += interarrival
+
                 next_arrival, patient_type = find_next_arrival_date(
                     next_arrivals=self.next_arrivals
                 )

@@ -67,8 +67,8 @@ def get_state_probabilities(seed, max_time, warmup):
     return np.array(p)
 
 
-n_trials = 75
-max_time = 15000
+n_trials = 100
+max_time = 20000
 warmup = 100
 p = np.zeros(18)
 for trial in tqdm.tqdm(range(n_trials)):
@@ -82,6 +82,7 @@ np.savetxt("data/state_dependent_arrivals.csv", p, delimiter=",")
 
 fig, ax = plt.subplots(1)
 ax.bar(range(18), p, color='darkorange', edgecolor='black')
+ax.set_xticks(range(18))
 ax.set_xlabel(r"Occupancy ($x$)")
 ax.set_ylabel(r"Proportion of arrivals ($p(x)$)")
 fig.savefig("../plt/sqa.pdf")

@@ -99,6 +99,7 @@ def test_WardSimulation_arrival_and_exit():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=2.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -191,6 +192,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -227,6 +229,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -263,6 +266,7 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -295,6 +299,7 @@ def test_using_warmup():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -323,6 +328,7 @@ def test_using_warmup():
             ciw.dists.Deterministic(float('inf')),
             ciw.dists.Deterministic(float('inf'))
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -353,6 +359,7 @@ def test_deterioration():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -392,6 +399,7 @@ def test_deterioration():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -421,6 +429,7 @@ def test_initial_array_preallocations():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -449,6 +458,7 @@ def test_initial_array_preallocations():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -480,6 +490,7 @@ def test_long_run():
             ciw.dists.Exponential(rate=2.0),
             ciw.dists.Exponential(rate=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -513,6 +524,7 @@ def test_give_policy():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -529,3 +541,95 @@ def test_give_policy():
     assert S.policy[33000] == 101
     assert S.policy[22000] == 101
     assert S.policy[44000] == 505
+
+
+def test_state_dependent_arrivals():
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=1.0),
+            ciw.dists.Deterministic(value=1.1),
+            ciw.dists.Deterministic(value=1.2)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        occupancy_arrival_probs=np.ones(18),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        learning_rate=0.5,
+        discount_factor=0.5,
+        epsilon=0.0,
+        seed=0,
+        max_time=4.9, # I expect 12 arrivals (1, 1.1, 1.2, 2, 2.2, 2.4, 3, 3.3, 3.6, 4, 4.4, 4.8)
+        warmup=1.0,
+    )
+    S.simulate_until_max_time()
+    assert len(S.Q_index_map) == 12
+    assert sum(S.state) == 13
+
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=1.0),
+            ciw.dists.Deterministic(value=1.1),
+            ciw.dists.Deterministic(value=1.2)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        occupancy_arrival_probs=np.ones(18)*0.5,
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        learning_rate=0.5,
+        discount_factor=0.5,
+        epsilon=0.0,
+        seed=0,
+        max_time=4.9, # I expect 13 arrivals (1, 1.1, 1.2, 2, 2.2, 2.4, 3, 3.3, 3.6, 4, 4.4, 4.8, one at 5.0 to 'end' the loop), but half are discarded.
+        warmup=1.0,
+    )
+    S.simulate_until_max_time()
+    assert len(S.Q_index_map) == 3
+    assert sum(S.state) == 4
+
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=1.0),
+            ciw.dists.Deterministic(value=1.1),
+            ciw.dists.Deterministic(value=1.2)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=100.0),
+            ciw.dists.Deterministic(value=100.0)
+        ],
+        occupancy_arrival_probs=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        learning_rate=0.5,
+        discount_factor=0.5,
+        epsilon=0.0,
+        seed=0,
+        max_time=4.9, # I expect 8 arrivals only (stop arrivals after occupancy 8)
+        warmup=1.0,
+    )
+    S.simulate_until_max_time()
+    assert len(S.Q_index_map) == 7
+    assert sum(S.state) == 8
