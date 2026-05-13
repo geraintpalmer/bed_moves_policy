@@ -77,6 +77,7 @@ class WardSimulation:
         arrival_distributions,
         los_distributions,
         deterioration_distributions,
+        improvement_distributions,
         occupancy_arrival_probs,
         isolation_penalty,
         move_penalties,
@@ -130,7 +131,8 @@ class WardSimulation:
 
         self.arrival_distributions = arrival_distributions
         self.los_distributions = los_distributions
-        self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=float('inf'))]
+        self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=np.inf)]
+        self.improvement_distributions = [ciw.dists.Deterministic(value=np.inf)] + improvement_distributions
         self.occupancy_arrival_probs = occupancy_arrival_probs
         self.isolation_penalty = np.float32(isolation_penalty)
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
@@ -164,6 +166,7 @@ class WardSimulation:
         self.patients_patient_types = -np.ones(17, dtype='int64')
         self.patients_exit_dates = np.ones(17) * np.inf
         self.patients_deterioration_dates = np.ones(17) * np.inf
+        self.patients_improvement_dates = np.ones(17) * np.inf
         self.patients_blocks = -np.ones(17, dtype='int64')
         self.patients_free_indices = [i for i in range(17)]
         self.patients_number_free = 17
@@ -216,8 +219,9 @@ class WardSimulation:
           + `trial`: The number of the current trial (used for the
                multiprocessing progress bar).
         """
-        next_exit = float('inf')
-        next_deterioration = float('inf')
+        next_exit = np.inf
+        next_deterioration = np.inf
+        next_improvement = np.inf
         next_arrival, patient_type = find_next_arrival_date(
             next_arrivals=self.next_arrivals
         )
@@ -227,7 +231,7 @@ class WardSimulation:
             self.update_threshold = self.update_interval
 
         while self.now < self.max_time:
-            if (next_arrival <= next_exit) and (next_arrival <= next_deterioration):
+            if (next_arrival <= next_exit) and (next_arrival <= next_deterioration) and (next_arrival < next_improvement):
                 if np.random.random() < self.occupancy_arrival_probs[17 - self.patients_number_free]:
                     self.arrival(
                         next_arrival=next_arrival,
@@ -243,19 +247,37 @@ class WardSimulation:
                 next_deterioration, deteriorating_index = find_next_activity_date(
                     dates=self.patients_deterioration_dates
                 )
+                next_improvement, improving_index = find_next_activity_date(
+                    dates=self.patients_improvement_dates
+                )
                 next_exit, patient_idx = find_next_activity_date(
                     dates=self.patients_exit_dates
                 )
-            elif (next_deterioration <= next_exit):
+            elif (next_deterioration <= next_exit) and (next_deterioration < next_improvement):
                 self.deteriorate(patient_idx=deteriorating_index)
                 next_deterioration, deteriorating_index = find_next_activity_date(
                     dates=self.patients_deterioration_dates
+                )
+                next_improvement, improving_index = find_next_activity_date(
+                    dates=self.patients_improvement_dates
+                )
+            elif (next_improvement < next_exit):
+                self.improve(patient_idx=improving_index)
+                next_deterioration, deteriorating_index = find_next_activity_date(
+                    dates=self.patients_deterioration_dates
+                )
+                next_improvement, improving_index = find_next_activity_date(
+                    dates=self.patients_improvement_dates
                 )
             else:
                 self.exit(patient_idx=patient_idx)
                 if patient_idx == deteriorating_index:
                     next_deterioration, deteriorating_index = find_next_activity_date(
                         dates=self.patients_deterioration_dates
+                    )
+                if patient_idx == improving_index:
+                    next_improvement, improving_index = find_next_activity_date(
+                        dates=self.patients_improvement_dates
                     )
                 next_exit, patient_idx = find_next_activity_date(
                     dates=self.patients_exit_dates
@@ -282,6 +304,7 @@ class WardSimulation:
         self.next_arrivals[patient_type] += interarrival
         los = self.los_distributions[patient_type].sample()
         det = self.deterioration_distributions[patient_type].sample()
+        imp = self.improvement_distributions[patient_type].sample()
 
         if self.patients_number_free > 0:
             a = self.decide_action(patient_type)
@@ -330,6 +353,7 @@ class WardSimulation:
                     self.patients_patient_types[move_idx] = -1
                     self.patients_exit_dates[move_idx] = np.inf
                     self.patients_deterioration_dates[move_idx] = np.inf
+                    self.patients_improvement_dates[move_idx] = np.inf
                     self.patients_blocks[move_idx] = -1
                     self.patients_free_indices.append(move_idx)
                     self.patients_number_free += 1
@@ -338,6 +362,7 @@ class WardSimulation:
             self.patients_patient_types[arrival_idx] = patient_type
             self.patients_exit_dates[arrival_idx] = self.now + los
             self.patients_deterioration_dates[arrival_idx] = self.now + det
+            self.patients_improvement_dates[arrival_idx] = self.now + imp
             self.patients_blocks[arrival_idx] = a1
             self.patients_free_indices.pop()
             self.patients_number_free -= 1
@@ -376,6 +401,7 @@ class WardSimulation:
         self.patients_patient_types[patient_idx] = -1
         self.patients_exit_dates[patient_idx] = np.inf
         self.patients_deterioration_dates[patient_idx] = np.inf
+        self.patients_improvement_dates[patient_idx] = np.inf
         self.patients_blocks[patient_idx] = -1
         self.patients_free_indices.append(patient_idx)
         self.patients_number_free += 1
@@ -409,7 +435,46 @@ class WardSimulation:
         det = self.deterioration_distributions[
             self.patients_patient_types[patient_idx]
         ].sample()
+        imp = self.improvement_distributions[
+            self.patients_patient_types[patient_idx]
+        ].sample()
         self.patients_deterioration_dates[patient_idx] = self.now + det
+        self.patients_improvement_dates[patient_idx] = self.now + imp
+
+    def improve(self, patient_idx):
+        """
+        Changes a patient's class.
+
+        Arguments:
+          + `patient_idx`: The index of the patient to improve.
+        """
+        update_time = self.patients_improvement_dates[patient_idx]
+        cost = get_state_cost(
+            state=self.state,
+            update_time=update_time,
+            prev_time=self.now,
+            isolation_penalty=self.isolation_penalty
+        )
+        self.overall_cost += cost
+        self.accumulate_warmup_cost(
+            cost=cost,
+            update_time=update_time
+        )
+        self.now = update_time
+        ward.improve_patient(
+            state=self.state,
+            patient_type=self.patients_patient_types[patient_idx],
+            block=self.patients_blocks[patient_idx]
+        )
+        self.patients_patient_types[patient_idx] -= 1
+        det = self.deterioration_distributions[
+            self.patients_patient_types[patient_idx]
+        ].sample()
+        imp = self.improvement_distributions[
+            self.patients_patient_types[patient_idx]
+        ].sample()
+        self.patients_deterioration_dates[patient_idx] = self.now + det
+        self.patients_improvement_dates[patient_idx] = self.now + imp
 
     def learn(self, patient_type, action):
         """

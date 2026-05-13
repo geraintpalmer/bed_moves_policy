@@ -96,8 +96,12 @@ def test_WardSimulation_arrival_and_exit():
             ciw.dists.Deterministic(7)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=2.0,
@@ -189,8 +193,12 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.2)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -226,8 +234,12 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.2)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -263,8 +275,12 @@ def test_can_simulate_with_initial_Qvals():
             ciw.dists.Exponential(0.2)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -296,8 +312,12 @@ def test_using_warmup():
             ciw.dists.Exponential(0.2)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -325,8 +345,12 @@ def test_using_warmup():
             ciw.dists.Exponential(0.2)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(float('inf')),
-            ciw.dists.Deterministic(float('inf'))
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -358,6 +382,10 @@ def test_deterioration():
         deterioration_distributions=[
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -399,6 +427,10 @@ def test_deterioration():
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
         ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
@@ -408,6 +440,88 @@ def test_deterioration():
         max_time=8.0, # only one arrival, but deteriorates
         warmup=50.0,
     )
+    S.simulate_until_max_time()
+    assert S.now == 9.0
+    assert np.array_equal(S.state, S_B)
+
+
+def test_improvement():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=22.0),
+            ciw.dists.Deterministic(value=13.0),
+            ciw.dists.Deterministic(value=7.0)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        occupancy_arrival_probs=np.ones(18),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        epsilon=0.0,
+        seed=0,
+        max_time=6.0, # only one arrival
+        warmup=50.0,
+    )
+
+    S_A = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), dtype=np.int32
+    )
+    S_B = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+    )
+    
+    S.simulate_until_max_time()
+    assert S.now == 7.0
+    assert np.array_equal(S.state, S_A)
+
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Deterministic(value=22.0),
+            ciw.dists.Deterministic(value=13.0),
+            ciw.dists.Deterministic(value=7.0)
+        ],
+        los_distributions=[
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0),
+            ciw.dists.Deterministic(value=10.0)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=2.0),
+            ciw.dists.Deterministic(value=2.0)
+        ],
+        occupancy_arrival_probs=np.ones(18),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        epsilon=0.0,
+        seed=0,
+        max_time=8.0, # only one arrival, but deteriorates
+        warmup=50.0,
+    )
+    assert len(S.arrival_distributions) == 3
+    assert len(S.los_distributions) == 3
+    assert len(S.deterioration_distributions) == 3
+    assert len(S.improvement_distributions) == 3
     S.simulate_until_max_time()
     assert S.now == 9.0
     assert np.array_equal(S.state, S_B)
@@ -428,6 +542,10 @@ def test_initial_array_preallocations():
         deterioration_distributions=[
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -457,6 +575,10 @@ def test_initial_array_preallocations():
         deterioration_distributions=[
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -489,6 +611,10 @@ def test_long_run():
         deterioration_distributions=[
             ciw.dists.Exponential(rate=2.0),
             ciw.dists.Exponential(rate=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -523,6 +649,10 @@ def test_give_policy():
         deterioration_distributions=[
             ciw.dists.Deterministic(value=2.0),
             ciw.dists.Deterministic(value=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
@@ -559,6 +689,10 @@ def test_state_dependent_arrivals():
             ciw.dists.Deterministic(value=100.0),
             ciw.dists.Deterministic(value=100.0)
         ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
         occupancy_arrival_probs=np.ones(18),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
@@ -589,6 +723,10 @@ def test_state_dependent_arrivals():
             ciw.dists.Deterministic(value=100.0),
             ciw.dists.Deterministic(value=100.0)
         ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
         occupancy_arrival_probs=np.ones(18)*0.5,
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
@@ -618,6 +756,10 @@ def test_state_dependent_arrivals():
         deterioration_distributions=[
             ciw.dists.Deterministic(value=100.0),
             ciw.dists.Deterministic(value=100.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
         occupancy_arrival_probs=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
         isolation_penalty=3,

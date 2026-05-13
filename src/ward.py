@@ -277,8 +277,7 @@ def remove_patient(state, patient_type, from_block):
 @njit(cache=True)
 def deteriorate_patient(state, patient_type, block):
     """
-    Returns the state that results from an Gren patient deteriorating
-    into an Amber patient.
+    Returns the state that results from a patient deteriorating.
 
     Arguments:
       + `state` an array of 48 integers {0, 1, 2} representing
@@ -291,6 +290,25 @@ def deteriorate_patient(state, patient_type, block):
     """
     state[(patient_type * 16) + block] -= 1
     state[((patient_type + 1) * 16) + block] += 1
+
+
+@njit(cache=True)
+def improve_patient(state, patient_type, block):
+    """
+    Returns the state that results from a patient improving.
+
+    Arguments:
+      + `state` an array of 48 integers {0, 1, 2} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient improving, either
+           2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
+      + `block`: the block the improving patient is
+
+    Returns: a numpy array representing the state after the improvement.
+    """
+    state[(patient_type * 16) + block] -= 1
+    state[((patient_type - 1) * 16) + block] += 1
+
 
 @njit(cache=True)
 def get_available_insert_moves(state):
