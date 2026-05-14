@@ -137,7 +137,7 @@ class WardSimulation:
         self.isolation_penalty = np.float32(isolation_penalty)
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
         self.move_penalties[:2, :] = move_penalties
-        self.surge_penalty = surge_penalty
+        self.surge_penalty = np.float32(surge_penalty)
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -156,7 +156,7 @@ class WardSimulation:
         self.now = 0.0
         self.overall_cost = np.float32(0.0)
         self.previous_cost = np.float32(0.0)
-        self.average_reward = np.float32(0.0)
+        self.average_reward = np.float32(-self.surge_penalty * 2)
         self.n_rewards = 0
         self.warmup = warmup
         self.warmup_cost = np.float32(0.0)

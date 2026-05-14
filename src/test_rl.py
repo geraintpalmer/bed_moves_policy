@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 from numba import typed, types
 import math
+import os
 
 def test_get_unique_tails():
     keys1 = np.array([1, 4, 5, 9, 11, 16], dtype=np.int64)
@@ -75,6 +76,7 @@ def test_can_update_empty_arrays():
     rl.update_master_head_inplace(qvals1, hits1, qvals2, hits2)
     assert np.array_equal(qvals1, np.array([], dtype=np.float32))
     assert np.array_equal(hits1, np.array([], dtype=np.int16))
+
 
 def test_get_best_future_reward():
     actions_pool = np.empty(16 * 17, dtype=np.int32)
@@ -420,17 +422,65 @@ def test_block_sort_arrays():
     qval_array =   np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -3.3, -2.2, -7.7, -6.6, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
     hits_array =   np.array([   4,    1,    7,    8,    9,    2,    3,    5,    6,   0,   0,   0,   0,   0], dtype=np.int16)
     m = 5
-    max_idx = 8
+    max_idx = 9
 
     max_idx2, states2, qval2, hits2 = rl.block_sort_arrays(
         states_array=states_array,
         qval_array=qval_array,
         hits_array=hits_array,
         m=m,
-        max_idx=9
+        max_idx=max_idx
     )
 
     assert max_idx2 == 9
-    assert np.array_equal(states2, np.array([111, 222, 333, 444, 666, 555, 777, 888, 999], dtype=np.int64))
-    assert np.array_equal(qval2, np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -7.7, -6.6, -3.3, -2.2], dtype=np.float32))
-    assert np.array_equal(hits2, np.array([4, 1, 7, 8, 9, 5, 6, 2, 3], dtype=np.int16))
+    assert np.array_equal(states2, np.array([111,  222,  333,  444,  666,  555,  777,  888,  999], dtype=np.int64))
+    assert np.array_equal(qval2,  np.array([-9.9, -5.5, -1.1, -4.4, -8.8, -7.7, -6.6, -3.3, -2.2], dtype=np.float32))
+    assert np.array_equal(hits2,   np.array([   4,    1,   7,    8,    9,    5,    6,    2,    3], dtype=np.int16))
+
+
+def test_prune_and_save():
+    keys = np.array([11111111, 22222222, 11111122, 33333333, 44444433, 44433344, 11133322, 44444444, 11111155, 22222233], dtype=np.int64)
+    qval = np.array([-11.1178, -11.8981, -31.2121, -14.7801, -12.1234, -10.4312, -41.9878, -43.5671, -12.1212, -23.2323], dtype=np.float32)
+    hits = np.array([      12,        1,        0,        3,       10,       12,        5,        0,        1,        0], dtype=np.int16)
+    keys_fname = 'keys_test.bin'
+    qval_fname = 'qval_test.bin'
+    n = rl.prune_and_save(
+        keys_fname=keys_fname,
+        qval_fname=qval_fname,
+        keys=keys,
+        qval=qval,
+        hits=hits,
+        prune_limit=0
+    )
+    saved_keys = np.fromfile(keys_fname, dtype=np.int64)
+    saved_qval = np.fromfile(qval_fname, dtype=np.float32)
+    expected_keys = np.array([11111111, 22222222, 33333333, 44444433, 44433344, 11133322, 11111155], dtype=np.int64)
+    expected_qval = np.array([-11.1178, -11.8981, -14.7801, -12.1234, -10.4312, -41.9878, -12.1212], dtype=np.float32)
+    assert os.path.isfile(keys_fname)
+    assert os.path.isfile(qval_fname)
+    assert np.array_equal(saved_keys, expected_keys)
+    assert np.array_equal(saved_qval, expected_qval)
+    assert n == 7
+    os.remove(keys_fname)
+    os.remove(qval_fname)
+
+    n = rl.prune_and_save(
+        keys_fname=keys_fname,
+        qval_fname=qval_fname,
+        keys=keys,
+        qval=qval,
+        hits=hits,
+        prune_limit=9
+    )
+    saved_keys = np.fromfile(keys_fname, dtype=np.int64)
+    saved_qval = np.fromfile(qval_fname, dtype=np.float32)
+    expected_keys = np.array([11111111, 44444433, 44433344], dtype=np.int64)
+    expected_qval = np.array([-11.1178, -12.1234, -10.4312], dtype=np.float32)
+    expected_hits = np.array([      12,       10,       12], dtype=np.int16)
+    assert os.path.isfile(keys_fname)
+    assert os.path.isfile(qval_fname)
+    assert np.array_equal(saved_keys, expected_keys)
+    assert np.array_equal(saved_qval, expected_qval)
+    assert n == 3
+    os.remove(keys_fname)
+    os.remove(qval_fname)

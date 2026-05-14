@@ -27,6 +27,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def evaluate(
     max_time,
+    occupancy_arrival_probs,
     epsilon,
     initial_keys_path,
     initial_policy_path,
@@ -47,21 +48,27 @@ def evaluate(
 
     S = sim.WardEvaluation(
         arrival_distributions=[
-            ciw.dists.Exponential(1.5),
-            ciw.dists.Exponential(1.0),
-            ciw.dists.Exponential(0.5)
+            ciw.dists.Exponential(rate=3.0),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.0)
         ],
         los_distributions=[
-            ciw.dists.Exponential(0.3),
-            ciw.dists.Exponential(0.7),
-            ciw.dists.Exponential(0.4)
+            ciw.dists.Exponential(rate=0.3),
+            ciw.dists.Exponential(rate=0.7),
+            ciw.dists.Exponential(rate=0.4)
         ],
         deterioration_distributions=[
-            ciw.dists.Exponential(rate=0.1),
-            ciw.dists.Exponential(rate=0.2)
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
-        isolation_penalty=8,
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        occupancy_arrival_probs=occupancy_arrival_probs,
+        isolation_penalty=8.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=15.0,
         epsilon=epsilon,
         seed=seed,
         max_time=max_time,
@@ -91,6 +98,8 @@ if __name__ == '__main__':
     warmup = float(params['warmup'])
     n_threads = int(args.n_threads)
 
+    occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
+
     epsilon_step = 1.0 / (n_stages - 1)
     training_epsilons = [(i * epsilon_step) for i in range(n_stages)]
     seed = 0
@@ -103,8 +112,8 @@ if __name__ == '__main__':
     
     for stage in range(n_stages+1):
         if stage > 0:
-            keys = np.load(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.npy")
-            qvals = np.load(f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(training_epsilons[stage-1], 3)}.npy", mmap_mode='r')
+            keys = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.bin", dtype=np.int64, mode='r')
+            qvals = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(training_epsilons[stage-1], 3)}.bin", dtype=np.float32, mode='r')
             policy_keys, policy_actions = rl.initialise_policy(
                 keys_array=keys,
                 qval_array=qvals
@@ -122,6 +131,7 @@ if __name__ == '__main__':
         args_list = [
             (
                 max_time,
+                occupancy_arrival_probs,
                 eval_epsilons[stage],
                 policy_keys_path,
                 policy_actions_path,

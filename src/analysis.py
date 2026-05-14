@@ -21,8 +21,8 @@ if __name__ == '__main__':
 
     data = pd.read_csv(args.experiment + "/results/evaluation.csv")
 
-    unique_states = pd.read_csv(args.experiment + "/results/unique_states.csv", index_col=0)
-    visited_states = np.array([unique_states.loc['Overall', f'Stage {s}'] for s in range(1, params['n_stages']+1)])
+    # unique_states = pd.read_csv(args.experiment + "/results/unique_states.csv", index_col=0)
+    # visited_states = np.array([unique_states.loc['Overall', f'Stage {s}'] for s in range(1, params['n_stages']+1)])
 
     # Plot evaluation
     fig, ax = plt.subplots(1, figsize=(7, 5))
@@ -56,13 +56,13 @@ if __name__ == '__main__':
     fig.savefig(args.experiment + '/results/cost_by_stage.pdf')
 
 
-    # Progression
-    fig, axarr = plt.subplots(1, 2, figsize=(12, 3.5))
-    axarr[0].barh(stage_labels, visited_states, color='darkorange', edgecolor='black')
-    axarr[0].set_xlabel("Total Visited States")
-    plt.gca().invert_yaxis()
-    axarr[1].barh(stage_labels, [visited_states[0]] + list(np.diff(visited_states)), color='darkorange', edgecolor='black')
-    axarr[1].set_xlabel("New States Visited per Stage")
-    plt.gca().invert_yaxis()
-    plt.tight_layout()
-    fig.savefig(args.experiment + '/results/unique_visits_per_stage.pdf')
+    # # Progression
+    # fig, axarr = plt.subplots(1, 2, figsize=(12, 3.5))
+    # axarr[0].barh(stage_labels, visited_states, color='darkorange', edgecolor='black')
+    # axarr[0].set_xlabel("Total Visited States")
+    # plt.gca().invert_yaxis()
+    # axarr[1].barh(stage_labels, [visited_states[0]] + list(np.diff(visited_states)), color='darkorange', edgecolor='black')
+    # axarr[1].set_xlabel("New States Visited per Stage")
+    # plt.gca().invert_yaxis()
+    # plt.tight_layout()
+    # fig.savefig(args.experiment + '/results/unique_visits_per_stage.pdf')

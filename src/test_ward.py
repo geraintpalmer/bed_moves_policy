@@ -62,6 +62,81 @@ def test_get_hash_state_only():
     assert hash_state == 2040109465520000
 
 
+def test_dehash_state():
+    hash_states = [
+        ward.get_hash_state_only(
+            state=ward.empty_state,
+            patient_type=p
+        ) for p in range(3)
+    ]
+    assert hash_states == [0, 10000, 20000]
+
+    S = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+    )
+    hash_states = [
+        ward.get_hash_state_only(
+            state=S,
+            patient_type=p
+        ) for p in range(3)
+    ]
+    assert hash_states == [100000, 110000, 120000]
+    for i in range(3):
+        state, p = ward.dehash_state(hash_states[i])
+        assert p == i
+        assert np.array_equal(state, S)
+
+    S = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    hash_states = [
+        ward.get_hash_state_only(
+            state=S,
+            patient_type=p
+        ) for p in range(3)
+    ]
+    assert hash_states == [900000, 910000, 920000]
+    for i in range(3):
+        state, p = ward.dehash_state(hash_states[i])
+        assert p == i
+        assert np.array_equal(state, S)
+
+    S = np.array(
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    hash_states = [
+        ward.get_hash_state_only(
+            state=S,
+            patient_type=p
+        ) for p in range(3)
+    ]
+    assert hash_states == [29400000, 29410000, 29420000]
+    for i in range(3):
+        state, p = ward.dehash_state(hash_states[i])
+        assert p == i
+        assert np.array_equal(state, S)
+
+    S = np.array(
+        (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    )
+    hash_state = ward.get_hash_state_only(
+        state=S,
+        patient_type=2
+    )
+    assert hash_state == 2040109465520000
+    state, p = ward.dehash_state(2040109465520000)
+    assert p == 2
+    assert np.array_equal(state, S)
+
+
 def test_get_hash_stateaction():
     S = np.array(
         (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,

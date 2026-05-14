@@ -8,7 +8,6 @@ import os
 import tqdm
 import time
 import gc
-import pandas as pd
 import ctypes
 from ctypes.util import find_library
 
@@ -27,6 +26,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def train(
     max_time,
+    occupancy_arrival_probs,
     learning_rate,
     discount_factor,
     epsilon,
@@ -42,17 +42,17 @@ def train(
     Runs
     """
     if initial_keys_path is not None:
-        initial_keys = np.load(initial_keys_path, mmap_mode='r')
-        initial_qvals = np.load(initial_qvals_path, mmap_mode='r')
+        initial_keys = np.memmap(initial_keys_path, dtype=np.int64, mode='r')
+        initial_qvals = np.memmap(initial_qvals_path, dtype=np.float32, mode='r')
     else:
         initial_keys = None
         initial_qvals = None
 
     S = sim.WardTraining(
         arrival_distributions=[
-            ciw.dists.Exponential(rate=1.5),
-            ciw.dists.Exponential(rate=1.0),
-            ciw.dists.Exponential(rate=0.5)
+            ciw.dists.Exponential(rate=3.0),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.0)
         ],
         los_distributions=[
             ciw.dists.Exponential(rate=0.3),
@@ -60,11 +60,17 @@ def train(
             ciw.dists.Exponential(rate=0.4)
         ],
         deterioration_distributions=[
-            ciw.dists.Exponential(rate=0.1),
-            ciw.dists.Exponential(rate=0.2)
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
         ],
-        isolation_penalty=8,
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        occupancy_arrival_probs=occupancy_arrival_probs,
+        isolation_penalty=8.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=15.0,
         epsilon=epsilon,
         seed=seed,
         max_time=max_time,
@@ -74,6 +80,11 @@ def train(
         initial_qvals=initial_qvals,
         M=M
     )
+    
+    if initial_keys is not None:
+        del initial_keys
+        del initial_qvals
+
     S.simulate_until_max_time(
         shared_progress_array=progress_array,
         trial=trial
@@ -112,12 +123,14 @@ if __name__ == '__main__':
     discount_factor = float(params['discount_factor'])
     n_threads = int(args.n_threads)
 
+    occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
+
     epsilon_step = 1.0 / (n_stages - 1)
     epsilons = [(i * epsilon_step) for i in range(n_stages)]
     seed = 0
 
-    unique_states_per_trial = {s: {t: None for t in range(trials_per_stage)} for s in range(1, n_stages+1)}
-    unique_states_per_stage = {s: None for s in range(1, n_stages+1)}
+    states_per_stage = np.zeros(n_stages, dtype=np.int64)
+    states_after_pruning_per_stage = np.zeros(n_stages, dtype=np.int64)
     
     keys = np.array([], dtype=np.int64)
     qvals = np.array([], dtype=np.float32)
@@ -136,6 +149,7 @@ if __name__ == '__main__':
         args_list = [
             (
                 max_time,
+                occupancy_arrival_probs,
                 learning_rate,
                 discount_factor,
                 epsilons[stage-1],
@@ -172,7 +186,6 @@ if __name__ == '__main__':
                     for i, res in enumerate(results):
                         if not finished_mask[i] and res.ready():
                             j = res.get()
-                            unique_states_per_trial[stage][i] = j
 
                             new_states = np.memmap(f"{args.experiment}results/tmp/states_trial_{i}.bin", dtype=np.int64)
                             new_qvals = np.memmap(f"{args.experiment}results/tmp/qvals_trial_{i}.bin", dtype=np.float32)
@@ -227,22 +240,28 @@ if __name__ == '__main__':
 
         gc.collect(2)
 
-        keys_path = f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(epsilons[stage-1], 3)}.npy"
-        np.save(keys_path, keys)
-        qvals_path = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.npy"
-        np.save(qvals_path, qvals)
-        hits_path = f"{args.experiment}/results/stage_{stage}_overall_hits_epsilon{round(epsilons[stage-1], 3)}.npy"
-        np.save(hits_path, hits)
-
         key_length = len(keys)
-        M = np.ceil(key_length + ((key_length - prev_key_length) * 1.1)).astype(np.int64)
+        states_per_stage[stage-1] = key_length
+
+        keys_path = f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(epsilons[stage-1], 3)}.bin"
+        qvals_path = f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(epsilons[stage-1], 3)}.bin"
+        key_length = rl.prune_and_save(
+            keys_fname=keys_path,
+            qval_fname=qvals_path,
+            keys=keys,
+            qval=qvals,
+            hits=hits,
+            prune_limit=-1
+        )
+        keys = np.fromfile(keys_path, dtype=np.int64)
+        qvals = np.fromfile(qvals_path, dtype=np.float32)
+        hits.fill(np.int16(0))
+
+        extra_space = max(key_length - prev_key_length, key_length * 0.2)
+        M = np.ceil((key_length + extra_space) * 1.2).astype(np.int64)
         prev_key_length = key_length
-        unique_states_per_stage[stage] = key_length
+        states_after_pruning_per_stage[stage-1] = key_length
         seed += trials_per_stage
 
-    unique_states = pd.DataFrame(
-        {
-            f'Stage {s}': [unique_states_per_trial[s][t] for t in range(trials_per_stage)] + [unique_states_per_stage[s]] for s in range(1, n_stages+1)
-        }, index=[f'Trial {t}' for t in range(trials_per_stage)] + ['Overall']
-    )
-    unique_states.to_csv(f"{args.experiment}/results/unique_states.csv")
+    np.savetxt(f"{args.experiment}/results/unique_states.csv", states_per_stage, delimiter=',')
+    np.savetxt(f"{args.experiment}/results/unique_states_after_pruning.csv", states_after_pruning_per_stage, delimiter=',')

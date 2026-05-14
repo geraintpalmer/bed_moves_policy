@@ -58,6 +58,21 @@ def get_hash_state_only(state, patient_type):
     """
     return (100000 * (hash_weights * state).sum()) + (patient_type * 10000)
 
+@njit(cache=True)
+def dehash_state(hash_state):
+    patient_type = (hash_state % 100000) // 10000
+    remainder = hash_state // 100000
+    state = np.zeros(48, dtype=np.int16)
+
+    order = np.argsort(hash_weights)[::-1]
+    
+    for i in order:
+        weight = hash_weights[i]
+        state[i] = remainder // weight
+        remainder %= weight
+            
+    return state, patient_type
+
 
 @njit(cache=True)
 def dehash_action(action_hash):

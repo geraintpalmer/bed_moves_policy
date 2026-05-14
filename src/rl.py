@@ -369,3 +369,28 @@ def block_sort_arrays(states_array, qval_array, hits_array, m, max_idx):
     hits_array[m:] = hits_array[m:][idx_order]
 
     return max_idx, states_array, qval_array, hits_array
+
+
+def prune_and_save(keys_fname, qval_fname, keys, qval, hits, prune_limit):
+    """
+    Saves keys and qval to file. Only saves those keys where hits > prune_limit.
+
+    Arguments:
+      + `keys_fname`: the file name to save the keys
+      + `qval_fname`: the file name to save the qvals
+      + `keys`: a numpy array of keys (int64)
+      + `qval`: a numpy array of qvals (float32)
+      + `hits`: a numpy array of hits (int16)
+      + `prune_limit`: an integer number of hits to prune
+
+    Returns: the number of unpruned state-action pairs
+    """
+    unpruned = 0
+    with open(keys_fname, 'wb') as f_keys:
+        with open(qval_fname, 'wb') as f_qval:
+            for i in range(len(hits)):
+                if hits[i] > prune_limit:
+                    f_keys.write(keys[i:i+1].tobytes())
+                    f_qval.write(qval[i:i+1].tobytes())
+                    unpruned += 1
+    return unpruned
