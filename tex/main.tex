@@ -56,9 +56,10 @@ patients, etc.
 The ICU at UHW consists of 35 beds across 4 wards (named A3 North, A3 South, B3
 North, and B3 South), two single isolation units, and one double isolation unit.
 One bed is generally ring-fenced, left unoccupied, for emergencies.
+In 4 bed wards, there is a partial wall partitioning the beds into two halves.
 This is shown in Figure~\ref{fig:icu_map}.
 There are two additional units, Complex Care and the Post Anaesthetic Care Unit
-(PACU), which generally accomodate their own patient types (complex care and
+(PACU), which generally accommodate their own patient types (complex care and
 post anaesthetic patients respectively), spare beds can be used as surge, or
 overflow, for general ICU patients when needed.
 
@@ -67,8 +68,8 @@ overflow, for general ICU patients when needed.
 \includegraphics[width=\textwidth]{../images/icu.pdf}
 \end{center}
 \caption{Representation of the four ICU wards.
-Dashed lines separate isolation units, and the dotted box represents the
-ring-fenced bed.}
+Dashed lines separate isolation units, dotted lines represent partial walls
+within a ward, and the dotted box represents the ring-fenced bed.}
 \label{fig:icu_map}
 \end{figure}
 
@@ -82,7 +83,7 @@ or Stage 3-I patients:
         regardless of patients in neighbouring beds;
   \item Stage 3-I: these patients require isolation and one to one attention.
         When an isolation unit is available, they must be admitted there.
-        If an isolation unit it occupied by a Stage 2 or Stage 3 patient, and
+        If an isolation unit is occupied by a Stage 2 or Stage 3 patient, and
         non-isolation bed is available, then the other patient must be moved to
         the available bed and the new Stage 3-I patient must be admitted to the
         isolation unit.
@@ -100,13 +101,15 @@ and assumptions in the model:
   \item the double isolation unit is treated as two separate isolation units.
   The only time this assumption may be violated would be if occupied by a
   patient with a contagious disease, in which case the second bed can then only
-  be occupied by a patient with the same contagious disease.
+  be occupied by a patient with the same contagious disease;
   This is an uncommon enough occurrence to ignore for modelling purposes.
-  \item general ICU patients are not admitted to Complex Care of PACU, if there
+  \item general ICU patients are not admitted to Complex Care or PACU, if there
   are beds available in the other four wards.
   However, Stage 2 patients may be moved there as surge.
-  This is generally undesirable, and so incurs some penalty.
-  \item The ring-fenced bed is never used, it will not be modelled.
+  This is generally undesirable, and so incurs some penalty;
+  \item a nurse cannot care for two adjacent Stage 2 patients if there is a
+  partial wall between the beds;
+  \item the ring-fenced bed is never used, it will not be modelled.
 \end{itemize}
 
 Data analysis shows that:
@@ -120,9 +123,9 @@ We can do some data analysis here.
   \item Stage 2 patients arrive according to the Poisson process with rate $\lambda_0 = 3.0$,
   \item Stage 3 patients arrive according to the Poisson process with rate $\lambda_1 = 2.0$,
   \item Stage 3-I patients arrive according to the Poisson process with rate $\lambda_2 = 1.0$,
-  \item Stage 2 patients' lengths of stay is Exponentially distributed with rate $\mu_0 = 0.3$,
-  \item Stage 3 patients' lengths of stay is Exponentially distributed with rate $\mu_1 = 0.7$,
-  \item Stage 3-I patients' lengths of stay is Exponentially distributed with rate $\mu_2 = 0.4$,
+  \item Stage 2 patients' lengths of stay are Exponentially distributed with rate $\mu_0 = 0.3$,
+  \item Stage 3 patients' lengths of stay are Exponentially distributed with rate $\mu_1 = 0.7$,
+  \item Stage 3-I patients' lengths of stay are Exponentially distributed with rate $\mu_2 = 0.4$,
   \item Stage 2 patients deteriorate into Stage 3 patients with rate $\delta_{01}$,
   \item Stage 3 patients deteriorate into Stage 3-I patients with rate $\delta_{12}$,
   \item Stage 3 patients improve into Stage 2 patients with rate $\delta_{10}$,
@@ -135,7 +138,7 @@ another assumption.
 Ignoring the ring-fenced bed, we can grouping wards A3 North and B3 South, and
 wards B3 North and A3 South, into two identical components each containing 17
 beds.
-We then introduce the assumption that newly arriving patient are sent to the
+We then introduce the assumption that newly arriving patients are sent to the
 component with the most free beds.
 This corresponds to a \textit{load-balancing} arrival discipline,
 a join-shortest-queue discipline that takes into consideration the number of
@@ -178,8 +181,9 @@ given the component's occupancy.}
 We can now analyse each decomposed sub-problem separately, however each of our
 sub-problems are identical, so only one needs to be considered.
 The rest of the paper will now consider just one of the decomposed sub-problems,
-consisting of an ICU with two wards of 8 and 7 beds, and two isolation units,
-giving 17 beds in total.
+consisting of an ICU with two wards of 7 and 8 beds, and two isolation units,
+giving 17 beds in total. The 8 bed ward is partitioned in two by the partial
+wall.
 
 
 \section{MDP Formulation}
@@ -194,7 +198,7 @@ transitions are taken care of with a simulation model.
 The following sections describe each component.
 
 
-\subsection{States}
+\subsection{States}\label{sec:states}
 The decomposed ICU ward contains 17 beds, which can be partitioned into 4
 blocks, shown in Figure~\ref{fig:block_structure}.
 These blocks are defined by physical walls: beds B00 to B07 are in one room,
@@ -211,11 +215,12 @@ than inter-block moves, and their cost or penalty will reflect this.
 \label{fig:block_structure}
 \end{figure}
 
-Within a block the location of a patient matters: if two Stage 2 patients are in adjacent beds, it is possible for one FTE nurse to care for both.
+Within a block the location of a patient matters: if two Stage 2 patients are
+in adjacent beds, it is possible for one FTE nurse to care for both.
 This is shown in Figure~\ref{fig:resource_use}.
 Therefore the states need to hold information on both the patient type, and
 which particular bed within a block the patient is in.
-However, both isolation units are indistinguishable, from one another, so there
+However, both isolation units are indistinguishable from one another, so there
 is no need to differentiate these.
 
 \begin{figure}
@@ -230,11 +235,12 @@ Define the ward state by a $3\times16$ matrix $M$, where rows correspond to
 patient types (where $j=0$ corresponds to Stage 2 patients, $j=1$ to Stage 3
 patients, and $j=2$ to Stage 3-I patients), and columns corresponding to bed
 numbers (except for column 15, which corresponds to both isolation units).
-Then its integer entries $M_{ij}$ denotes the number of category $j$ patients
+Then its integer entries $M_{ij}$ denote the number of category $j$ patients
 currently occupying a bed $i$.
 Note that for columns 0 to 14 the columns sums should be no more than 1, as they
 correspond to single beds, while for column 15 the sum should be no more than 2,
 as it corresponds to both isolation units.
+Let $\mathcal{M}$ denote the set of all possible matrices $M$.
 
 As an example, consider the ICU state given in Figure~\ref{fig:resource_use},
 where green, amber and red beds indicate beds occupied by Stage 2, Stage 3 and
@@ -278,7 +284,7 @@ Then $|S| = 32,111,460,252$.
 \end{proposition}
 
 \begin{proof}
-First consider how many matrices $M$ exist.
+First consider $|\mathcal{M}|$, the number of matrices $M$ that exist.
 
 \begin{itemize}
   \item For each of the first 15 columns representing beds not in an isolation
@@ -344,26 +350,85 @@ Therefore the total number of states $s = (M, p)$ is:
 
 \end{proof}
 
+The state matrices exhibit some symmetries.
+In the two blocks of 4, and the block of 7, reversed configurations are
+equivalent up to a bed labelling.
+This is shown in Figure~\ref{fig:symmetries}.
+Similarly, as the two blocks of 4 beds are identical, then swapping the
+configurations result in equivalent configurations up to a labelling.
 
-\subsection{Actions}
-An action is placing a newly arriving patient into a bed, either unoccupied or occupied.
-If placing into an occupied bed, then the patient currently occupying that bed
-needs to be moved either into an unoccupied bed or into surge.
-Actions are state-dependent:
+\begin{figure}
+\includegraphics[width=\textwidth]{../images/symmetries.pdf}
+\caption{Example of a symmetry in the block of 7 beds.}
+\label{fig:symmetries}
+\end{figure}
+
+Therefore define four column-transformation operations on $\mathcal{M}$
+corresponding to these symmetries:
 \begin{itemize}
-  \item only Stage 2 patients can be moved into surge;
-  \item arriving Stage 3-I patients \textit{must} be placed into an isolation
-  unit if free, or they \textit{must} move Stage 2 or Stage 3 patients out of an
-  isolation unit if no isolation unit it free. When there is a choice of patient
-  type to move out of an isolation unit, Stage 2 patients are moved.
+  \item $T_1$: reversing columns 0 to 3;
+  \item $T_2$: reversing columns 4 through 7;
+  \item $T_3$: reversing columns 8 through 14;
+  \item $T_4$: swapping the block of columns 0–3 with the block 4–7.
 \end{itemize}
 
+Now define a relation $\sim$ on $\mathcal{M}$ such that $M_1 \sim M_2$ if $M_2$
+is obtained by applying some sequence of the column-transformations above on
+$M_1$.
+It is clear that $\sim$ satisfies reflexivity, symmetry, and transitivity, and
+is therefore an equivalence relation, and so $\mathcal{M}$ can be partitioned
+into disjoint equivalence classes
+$[M_1] = \{M_2 \in \mathcal{M} \mid M_2 \sim M_1\}$.
+Now define $\mathcal{M}^{\star} \subseteq \mathcal{M}$ to be the set containing
+exactly one representative matrix from each equivalence class.
+How this representative matrix is chosen is detailed in
+Section~\ref{sec:representative}.
+Hence, we can also define $S^{\star}$ as the set of all possible states
+$s = (M, p)$ where $M \in \mathcal{M}^{\star}$, that is the set of all
+representative states.
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Enumerate combinatorially how many valid representative MDP states exist.
+Due to the four symmetries, I expect this to be around $2^4 = 16$ times smaller,
+not including symmetric states.
+\end{tcolorbox}
+
+
+\subsection{Actions}\label{sec:actions}
+Define an action as an operator on an MDP state $s \in S$ to a ward state
+$M \in \mathcal{M}$.
+An action is placing a newly arriving patient into a bed, either unoccupied or
+occupied.
+If placing into an occupied bed, then the patient currently occupying that bed
+needs to be moved either into an unoccupied bed or into surge.
 We can denote an action by a pair of integers $(b, d)$.
 When $b = d$ this denotes placing the newly arriving patient into bed $b$ where
 that bed is unoccupied.
 When $b \neq d$ this denotes placing the newly arriving patient into bed $b$,
 and moving patient occupying bed $b$ to bed $d$.
 When $d = 16$ this denotes moving the patient to surge.
+
+For example, action $a = (3, 6)$ represents placing a patient into bed 3, and
+moving the patient currently in bed 3 to bed 6, e.g.:
+
+\begin{equation}\label{eqn:example_action}
+a(M^{\star}, 2) = \begin{pmatrix}
+1 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 2
+\end{pmatrix}
+\end{equation}
+
+where $M^{\star}$ is the ward state defined in Equation~\ref{eqn:example_M}.
+
+Actions are state-dependent:
+\begin{itemize}
+  \item only Stage 2 patients can be moved into surge;
+  \item arriving Stage 3-I patients \textit{must} be placed into an isolation
+  unit if free, or they \textit{must} move Stage 2 or Stage 3 patients out of an
+  isolation unit if no isolation unit is free. When there is a choice of patient
+  type to move out of an isolation unit, Stage 2 patients are moved.
+\end{itemize}
 
 Some actions may not be available in all states
 The set of actions available when in a particular state $s = (M, p)$, denoted by
@@ -405,6 +470,27 @@ state to placing them directly in an empty bed.
 Enumerate combinatorially how many valid MDP states-action pairs exist.
 \end{tcolorbox}
 
+These action sets are defined for all states $s \in S$, however due to state
+symmetries, we only need to define them for all $s \in S^{\star}$.
+In addition, if two actions transform a state two different elements yet
+equivalent matrices, we only need to consider one of these actions.
+Therefore define a relation $\equiv$ such that
+$a_1 \equiv a_2$ if $a_2(s) \in [a_1(s)]$, that is if the ward states they
+produce belong to the same equivalence class.
+It is clear that $\equiv$ also satisfies reflexivity, symmetry, and
+transitivity, and so is also an equivalence relation.
+Hence each set $A_s$ can be partitioned into disjoint equivalence classes
+$[a_1] = \{a_2 \in A_s \mid a_2 \equiv a_1\}$, and so we car define
+$A_s^{\star} \subseteq A_s$ to be the set containing exactly one representative
+action from each equivalence class.
+How this representative action is chosen is detailed in
+Section~\ref{sec:representative}.
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Enumerate combinatorially how many valid representative MDP states-action pairs
+exist.
+\end{tcolorbox}
+
 
 \subsection{Rewards}
 The reward received for transitioning from state $s_1$ to state $s_2$ given
@@ -440,7 +526,7 @@ Where
 
 
 \begin{align}
-C &= \sum_{j=1}^{9} G(M) + \sum_{i=1}^{2} \sum_{j=0}^{16} M_{i,j} \label{eqn:staffing_cost} \\[4mm]
+C &= G(M) + \sum_{i=1}^{2} \sum_{j=0}^{16} M_{i,j} \label{eqn:staffing_cost} \\[4mm]
 P(s_1) &= \theta \sum_{j=0}^{15} M_{2,j} \label{eqn:penalty_cost} \\[4mm]
 \Psi(a) &= \begin{cases}
 0 \text{ if } b = d \\
@@ -499,7 +585,7 @@ The aim is for a general state of high reward throughout the ICU's operating
 times, and so future rewards are just as important as immediate rewards, so we
 anticipate a high discount factor $\gamma$ would be beneficial.
 In particular, as the rewards are dependent on the time between updates
-(Equation~\ref{eqn:reward}), immediate rewards are far less meaningful that long
+(Equation~\ref{eqn:reward}), immediate rewards are far less meaningful than long
 run average rewards - for example, one long interval with low instantaneous
 reward may look better than many shorter periods of high rewards, but it is the
 long run average that matters.
@@ -516,17 +602,22 @@ at \url{https://github.com/geraintpalmer/bed_moves_policy}.
 The $Q$-values are stored in a Numba typed dictionary, an implementation of a
 hash table, that maps state-action pairs to Q-values, which are generally kept
 in memory.
-At the beginning of a run, all state-action pairs are unexplored, and the $Q$-value dictionary is empty.
-When state-action pairs are visited for the first time, the state-action pair is added to the dictionary, mapping it to the $Q$-value calculated using
-Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other unexplored state-action pairs.
-In these cases, the overall average $Q$-value found up to that point is used as a default value, $\bar{Q}$, which can be obtained by keeping track of the overall average reward, $\bar{R}$, using Equation~\ref{eqn:averageQ}.
+At the beginning of a run, all state-action pairs are unexplored, and the
+$Q$-value dictionary is empty.
+When state-action pairs are visited for the first time, the state-action pair is
+added to the dictionary, mapping it to the $Q$-value calculated using
+Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other
+unexplored state-action pairs.
+In these cases, the overall average $Q$-value found up to that point is used as
+a default value, $\bar{Q}$, which can be obtained by keeping track of the
+overall average reward, $\bar{R}$, using Equation~\ref{eqn:averageQ}.
 
-\begin{equation*}\label{eqn:averageQ}
+\begin{equation}\label{eqn:averageQ}
 \bar{Q} = \frac{\bar{R}}{1 - \gamma}
-\end{equation*}
+\end{equation}
 
 
-\subsection{State Hashing}
+\subsection{State Hashing}\label{sec:hashing}
 Due to the vast number of potential state-action pairs, storing full tuples and
 matrices in the Q-table is very memory intensive.
 Therefore in order to preserve memory, we define a reversible hash between
@@ -579,6 +670,23 @@ number, well within the confines of 64-bit integers.
 
 As an example $H((M^{\star}, 2, (11, 4)) = 2025762603821104$, where $M^{\star}$
 is the ward state given in Equation~\ref{eqn:example_M}.
+
+
+\subsubsection{Choosing Representative States and Actions}\label{sec:representative}
+In Sections~\ref{sec:states} and~\ref{sec:actions} we introduced the idea of
+representative ward states and representative action, that can stand in place
+for all ward states and all actions in the same equivalence class.
+During the simulation run, whenever the algorithm encounters a state, the
+algorithm will update the Q-value for its equivalent representative state,
+ensuring faster learning and a smaller exploration space.
+
+The representative states for a particular equivalence class are chosen as
+those states with the smallest hash.
+Similarly for actions.
+
+Practically, this means that whenever the simulation reaches state $M$, then
+the hash for all states in $[M]$ are found, and the minimum is chosen.
+Similarly for actions.
 
 
 \subsection{Training Framework}
@@ -637,7 +745,8 @@ visits, that is:
 Q(s, a) = \frac{\sum_{n=0}^N Q_n(s, a) h_n(s, a)}{\sum_{n=0}^N h_n(s, a)}
 \end{equation}
 
-In the next state, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$, gradually increasing the agents rate of exploitation.
+In the next state, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$,
+gradually increasing the agents rate of exploitation.
 Then $Q$-values are initialised with the combined $Q$-value tables found at the
 end of the last stage, and the training is repeated on parallel workers.
 This ensures that at the first stage we have full exploration, and by the final
@@ -659,7 +768,8 @@ time units, and recording the overall cost running the ICU for the remaining
 25,000 time units when exploiting that incumbent policy.
 An initial `random` policy is evaluated for comparison.
 
-First we train the agent using the framework described in Section~\ref{sec:rlframework}, choosing $\alpha = 0.6$ and $\gamma = 0.6$.
+First we train the agent using the framework described in
+Section~\ref{sec:rlframework}, choosing $\alpha = 0.6$ and $\gamma = 0.6$.
 During training each stage was run for 500,000 time units, using 20 parallel
 workers per stage.
 Figure~\ref{fig:base_run} shows these results.
@@ -806,7 +916,12 @@ room` to make substantial gains.
 
 \section{Human-Readable Policies}
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-Idea: Currently the policies that come from the reinforcement learning is a mapping from millions / tens of millions of states to optimal actions. I wonder if we can use some sort of machine learning / clustering  algorithm to simplify this into general human-readable `guidelines` rather than a full detailed policy. This simplified policy would of course be less effective than the full policy, but this is something that can be measured and analysed.
+Idea: Currently the policies that come from the reinforcement learning is a
+mapping from millions / tens of millions of states to optimal actions. I wonder
+if we can use some sort of machine learning / clustering algorithm to simplify
+this into general human-readable `guidelines` rather than a full detailed
+policy. This simplified policy would of course be less effective than the full
+policy, but this is something that can be measured and analysed.
 \end{tcolorbox}
 
 \bibliographystyle{plain}
