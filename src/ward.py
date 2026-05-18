@@ -326,7 +326,7 @@ def improve_patient(state, patient_type, block):
 
 
 @njit(cache=True)
-def get_available_insert_moves(state):
+def get_available_noniso_insert_moves(state):
     """
     Lists all available places where a patient can be inserted.
 
@@ -336,12 +336,122 @@ def get_available_insert_moves(state):
 
     Returns: a list of blocks that the patient can be inserted.    
     """
-    occupancy = state[0:16] + state[16:32] + state[32:48]
-    return (max_capacities > occupancy).nonzero()[0]
+    occupancy = state[0:15] + state[16:31] + state[32:47]
+    return (occupancy < 1).nonzero()[0]
 
 
 @njit(cache=True)
 def get_available_actions(state, patient_type, actions_pool):
+    """
+    Lists all available actions that can happend when a patient of type
+    `patient_type` arrives when the ward is in state `state`.
+    An action takes the form:
+
+    (b, d)
+
+    where:
+      - b is the block that the new patient will be inserted into
+      - d is the block that patient will move to.
+
+    In cases where no bed moved happen, we have (b = d).
+
+    Arguments:
+      + `state` an array of 48 integers {0, 1, 2} representing
+           the state of the ward.
+      + `patient_type`: the type of the patient to move, either
+           2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
+      + `actions_pool`: a pre-assigned numpy empty array of
+           size 16x17
+
+    Returns: an array of actions, where each row is an integer abc, and the
+             count of valid actions.
+    """
+    valid_count = 0
+
+    isolation_has_0 = state[15] > 0
+    isolation_full = (state[15] + state[31] + state[47]) == 2
+    isolation_full_with_3i = state[(2 * 16) + 15] == 2
+    available_blocks = get_available_noniso_insert_moves(state)
+
+    if patient_type == 2:
+        if isolation_full_with_3i:
+            for a1 in available_blocks:
+                actions_pool[valid_count] = a1 * 101
+                valid_count += 1
+            beds_with_0 = np.where(state[:15] > 0)[0]
+            for a1 in beds_with_0:
+                for a2 in available_blocks:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+                actions_pool[valid_count] = (a1 * 100) + 16
+                valid_count += 1
+            beds_with_1 = np.where(state[16:31] > 0)[0]
+            for a1 in beds_with_1:
+                for a2 in available_blocks:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+        elif isolation_full:
+            for a2 in available_blocks:
+                actions_pool[valid_count] = 1500 + a2
+                valid_count += 1
+            if isolation_has_0:
+                actions_pool[valid_count] = 1516
+                valid_count += 1
+        elif not isolation_full:
+            actions_pool[valid_count] = 1515
+            valid_count += 1
+    if patient_type == 1:
+        for a1 in available_blocks:
+            actions_pool[valid_count] = a1 * 101
+            valid_count += 1
+        if not isolation_full:
+            actions_pool[valid_count] = 1515
+            valid_count += 1
+        beds_with_0 = np.where(state[:15] > 0)[0]
+        for a1 in beds_with_0:
+            for a2 in available_blocks:
+                if a1 != a2:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+            actions_pool[valid_count] = (a1 * 100) + 16
+            valid_count += 1
+        beds_with_2 = np.where(state[32:47] > 0)[0]
+        for a1 in beds_with_2:
+            for a2 in available_blocks:
+                if a1 != a2:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+        if isolation_has_0:
+            for a2 in available_blocks:
+                actions_pool[valid_count] = 1500 + a2
+                valid_count += 1
+            actions_pool[valid_count] = 1516
+            valid_count += 1
+    if patient_type == 0:
+        for a1 in available_blocks:
+            actions_pool[valid_count] = a1 * 101
+            valid_count += 1
+        if (len(available_blocks) == 0) and (not isolation_full):
+            actions_pool[valid_count] = 1515
+            valid_count += 1
+        beds_with_1 = np.where(state[16:31] > 0)[0]
+        for a1 in beds_with_1:
+            for a2 in available_blocks:
+                if a1 != a2:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+        beds_with_2 = np.where(state[32:47] > 0)[0]
+        for a1 in beds_with_2:
+            for a2 in available_blocks:
+                if a1 != a2:
+                    actions_pool[valid_count] = (a1 * 100) + a2
+                    valid_count += 1
+    return actions_pool, valid_count
+        
+
+
+@njit(cache=True)
+def get_available_actions_old(state, patient_type, actions_pool):
     """
     Lists all available actions that can happend when a patient of type
     `patient_type` arrives when the ward is in state `state`.
@@ -377,7 +487,7 @@ def get_available_actions(state, patient_type, actions_pool):
         valid_count += 1
         return actions_pool, valid_count
 
-    available_blocks = get_available_insert_moves(state)
+    available_blocks = get_available_noniso_insert_moves(state)
 
     # Second, check if Stage 3-I can displace someone from an isolation unit
     if (patient_type == 2) and isolation_full and (not isolation_full_with_3i):

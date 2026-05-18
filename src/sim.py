@@ -156,7 +156,7 @@ class WardSimulation:
         self.now = 0.0
         self.overall_cost = np.float32(0.0)
         self.previous_cost = np.float32(0.0)
-        self.average_reward = np.float32(-self.surge_penalty * 2)
+        self.average_reward = np.float32(0.0)
         self.n_rewards = 0
         self.warmup = warmup
         self.warmup_cost = np.float32(0.0)

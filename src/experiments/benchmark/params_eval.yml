@@ -1,4 +1,4 @@
-max_time: 10000
-warmup: 500
+max_time: 20000
+warmup: 1000
 n_stages: 5
-trials_per_stage: 15
+trials_per_stage: 20
