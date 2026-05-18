@@ -29,6 +29,9 @@
 \usetikzlibrary{arrows.meta}
 \usepackage{cases}
 \usepackage{tcolorbox}
+\usepackage{array}
+\usepackage{arydshln}
+
 \setcounter{MaxMatrixCols}{17}
 
 \newtheorem{proposition}{Proposition}
@@ -56,7 +59,7 @@ patients, etc.
 The ICU at UHW consists of 35 beds across 4 wards (named A3 North, A3 South, B3
 North, and B3 South), two single isolation units, and one double isolation unit.
 One bed is generally ring-fenced, left unoccupied, for emergencies.
-In 4 bed wards, there is a partial wall partitioning the beds into two halves.
+In each ward there is a partial wall partitioning the beds into two halves.
 This is shown in Figure~\ref{fig:icu_map}.
 There are two additional units, Complex Care and the Post Anaesthetic Care Unit
 (PACU), which generally accommodate their own patient types (complex care and
@@ -68,8 +71,8 @@ overflow, for general ICU patients when needed.
 \includegraphics[width=\textwidth]{../images/icu.pdf}
 \end{center}
 \caption{Representation of the four ICU wards.
-Dashed lines separate isolation units, dotted lines represent partial walls
-within a ward, and the dotted box represents the ring-fenced bed.}
+Solid blocks represent wards and isolation units, dotted lines represent
+partial walls within a ward, and the dotted box represents the ring-fenced bed.}
 \label{fig:icu_map}
 \end{figure}
 
@@ -183,7 +186,8 @@ sub-problems are identical, so only one needs to be considered.
 The rest of the paper will now consider just one of the decomposed sub-problems,
 consisting of an ICU with two wards of 7 and 8 beds, and two isolation units,
 giving 17 beds in total. The 8 bed ward is partitioned in two by the partial
-wall.
+wall, while the 7 bed wall is partitioned intro groups of 3 and 4 beds by its
+partial wall.
 
 
 \section{MDP Formulation}
@@ -204,6 +208,7 @@ blocks, shown in Figure~\ref{fig:block_structure}.
 These blocks are defined by physical walls: beds B00 to B07 are in one room,
 beds B08 to B14 are in another room, and beds B15 and B16 are in isolation
 units.
+Partial walls do not count as ward separations.
 These blocks will determine the cost of a bed-move: intra-block moves are easier
 than inter-block moves, and their cost or penalty will reflect this.
 
@@ -248,12 +253,13 @@ Stage 3-I patients respectively, and black beds are unoccupied.
 This corresponds to the ward state:
 
 \begin{equation}\label{eqn:example_M}
-M^{\star} = \begin{pmatrix}
+M^{\star} = \left(\begin{array}{cccc ;{0.6pt/1.4pt} cccc ;{0.6pt/1.4pt} cccc ;{0.6pt/1.4pt} ccc ;{0.6pt/1.4pt} c}
 1 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 \\
 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 2
-\end{pmatrix}
+\end{array}\right)
 \end{equation}
+
 
 Ward state changes are caused by newly arriving patients of different categories
 being placed into beds in specific blocks, patient discharges, patient
@@ -351,15 +357,18 @@ Therefore the total number of states $s = (M, p)$ is:
 \end{proof}
 
 The state matrices exhibit some symmetries.
-In the two blocks of 4, and the block of 7, reversed configurations are
+In the three blocks of 4, and the block of 3, reversed configurations are
 equivalent up to a bed labelling.
 This is shown in Figure~\ref{fig:symmetries}.
-Similarly, as the two blocks of 4 beds are identical, then swapping the
-configurations result in equivalent configurations up to a labelling.
+Similarly, as the two blocks of 4 beds that are located in the same ward are
+identical, then swapping the configurations result in equivalent
+configurations up to a labelling.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{../images/symmetries.pdf}
-\caption{Example of a symmetry in the block of 7 beds.}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{../images/symmetries.pdf}
+\end{center}
+\caption{Example of a symmetry in a block of 4 beds.}
 \label{fig:symmetries}
 \end{figure}
 
@@ -368,8 +377,9 @@ corresponding to these symmetries:
 \begin{itemize}
   \item $T_1$: reversing columns 0 to 3;
   \item $T_2$: reversing columns 4 through 7;
-  \item $T_3$: reversing columns 8 through 14;
-  \item $T_4$: swapping the block of columns 0–3 with the block 4–7.
+  \item $T_3$: reversing columns 8 through 11;
+  \item $T_4$: reversing columns 12 through 14;
+  \item $T_5$: swapping the block of columns 0–3 with the block 4–7.
 \end{itemize}
 
 Now define a relation $\sim$ on $\mathcal{M}$ such that $M_1 \sim M_2$ if $M_2$
@@ -389,7 +399,7 @@ representative states.
 
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
 Enumerate combinatorially how many valid representative MDP states exist.
-Due to the four symmetries, I expect this to be around $2^4 = 16$ times smaller,
+Due to the four symmetries, I expect this to be around $2^5 = 32$ times smaller,
 not including symmetric states.
 \end{tcolorbox}
 
@@ -412,11 +422,11 @@ For example, action $a = (3, 6)$ represents placing a patient into bed 3, and
 moving the patient currently in bed 3 to bed 6, e.g.:
 
 \begin{equation}\label{eqn:example_action}
-a(M^{\star}, 2) = \begin{pmatrix}
+a(M^{\star}, 2) = \left(\begin{array}{cccc ;{0.6pt/1.4pt} cccc ;{0.6pt/1.4pt} cccc ;{0.6pt/1.4pt} ccc ;{0.6pt/1.4pt} c}
 1 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 \\
 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 2
-\end{pmatrix}
+\end{array}\right)
 \end{equation}
 
 where $M^{\star}$ is the ward state defined in Equation~\ref{eqn:example_M}.
