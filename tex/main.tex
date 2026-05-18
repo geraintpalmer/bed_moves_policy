@@ -440,7 +440,6 @@ Actions are state-dependent:
   type to move out of an isolation unit, Stage 2 patients are moved.
 \end{itemize}
 
-Some actions may not be available in all states
 The set of actions available when in a particular state $s = (M, p)$, denoted by
 $A_s$, will depend on the ward state component, $M$ and the arriving patient
 type $p$, such that the constraints above hold.
@@ -758,7 +757,8 @@ Q(s, a) = \frac{\sum_{n=0}^N Q_n(s, a) h_n(s, a)}{\sum_{n=0}^N h_n(s, a)}
 In the next state, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$,
 gradually increasing the agents rate of exploitation.
 Then $Q$-values are initialised with the combined $Q$-value tables found at the
-end of the last stage, and the training is repeated on parallel workers.
+end of the last stage, the $h_n$ are reset to zero, and the training is repeated
+on parallel workers.
 This ensures that at the first stage we have full exploration, and by the final
 stage we have full exploitation, with $\epsilon$ increasing linearly over the
 stages.
@@ -769,6 +769,34 @@ actions based on that incumbent policy.
 
 
 \subsection{Pruning}
+As the number of theoretically possible state-action pairs is so large, the
+memory constraints of a computer makes running the algorithm difficult in
+practice, as the $Q$-value table grows with exploration.
+However, the practically reachable space of state-action pairs, when following
+an optimal, or even just a reasonable, policy, is much smaller.
+This is often called the `on-policy distribution' \cite{suttonbarto1998}.
+Therefore any state-action pairs in the suboptimal trajectory space, that is
+those not in the on-policy distribution, can generally be ignored, reducing the
+$Q$-value table and saving memory.
+
+After the end of each stage, these states are identified as those who have not
+been visited frequently, if at all, and so can be pruned.
+We prune all state-action pairs whose number of hits $h_n(s, a)$ is less than
+some chosen limit $\tilde{h}$.
+This not only helps save memory, but also cleans the data: the simulation is
+highly stochastic, and for states with $h_n(s, a) < \tilde{h}$, its $Q$-value
+will have been based on $h_n(s, a)$ observations only, meaning that for very
+small $\tilde{h}$ this is just stochastic noise and so cannot meaningfully
+estimate the expected rewards.
+
+Note that due to the way in which $Q$-values are passed from stage to stage, it
+is possible to reach the end of a stage and for a particular state-action pair
+to be present in the table but have been visited zero times: for example if a
+pair was visited in stage $n-1$, it was passed to stage $n$ and its number of
+hits reset to zero, but then not visited at all in stage $n$.
+This would be a good candidate to prune and so not pass to stage $n+1$.
+
+
 
 
 \section{Experiments}
