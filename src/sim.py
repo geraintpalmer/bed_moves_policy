@@ -172,6 +172,7 @@ class WardSimulation:
         self.patients_number_free = 17
 
         self.state = ward.empty_state.copy()
+        self.buffer_state = ward.empty_state.copy()
         self.hash_state = None
         self.max_time = max_time
         if M is not None:
@@ -520,7 +521,8 @@ class WardTraining(WardSimulation):
             epsilon=self.epsilon,
             Q_index_map=self.Q_index_map,
             qval_array=self.Qvals,
-            actions_pool=self.actions_pool
+            actions_pool=self.actions_pool,
+            buffer_state=self.buffer_state
         )
         self.just_chose_best = Qa is not None
         self.prev_best_Q = Qa
@@ -558,13 +560,15 @@ class WardTraining(WardSimulation):
                 just_chose_best=self.just_chose_best,
                 prev_best_Q=self.prev_best_Q,
                 default_future_reward=self.average_reward,
-                actions_pool=self.actions_pool
+                actions_pool=self.actions_pool,
+                buffer_state=self.buffer_state
             )
         else:
             self.hash_state = ward.get_hash_stateaction(
                 state=self.state,
                 patient_type=patient_type,
-                action=action
+                action=action,
+                buffer_state=self.buffer_state
             )
     
     def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
@@ -612,7 +616,8 @@ class WardEvaluation(WardSimulation):
             state=self.state,
             patient_type=patient_type,
             policy=self.policy,
-            actions_pool=self.actions_pool
+            actions_pool=self.actions_pool,
+            buffer_state=self.buffer_state
         )
         return a
 

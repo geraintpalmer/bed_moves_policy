@@ -116,7 +116,8 @@ def get_best_future_reward(
     Q_index_map,
     just_chose_best,
     prev_best_Q,
-    actions_pool
+    actions_pool,
+    buffer_state,
 ):
     """
     Returns the maximum future reward if taking the optimal action
@@ -146,9 +147,10 @@ def get_best_future_reward(
         patient_type=patient_type,
         actions_pool=actions_pool
     )
-    hash_state_only = ward.get_hash_state_only(
+    hash_state_only = ward.get_representative_hash_state(
         state=state,
-        patient_type=patient_type
+        patient_type=patient_type,
+        buffer_state=buffer_state
     )
 
     best_Q = worst_Q
@@ -180,7 +182,8 @@ def update_Q_values(
     just_chose_best,
     prev_best_Q,
     default_future_reward,
-    actions_pool
+    actions_pool,
+    buffer_state
 ):
     """
     Updates the Q-values according to the Q-learning update:
@@ -222,7 +225,8 @@ def update_Q_values(
         Q_index_map=Q_index_map,
         just_chose_best=just_chose_best,
         prev_best_Q=prev_best_Q,
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        buffer_state=buffer_state
     )
     if best_future_reward < check_worst:
         best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
@@ -230,7 +234,8 @@ def update_Q_values(
     next_hash_state = ward.get_hash_stateaction(
         state=next_state,
         patient_type=next_patient_type,
-        action=next_action
+        action=next_action,
+        buffer_state=buffer_state
     )
 
     try:

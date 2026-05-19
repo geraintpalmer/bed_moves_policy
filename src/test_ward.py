@@ -61,6 +61,83 @@ def test_get_hash_state_only():
     )
     assert hash_state == 2040109465520000
 
+def test_get_representative_hash_state():
+    # First define some states all in the same equivalence class.
+    S1 = np.array(
+        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S2 = np.array(
+        (0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S3 = np.array(
+        (1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S4 = np.array(
+        (1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
+    )
+    S5 = np.array(
+        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S6 = np.array(
+        (1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S7 = np.array(
+        (0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0,
+         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    S8 = np.array(
+        (1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
+    )
+    buffer_state = np.zeros(48, dtype=np.int64)
+    hS1 = ward.get_representative_hash_state(state=S1, patient_type=1, buffer_state=buffer_state)
+    hS2 = ward.get_representative_hash_state(state=S2, patient_type=1, buffer_state=buffer_state)
+    hS3 = ward.get_representative_hash_state(state=S3, patient_type=1, buffer_state=buffer_state)
+    hS4 = ward.get_representative_hash_state(state=S4, patient_type=1, buffer_state=buffer_state)
+    hS5 = ward.get_representative_hash_state(state=S5, patient_type=1, buffer_state=buffer_state)
+    hS6 = ward.get_representative_hash_state(state=S6, patient_type=1, buffer_state=buffer_state)
+    hS7 = ward.get_representative_hash_state(state=S7, patient_type=1, buffer_state=buffer_state)
+    hS8 = ward.get_representative_hash_state(state=S8, patient_type=1, buffer_state=buffer_state)
+    assert hS1 == hS2 == hS3 == hS4 == hS5 == hS6 == hS7 == hS8
+
+    # Now some states not in the same equivalence class.
+    Z1 = np.array(
+        (1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    Z2 = np.array(
+        (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    Z3 = np.array(
+        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+    )
+    hZ1 = ward.get_representative_hash_state(state=Z1, patient_type=1, buffer_state=buffer_state)
+    hZ2 = ward.get_representative_hash_state(state=Z2, patient_type=1, buffer_state=buffer_state)
+    hZ3 = ward.get_representative_hash_state(state=Z3, patient_type=1, buffer_state=buffer_state)
+
+    assert hZ1 != hS1
+    assert hZ2 != hS1
+    assert hZ3 != hS1
+
 
 def test_dehash_state():
     hash_states = [
@@ -138,6 +215,7 @@ def test_dehash_state():
 
 
 def test_get_hash_stateaction():
+    buffer_state = np.zeros(48, dtype=np.int64)
     S = np.array(
         (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -146,16 +224,18 @@ def test_get_hash_stateaction():
     Shash = ward.get_hash_stateaction(
         state=S,
         patient_type=2,
-        action=1104
+        action=1104,
+        buffer_state=buffer_state
     )
-    assert Shash == 2025762603821104
+    assert Shash == 412377609521104
 
 
     hash_states = [
         ward.get_hash_stateaction(
             state=ward.empty_state,
             patient_type=1,
-            action=(a * 1111)
+            action=(a * 1111),
+            buffer_state=buffer_state
         ) for a in range(9)
     ]
     assert hash_states == [10000, 11111, 12222, 13333, 14444, 15555, 16666, 17777, 18888]
@@ -169,7 +249,8 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=2,
-            action=np.array(a)
+            action=np.array(a),
+            buffer_state=buffer_state
         ) for a in [2002, 1212, 2222, 3232, 4242, 5252, 6262, 7272]
     ]
     assert hash_states == [122002, 121212, 122222, 123232, 124242, 125252, 126262, 127272]
@@ -183,7 +264,8 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=0,
-            action=np.array(a)
+            action=np.array(a),
+            buffer_state=buffer_state
         ) for a in [  20, 1221, 2222, 3223, 4224, 5225, 6226, 7227,
                     8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007]
     ]
@@ -201,7 +283,8 @@ def test_get_hash_stateaction():
         ward.get_hash_stateaction(
             state=S,
             patient_type=1,
-            action=np.array(a)
+            action=np.array(a),
+            buffer_state=buffer_state
         ) for a in [ 110, 1111, 2212, 3313, 4414, 5515,
                     6600, 6601, 6602, 6603, 6604, 6605,
                     7700, 7701, 7702, 7703, 7704, 7705,

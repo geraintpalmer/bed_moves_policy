@@ -15,8 +15,6 @@ empty_state = np.array(
     ), dtype=np.int32
 )
 
-max_capacities = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], dtype=np.int32)
-
 adjacency_matrix = np.array(
     [
         [2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
@@ -38,8 +36,47 @@ adjacency_matrix = np.array(
     ], dtype=np.int32
 )
 
-tiling_8 = np.array([0, 1, 1, 2, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 3, 2, 3, 1, 2, 2, 2, 2, 3, 2, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 3, 4, 4, 4, 3, 4, 4, 4, 2, 3, 3, 3, 3, 4, 3, 4, 3, 4, 4, 4, 3, 4, 4, 4, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 3, 4, 4, 4, 3, 4, 4, 4, 2, 3, 3, 3, 3, 4, 3, 4, 3, 4, 4, 4, 3, 4, 4, 4])
-tiling_7 = np.array([0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 3, 2, 3, 1, 2, 2, 2, 2, 3, 2, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4, 1, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 3, 4, 3, 4, 2, 3, 3, 3, 3, 4, 3, 4])
+tiling_4 = np.array([0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 2])
+tiling_3 = np.array([0, 1, 1, 1, 1, 2, 1, 2])
+
+equivalence_permutations = np.array(
+    [
+        [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 3,  2,  1,  0,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 19, 18, 17, 16, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 34, 33, 32, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 0,  1,  2,  3,  7,  6,  5,  4,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23, 22, 21, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 39, 38, 37, 36, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 3,  2,  1,  0,  7,  6,  5,  4,  8,  9, 10, 11, 12, 13, 14, 15, 19, 18, 17, 16, 23, 22, 21, 20, 24, 25, 26, 27, 28, 29, 30, 31, 35, 34, 33, 32, 39, 38, 37, 36, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 0,  1,  2,  3,  4,  5,  6,  7, 11, 10,  9,  8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 26, 25, 24, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 3,  2,  1,  0,  4,  5,  6,  7, 11, 10,  9,  8, 12, 13, 14, 15, 19, 18, 17, 16, 20, 21, 22, 23, 27, 26, 25, 24, 28, 29, 30, 31, 35, 34, 33, 32, 36, 37, 38, 39, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 0,  1,  2,  3,  7,  6,  5,  4, 11, 10,  9,  8, 12, 13, 14, 15, 16, 17, 18, 19, 23, 22, 21, 20, 27, 26, 25, 24, 28, 29, 30, 31, 32, 33, 34, 35, 39, 38, 37, 36, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 3,  2,  1,  0,  7,  6,  5,  4, 11, 10,  9,  8, 12, 13, 14, 15, 19, 18, 17, 16, 23, 22, 21, 20, 27, 26, 25, 24, 28, 29, 30, 31, 35, 34, 33, 32, 39, 38, 37, 36, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 14, 13, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 30, 29, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 3,  2,  1,  0,  4,  5,  6,  7,  8,  9, 10, 11, 14, 13, 12, 15, 19, 18, 17, 16, 20, 21, 22, 23, 24, 25, 26, 27, 30, 29, 28, 31, 35, 34, 33, 32, 36, 37, 38, 39, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 0,  1,  2,  3,  7,  6,  5,  4,  8,  9, 10, 11, 14, 13, 12, 15, 16, 17, 18, 19, 23, 22, 21, 20, 24, 25, 26, 27, 30, 29, 28, 31, 32, 33, 34, 35, 39, 38, 37, 36, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 3,  2,  1,  0,  7,  6,  5,  4,  8,  9, 10, 11, 14, 13, 12, 15, 19, 18, 17, 16, 23, 22, 21, 20, 24, 25, 26, 27, 30, 29, 28, 31, 35, 34, 33, 32, 39, 38, 37, 36, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 0,  1,  2,  3,  4,  5,  6,  7, 11, 10,  9,  8, 14, 13, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 26, 25, 24, 30, 29, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 3,  2,  1,  0,  4,  5,  6,  7, 11, 10,  9,  8, 14, 13, 12, 15, 19, 18, 17, 16, 20, 21, 22, 23, 27, 26, 25, 24, 30, 29, 28, 31, 35, 34, 33, 32, 36, 37, 38, 39, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 0,  1,  2,  3,  7,  6,  5,  4, 11, 10,  9,  8, 14, 13, 12, 15, 16, 17, 18, 19, 23, 22, 21, 20, 27, 26, 25, 24, 30, 29, 28, 31, 32, 33, 34, 35, 39, 38, 37, 36, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 3,  2,  1,  0,  7,  6,  5,  4, 11, 10,  9,  8, 14, 13, 12, 15, 19, 18, 17, 16, 23, 22, 21, 20, 27, 26, 25, 24, 30, 29, 28, 31, 35, 34, 33, 32, 39, 38, 37, 36, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 4,  5,  6,  7,  0,  1,  2,  3,  8,  9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29, 30, 31, 36, 37, 38, 39, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 4,  5,  6,  7,  3,  2,  1,  0,  8,  9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 19, 18, 17, 16, 24, 25, 26, 27, 28, 29, 30, 31, 36, 37, 38, 39, 35, 34, 33, 32, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 7,  6,  5,  4,  0,  1,  2,  3,  8,  9, 10, 11, 12, 13, 14, 15, 23, 22, 21, 20, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29, 30, 31, 39, 38, 37, 36, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 7,  6,  5,  4,  3,  2,  1,  0,  8,  9, 10, 11, 12, 13, 14, 15, 23, 22, 21, 20, 19, 18, 17, 16, 24, 25, 26, 27, 28, 29, 30, 31, 39, 38, 37, 36, 35, 34, 33, 32, 40, 41, 42, 43, 44, 45, 46, 47],
+        [ 4,  5,  6,  7,  0,  1,  2,  3, 11, 10,  9,  8, 12, 13, 14, 15, 20, 21, 22, 23, 16, 17, 18, 19, 27, 26, 25, 24, 28, 29, 30, 31, 36, 37, 38, 39, 32, 33, 34, 35, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 4,  5,  6,  7,  3,  2,  1,  0, 11, 10,  9,  8, 12, 13, 14, 15, 20, 21, 22, 23, 19, 18, 17, 16, 27, 26, 25, 24, 28, 29, 30, 31, 36, 37, 38, 39, 35, 34, 33, 32, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 7,  6,  5,  4,  0,  1,  2,  3, 11, 10,  9,  8, 12, 13, 14, 15, 23, 22, 21, 20, 16, 17, 18, 19, 27, 26, 25, 24, 28, 29, 30, 31, 39, 38, 37, 36, 32, 33, 34, 35, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 7,  6,  5,  4,  3,  2,  1,  0, 11, 10,  9,  8, 12, 13, 14, 15, 23, 22, 21, 20, 19, 18, 17, 16, 27, 26, 25, 24, 28, 29, 30, 31, 39, 38, 37, 36, 35, 34, 33, 32, 43, 42, 41, 40, 44, 45, 46, 47],
+        [ 4,  5,  6,  7,  0,  1,  2,  3,  8,  9, 10, 11, 14, 13, 12, 15, 20, 21, 22, 23, 16, 17, 18, 19, 24, 25, 26, 27, 30, 29, 28, 31, 36, 37, 38, 39, 32, 33, 34, 35, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 4,  5,  6,  7,  3,  2,  1,  0,  8,  9, 10, 11, 14, 13, 12, 15, 20, 21, 22, 23, 19, 18, 17, 16, 24, 25, 26, 27, 30, 29, 28, 31, 36, 37, 38, 39, 35, 34, 33, 32, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 7,  6,  5,  4,  0,  1,  2,  3,  8,  9, 10, 11, 14, 13, 12, 15, 23, 22, 21, 20, 16, 17, 18, 19, 24, 25, 26, 27, 30, 29, 28, 31, 39, 38, 37, 36, 32, 33, 34, 35, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 7,  6,  5,  4,  3,  2,  1,  0,  8,  9, 10, 11, 14, 13, 12, 15, 23, 22, 21, 20, 19, 18, 17, 16, 24, 25, 26, 27, 30, 29, 28, 31, 39, 38, 37, 36, 35, 34, 33, 32, 40, 41, 42, 43, 46, 45, 44, 47],
+        [ 4,  5,  6,  7,  0,  1,  2,  3, 11, 10,  9,  8, 14, 13, 12, 15, 20, 21, 22, 23, 16, 17, 18, 19, 27, 26, 25, 24, 30, 29, 28, 31, 36, 37, 38, 39, 32, 33, 34, 35, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 4,  5,  6,  7,  3,  2,  1,  0, 11, 10,  9,  8, 14, 13, 12, 15, 20, 21, 22, 23, 19, 18, 17, 16, 27, 26, 25, 24, 30, 29, 28, 31, 36, 37, 38, 39, 35, 34, 33, 32, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 7,  6,  5,  4,  0,  1,  2,  3, 11, 10,  9,  8, 14, 13, 12, 15, 23, 22, 21, 20, 16, 17, 18, 19, 27, 26, 25, 24, 30, 29, 28, 31, 39, 38, 37, 36, 32, 33, 34, 35, 43, 42, 41, 40, 46, 45, 44, 47],
+        [ 7,  6,  5,  4,  3,  2,  1,  0, 11, 10,  9,  8, 14, 13, 12, 15, 23, 22, 21, 20, 19, 18, 17, 16, 27, 26, 25, 24, 30, 29, 28, 31, 39, 38, 37, 36, 35, 34, 33, 32, 43, 42, 41, 40, 46, 45, 44, 47]
+    ], dtype=np.int64
+)
+
+max_possible_hash = np.iinfo(np.int64).max
 
 @njit(cache=True)
 def get_hash_state_only(state, patient_type):
@@ -50,13 +87,39 @@ def get_hash_state_only(state, patient_type):
       + `state`: a numpy array representing the state of the system,
       + `patient_type`: an integer representing the arriving customer
            type.
-      + `hash_weights`: the array of weights that convert the state to
-           a hash via a dot product.
 
     Returns: an integer representation of the state, with 0 placeholder
     for an action.
     """
     return (100000 * (hash_weights * state).sum()) + (patient_type * 10000)
+
+
+@njit(cache=True)
+def get_representative_hash_state(state, patient_type, buffer_state):
+    """
+    Returns a hashable version of the state - not including the action.
+    This returns the representative hash - it will return the _same_ hash
+    for each state in the same equivalence class.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+      + `patient_type`: an integer representing the arriving customer
+           type.
+      + `buffer_state`: a 48-array with pre-allocated memory. 
+
+    Returns: an integer representation of the state, with 0 placeholder
+    for an action.
+    """
+    current_hash = max_possible_hash
+    for equivalence_idx in range(32):
+        p = equivalence_permutations[equivalence_idx]
+        for i in range(48):
+            buffer_state[i] = state[p[i]]
+        h = get_hash_state_only(state=buffer_state, patient_type=patient_type)
+        if h <  current_hash:
+            current_hash = h
+    return current_hash
+
 
 @njit(cache=True)
 def dehash_state(hash_state):
@@ -91,7 +154,7 @@ def dehash_action(action_hash):
 
 
 @njit(cache=True)
-def get_hash_stateaction(state, patient_type, action):
+def get_hash_stateaction(state, patient_type, action, buffer_state):
     """
     Returns a hashable version of the state-action pair.
 
@@ -105,7 +168,7 @@ def get_hash_stateaction(state, patient_type, action):
 
     Returns: an integer representation of the state-action pair.
     """
-    hash_state_only = get_hash_state_only(state, patient_type)
+    hash_state_only = get_representative_hash_state(state, patient_type, buffer_state)
     return hash_state_only + action
 
 
@@ -127,11 +190,12 @@ def get_state_action_from_hashstate(hash_state):
     return hash_state_only, action
 
 
+
 @njit(cache=True)
 def get_stage2_staffing(state_row):
     """
     Gets the staffing requirements for Stage 2 patients only.
-    Converts a 7 and 8 bed ward configuration into integers,
+    Converts the 4, 4, 4, and 3 bed ward configurations into integers,
     and looks up the staffing tiling resource requirement
 
     Arguments:
@@ -139,13 +203,20 @@ def get_stage2_staffing(state_row):
 
     Returns: an integer number of staff required.
     """
-    idx8 = 0
-    for i in range(8):
-        idx8 += state_row[7 - i] << i
-    idx7 = 0
-    for i in range(7):
-        idx7 += state_row[14 - i] << i
-    return tiling_8[idx8] + tiling_7[idx7]
+    staffing = 0
+    idx41 = 0
+    idx42 = 0
+    idx43 = 0
+    for i in range(4):
+        idx41 += state_row[3 - i] << i
+        idx42 += state_row[7 - i] << i
+        idx43 += state_row[11 - i] << i
+    idx3 = 0
+    for i in range(3):
+        idx3 += state_row[14 - i] << i
+    staffing += tiling_4[idx41] + tiling_4[idx42] + tiling_4[idx43]
+    staffing += tiling_3[idx3]
+    return staffing
 
 
 @njit(cache=True)
@@ -448,76 +519,6 @@ def get_available_actions(state, patient_type, actions_pool):
                     valid_count += 1
     return actions_pool, valid_count
         
-
-
-@njit(cache=True)
-def get_available_actions_old(state, patient_type, actions_pool):
-    """
-    Lists all available actions that can happend when a patient of type
-    `patient_type` arrives when the ward is in state `state`.
-    An action takes the form:
-
-    (b, d)
-
-    where:
-      - b is the block that the new patient will be inserted into
-      - d is the block that patient will move to.
-
-    In cases where no bed moved happen, we have (b = d).
-
-    Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
-           the state of the ward.
-      + `patient_type`: the type of the patient to move, either
-           2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
-      + `actions_pool`: a pre-assigned numpy empty array of
-           size 16x17
-
-    Returns: an array of actions, where each row is an integer abc, and the
-             count of valid actions.
-    """
-    valid_count = 0
-
-    isolation_full = (state[15] + state[31] + state[47]) == 2
-    isolation_full_with_3i = state[(2 * 16) + 15] == 2
-
-    # First, check if Stage 3-I can go to isolation unit
-    if (patient_type == 2) and (not isolation_full):
-        actions_pool[valid_count] = 1515
-        valid_count += 1
-        return actions_pool, valid_count
-
-    available_blocks = get_available_noniso_insert_moves(state)
-
-    # Second, check if Stage 3-I can displace someone from an isolation unit
-    if (patient_type == 2) and isolation_full and (not isolation_full_with_3i):
-        for to_block in available_blocks:
-            actions_pool[valid_count] = 1500 + to_block
-            valid_count += 1
-        if state[15] > 0:
-            actions_pool[valid_count] = 1516
-            valid_count += 1
-        return actions_pool, valid_count
-
-    # Case A: Direct Insert (to_block == insert_block)
-    for insert_block in available_blocks:
-        actions_pool[valid_count] = (100 * insert_block) + insert_block
-        valid_count += 1
-    # Case B: Bed Move (to_block != insert_block)
-    for insert_block in range(16):
-        if state[(patient_type * 16) + insert_block] < max_capacities[insert_block]:
-            col_sum = state[insert_block] + state[16 + insert_block] + state[32 + insert_block] 
-            if col_sum > 0:
-                for to_block in available_blocks:
-                    if insert_block != to_block:
-                        if not (isolation_full_with_3i and (insert_block == 15)):
-                            if not (insert_block == 15 and patient_type == 0 and state[15] > 0):
-                                actions_pool[valid_count] = (100 * insert_block) + to_block
-                                valid_count += 1
-                if (state[insert_block] > 0) and (patient_type != 0):
-                    actions_pool[valid_count] = (100 * insert_block) + 16
-                    valid_count += 1
-    return actions_pool, valid_count
 
 
 

@@ -26,7 +26,8 @@ def choose_best_action(
     actions_pool,
     valid_count,
     Q_index_map,
-    qval_array
+    qval_array,
+    buffer_state
 ):
     """
     Chooses the best action.
@@ -45,9 +46,10 @@ def choose_best_action(
     Returns: an action, and the Q-value associated with that
              state-best-action pair
     """
-    hash_state_only = ward.get_hash_state_only(
+    hash_state_only = ward.get_representative_hash_state(
         state=state,
-        patient_type=patient_type
+        patient_type=patient_type,
+        buffer_state=buffer_state
     )
 
     available_actions_Q = np.zeros(valid_count)
@@ -74,7 +76,8 @@ def choose_action(
     epsilon,
     Q_index_map,
     qval_array,
-    actions_pool
+    actions_pool,
+    buffer_state
 ):
     """
     Randomly chooses an action (1-epsilon) of the time.
@@ -108,7 +111,8 @@ def choose_action(
             actions_pool=actions_pool,
             valid_count=valid_count,
             Q_index_map=Q_index_map,
-            qval_array=qval_array
+            qval_array=qval_array,
+            buffer_state=buffer_state
         )
         return a, Qa
 
@@ -120,7 +124,7 @@ def choose_action(
 
 
 @njit(cache=True)
-def exploit_policy(state, patient_type, policy, actions_pool):
+def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
     """
     Choose an action by exploiting the policy.
 
@@ -134,9 +138,10 @@ def exploit_policy(state, patient_type, policy, actions_pool):
 
     Returns: the best action.
     """
-    hash_state_only = ward.get_hash_state_only(
+    hash_state_only = ward.get_representative_hash_state(
         state=state,
-        patient_type=patient_type
+        patient_type=patient_type,
+        buffer_state=buffer_state
     )
     if hash_state_only in policy:
         return policy[hash_state_only]
