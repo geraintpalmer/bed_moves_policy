@@ -147,7 +147,7 @@ def get_best_future_reward(
         patient_type=patient_type,
         actions_pool=actions_pool
     )
-    hash_state_only = ward.get_representative_hash_state(
+    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=patient_type,
         buffer_state=buffer_state
@@ -231,7 +231,7 @@ def update_Q_values(
     if best_future_reward < check_worst:
         best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
 
-    next_hash_state = ward.get_hash_stateaction(
+    next_hash_state, equivalence_idx = ward.get_hash_stateaction(
         state=next_state,
         patient_type=next_patient_type,
         action=next_action,
@@ -339,8 +339,9 @@ def initialise_policy(keys_array, qval_array):
             prev_q = q
         elif q > prev_q:
             out_actions[idx] = np.int16(a)
+            prev_q = q
     idx += 1
-    return out_keys[:idx], out_actions[:idx]
+    return out_keys[:idx].copy(), out_actions[:idx].copy()
 
 
 

@@ -104,14 +104,14 @@ def test_get_representative_hash_state():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
     buffer_state = np.zeros(48, dtype=np.int64)
-    hS1 = ward.get_representative_hash_state(state=S1, patient_type=1, buffer_state=buffer_state)
-    hS2 = ward.get_representative_hash_state(state=S2, patient_type=1, buffer_state=buffer_state)
-    hS3 = ward.get_representative_hash_state(state=S3, patient_type=1, buffer_state=buffer_state)
-    hS4 = ward.get_representative_hash_state(state=S4, patient_type=1, buffer_state=buffer_state)
-    hS5 = ward.get_representative_hash_state(state=S5, patient_type=1, buffer_state=buffer_state)
-    hS6 = ward.get_representative_hash_state(state=S6, patient_type=1, buffer_state=buffer_state)
-    hS7 = ward.get_representative_hash_state(state=S7, patient_type=1, buffer_state=buffer_state)
-    hS8 = ward.get_representative_hash_state(state=S8, patient_type=1, buffer_state=buffer_state)
+    hS1, idx1 = ward.get_representative_hash_state(state=S1, patient_type=1, buffer_state=buffer_state)
+    hS2, idx2 = ward.get_representative_hash_state(state=S2, patient_type=1, buffer_state=buffer_state)
+    hS3, idx3 = ward.get_representative_hash_state(state=S3, patient_type=1, buffer_state=buffer_state)
+    hS4, idx4 = ward.get_representative_hash_state(state=S4, patient_type=1, buffer_state=buffer_state)
+    hS5, idx5 = ward.get_representative_hash_state(state=S5, patient_type=1, buffer_state=buffer_state)
+    hS6, idx6 = ward.get_representative_hash_state(state=S6, patient_type=1, buffer_state=buffer_state)
+    hS7, idx7 = ward.get_representative_hash_state(state=S7, patient_type=1, buffer_state=buffer_state)
+    hS8, idx8 = ward.get_representative_hash_state(state=S8, patient_type=1, buffer_state=buffer_state)
     assert hS1 == hS2 == hS3 == hS4 == hS5 == hS6 == hS7 == hS8
 
     # Now some states not in the same equivalence class.
@@ -130,9 +130,9 @@ def test_get_representative_hash_state():
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
     )
-    hZ1 = ward.get_representative_hash_state(state=Z1, patient_type=1, buffer_state=buffer_state)
-    hZ2 = ward.get_representative_hash_state(state=Z2, patient_type=1, buffer_state=buffer_state)
-    hZ3 = ward.get_representative_hash_state(state=Z3, patient_type=1, buffer_state=buffer_state)
+    hZ1, idx1 = ward.get_representative_hash_state(state=Z1, patient_type=1, buffer_state=buffer_state)
+    hZ2, idx2 = ward.get_representative_hash_state(state=Z2, patient_type=1, buffer_state=buffer_state)
+    hZ3, idx3 = ward.get_representative_hash_state(state=Z3, patient_type=1, buffer_state=buffer_state)
 
     assert hZ1 != hS1
     assert hZ2 != hS1
@@ -221,14 +221,14 @@ def test_get_hash_stateaction():
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
     )
-    Shash = ward.get_hash_stateaction(
+    Shash, idx = ward.get_hash_stateaction(
         state=S,
         patient_type=2,
         action=1104,
         buffer_state=buffer_state
     )
     assert Shash == 412377609521104
-
+    assert idx == 26
 
     hash_states = [
         ward.get_hash_stateaction(
@@ -236,7 +236,7 @@ def test_get_hash_stateaction():
             patient_type=1,
             action=(a * 1111),
             buffer_state=buffer_state
-        ) for a in range(9)
+        )[0] for a in range(9)
     ]
     assert hash_states == [10000, 11111, 12222, 13333, 14444, 15555, 16666, 17777, 18888]
 
@@ -251,7 +251,7 @@ def test_get_hash_stateaction():
             patient_type=2,
             action=np.array(a),
             buffer_state=buffer_state
-        ) for a in [2002, 1212, 2222, 3232, 4242, 5252, 6262, 7272]
+        )[0] for a in [2002, 1212, 2222, 3232, 4242, 5252, 6262, 7272]
     ]
     assert hash_states == [122002, 121212, 122222, 123232, 124242, 125252, 126262, 127272]
 
@@ -266,8 +266,8 @@ def test_get_hash_stateaction():
             patient_type=0,
             action=np.array(a),
             buffer_state=buffer_state
-        ) for a in [  20, 1221, 2222, 3223, 4224, 5225, 6226, 7227,
-                    8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007]
+        )[0] for a in [  20, 1221, 2222, 3223, 4224, 5225, 6226, 7227,
+                       8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007]
     ]
     assert hash_states == [
         900020, 901221, 902222, 903223, 904224, 905225, 906226, 907227,
@@ -285,10 +285,10 @@ def test_get_hash_stateaction():
             patient_type=1,
             action=np.array(a),
             buffer_state=buffer_state
-        ) for a in [ 110, 1111, 2212, 3313, 4414, 5515,
-                    6600, 6601, 6602, 6603, 6604, 6605,
-                    7700, 7701, 7702, 7703, 7704, 7705,
-                    8800, 8801, 8802, 8803, 8804, 8805]
+        )[0] for a in [ 110, 1111, 2212, 3313, 4414, 5515,
+                       6600, 6601, 6602, 6603, 6604, 6605,
+                       7700, 7701, 7702, 7703, 7704, 7705,
+                       8800, 8801, 8802, 8803, 8804, 8805]
     ]
     assert hash_states == [
         29410110, 29411111, 29412212, 29413313, 29414414, 29415515,
@@ -314,6 +314,58 @@ def test_get_state_action_from_hashstate():
     s, a = ward.get_state_action_from_hashstate(123456789123565)
     assert s == 123456789120000
     assert a == 3565
+
+
+def test_inverse_action():
+    # First consider transform T_1 and T_3 together. That is (0, 0, 1, 0, 1) = 2^2 + 2^0 = 5
+    a = ward.inverse_action(a=0, equivalence_idx=5)
+    assert a == 303
+    a = ward.inverse_action(a=100, equivalence_idx=5)
+    assert a == 203
+    a = ward.inverse_action(a=200, equivalence_idx=5)
+    assert a == 103
+    a = ward.inverse_action(a=300, equivalence_idx=5)
+    assert a == 3
+    a = ward.inverse_action(a=205, equivalence_idx=5)
+    assert a == 105
+    a = ward.inverse_action(a=307, equivalence_idx=5)
+    assert a == 7
+    a = ward.inverse_action(a=8, equivalence_idx=5)
+    assert a == 311
+    a = ward.inverse_action(a=509, equivalence_idx=5)
+    assert a == 510
+    a = ward.inverse_action(a=316, equivalence_idx=5)
+    assert a == 16
+    a = ward.inverse_action(a=616, equivalence_idx=5)
+    assert a == 616
+    # Now consider transform T_5, T_4 and T_2 together. That is (1, 1, 0, 1, 0) = 2^4 + 2^3 + 2^1 = 26
+    a = ward.inverse_action(a=2, equivalence_idx=26)
+    assert a == 705
+    a = ward.inverse_action(a=716, equivalence_idx=26)
+    assert a == 316
+    a = ward.inverse_action(a=310, equivalence_idx=26)
+    assert a == 410
+    a = ward.inverse_action(a=1406, equivalence_idx=26)
+    assert a == 1202
+    a = ward.inverse_action(a=1502, equivalence_idx=26)
+    assert a == 1505
+    # Now consider transform T_5 and T_4 together: That is (1, 1, 0, 0, 0) = 2^4 + 2^3 = 24
+    a = ward.inverse_action(a=2, equivalence_idx=24)
+    assert a == 406
+    a = ward.inverse_action(a=1214, equivalence_idx=24)
+    assert a == 1412
+    a = ward.inverse_action(a=1213, equivalence_idx=24)
+    assert a == 1413
+    a = ward.inverse_action(a=400, equivalence_idx=24)
+    assert a == 4
+    a = ward.inverse_action(a=107, equivalence_idx=24)
+    assert a == 503
+    a = ward.inverse_action(a=915, equivalence_idx=24)
+    assert a == 915
+    a = ward.inverse_action(a=1206, equivalence_idx=24)
+    assert a == 1402
+    a = ward.inverse_action(a=1008, equivalence_idx=24)
+    assert a == 1008
 
 
 def test_get_resource_use_per_time_unit():

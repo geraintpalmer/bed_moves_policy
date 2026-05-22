@@ -629,9 +629,9 @@ def test_long_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 168249.84
-    assert S.max_idx == 32184
-    assert len(S.Q_index_map) == 32184
+    assert S.overall_cost == 167142.52
+    assert S.max_idx == 31304
+    assert len(S.Q_index_map) == 31304
 
 
 def test_give_policy():

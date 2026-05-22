@@ -86,7 +86,7 @@ def test_get_best_future_reward():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hash_state = ward.get_representative_hash_state(
+    hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=0,
         buffer_state=buffer_state
@@ -133,7 +133,7 @@ def test_update_Q_values():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hash_state = ward.get_representative_hash_state(
+    hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=0,
         buffer_state=buffer_state
@@ -143,7 +143,7 @@ def test_update_Q_values():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    next_hash_state = ward.get_representative_hash_state(
+    next_hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=next_state,
         patient_type=0,
         buffer_state=buffer_state
@@ -267,7 +267,7 @@ def test_update_Q_values_default_future():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    next_hash_state = ward.get_representative_hash_state(
+    next_hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=next_state,
         patient_type=1,
         buffer_state=buffer_state
@@ -428,6 +428,17 @@ def test_initialise_policy():
     assert len(policy_actions) == 4
     assert np.array_equal(policy_keys, np.array([110000, 220000, 330000, 440000], dtype=np.int64))
     assert np.array_equal(policy_actions, np.array([404, 101, 101, 505], dtype=np.int16))
+
+    keys = np.array([220101, 220102, 220103, 220104, 220105, 330101, 330102, 330103])
+    vals = np.array([  -0.5,   -0.3,   -0.1,   -0.2,   -0.6,   -0.7,   -0.3,   -0.4])
+    policy_keys, policy_actions = rl.initialise_policy(
+        keys_array=keys,
+        qval_array=vals
+    )
+    assert len(policy_keys) == 2
+    assert len(policy_actions) == 2
+    assert np.array_equal(policy_keys, np.array([220000, 330000], dtype=np.int64))
+    assert np.array_equal(policy_actions, np.array([103, 102], dtype=np.int16))
 
 
 def test_block_sort_arrays():

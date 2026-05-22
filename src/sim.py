@@ -309,7 +309,7 @@ class WardSimulation:
 
         if self.patients_number_free > 0:
             a = self.decide_action(patient_type)
-            a1, a2 = ward.dehash_action(action_hash=a)            
+            a1, a2 = ward.dehash_action(action_hash=a)
             
             state_cost = get_state_cost(
                 state=self.state,
@@ -564,7 +564,7 @@ class WardTraining(WardSimulation):
                 buffer_state=self.buffer_state
             )
         else:
-            self.hash_state = ward.get_hash_stateaction(
+            self.hash_state, equivalence_idx = ward.get_hash_stateaction(
                 state=self.state,
                 patient_type=patient_type,
                 action=action,

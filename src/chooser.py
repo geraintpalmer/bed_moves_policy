@@ -46,7 +46,7 @@ def choose_best_action(
     Returns: an action, and the Q-value associated with that
              state-best-action pair
     """
-    hash_state_only = ward.get_representative_hash_state(
+    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=patient_type,
         buffer_state=buffer_state
@@ -54,7 +54,7 @@ def choose_best_action(
 
     available_actions_Q = np.zeros(valid_count)
     for i in range(valid_count):
-        key = hash_state_only + np.int64(actions_pool[i])
+        key = hash_state_only + np.int64(ward.inverse_action(actions_pool[i], equivalence_idx))
         if key in Q_index_map:
             idx = Q_index_map[key]
             available_actions_Q[i] = qval_array[np.int64(idx)]
@@ -66,7 +66,8 @@ def choose_best_action(
     )
 
     aidx = Qs_with_rnd.argmax()
-    return actions_pool[aidx], available_actions_Q[aidx]
+    a = actions_pool[aidx]
+    return a, available_actions_Q[aidx]
 
 
 @njit(cache=True)
@@ -138,15 +139,16 @@ def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
 
     Returns: the best action.
     """
-    hash_state_only = ward.get_representative_hash_state(
+    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=patient_type,
         buffer_state=buffer_state
     )
     if hash_state_only in policy:
-        return policy[hash_state_only]
+        a = policy[hash_state_only]
+        return ward.inverse_action(a, equivalence_idx)
 
-    available_actions, valid_count = ward.get_available_actions(
+    actions_pool, valid_count = ward.get_available_actions(
         state=state,
         patient_type=patient_type,
         actions_pool=actions_pool

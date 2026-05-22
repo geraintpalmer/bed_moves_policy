@@ -40,8 +40,8 @@ def evaluate(
     Runs
     """
     if initial_keys_path is not None:
-        initial_keys = np.load(initial_keys_path, mmap_mode='r')
-        initial_policy = np.load(initial_policy_path, mmap_mode='r')
+        initial_keys = np.memmap(initial_keys_path, dtype=np.int64, mode='r')
+        initial_policy = np.memmap(initial_policy_path, dtype=np.int16, mode='r')
     else:
         initial_keys = None
         initial_policy = None
@@ -118,10 +118,10 @@ if __name__ == '__main__':
                 keys_array=keys,
                 qval_array=qvals
             )
-            policy_keys_path = f"{args.experiment}/results/stage_{stage}_overall_policykeys_epsilon_{round(training_epsilons[stage-1], 3)}.npy"
-            np.save(policy_keys_path, policy_keys)
-            policy_actions_path = f"{args.experiment}/results/stage_{stage}_overall_policyactions_epsilon_{round(training_epsilons[stage-1], 3)}.npy"
-            np.save(policy_actions_path, policy_actions)
+            policy_keys_path = f"{args.experiment}/results/stage_{stage}_overall_policykeys_epsilon_{round(training_epsilons[stage-1], 3)}.bin"
+            policy_keys.tofile(policy_keys_path)
+            policy_actions_path = f"{args.experiment}/results/stage_{stage}_overall_policyactions_epsilon_{round(training_epsilons[stage-1], 3)}.bin"
+            policy_actions.tofile(policy_actions_path)
         else:
             policy_keys_path = None
             policy_actions_path = None

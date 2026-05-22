@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit
+import itertools
 
 hash_weights = np.array(
     (3 * 19 * (4 ** 14), 3 * 19 * (4 ** 13), 3 * 19 * (4 ** 12), 3 * 19 * (4 ** 11), 3 * 19 * (4 ** 10), 3 * 19 * (4 ** 9), 3 * 19 * (4 ** 8), 3 * 19 * (4 ** 7), 3 * 19 * (4 ** 6), 3 * 19 * (4 ** 5), 3 * 19 * (4 ** 4), 3 * 19 * (4 ** 3), 3 * 19 * (4 ** 2), 3 * 19 * (4 ** 1), 3 * 19, 9,
@@ -39,44 +40,42 @@ adjacency_matrix = np.array(
 tiling_4 = np.array([0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 2])
 tiling_3 = np.array([0, 1, 1, 1, 1, 2, 1, 2])
 
-equivalence_permutations = np.array(
-    [
-        [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 3,  2,  1,  0,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 19, 18, 17, 16, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 34, 33, 32, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 0,  1,  2,  3,  7,  6,  5,  4,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 23, 22, 21, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 39, 38, 37, 36, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 3,  2,  1,  0,  7,  6,  5,  4,  8,  9, 10, 11, 12, 13, 14, 15, 19, 18, 17, 16, 23, 22, 21, 20, 24, 25, 26, 27, 28, 29, 30, 31, 35, 34, 33, 32, 39, 38, 37, 36, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 0,  1,  2,  3,  4,  5,  6,  7, 11, 10,  9,  8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 26, 25, 24, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 3,  2,  1,  0,  4,  5,  6,  7, 11, 10,  9,  8, 12, 13, 14, 15, 19, 18, 17, 16, 20, 21, 22, 23, 27, 26, 25, 24, 28, 29, 30, 31, 35, 34, 33, 32, 36, 37, 38, 39, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 0,  1,  2,  3,  7,  6,  5,  4, 11, 10,  9,  8, 12, 13, 14, 15, 16, 17, 18, 19, 23, 22, 21, 20, 27, 26, 25, 24, 28, 29, 30, 31, 32, 33, 34, 35, 39, 38, 37, 36, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 3,  2,  1,  0,  7,  6,  5,  4, 11, 10,  9,  8, 12, 13, 14, 15, 19, 18, 17, 16, 23, 22, 21, 20, 27, 26, 25, 24, 28, 29, 30, 31, 35, 34, 33, 32, 39, 38, 37, 36, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 14, 13, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 30, 29, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 3,  2,  1,  0,  4,  5,  6,  7,  8,  9, 10, 11, 14, 13, 12, 15, 19, 18, 17, 16, 20, 21, 22, 23, 24, 25, 26, 27, 30, 29, 28, 31, 35, 34, 33, 32, 36, 37, 38, 39, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 0,  1,  2,  3,  7,  6,  5,  4,  8,  9, 10, 11, 14, 13, 12, 15, 16, 17, 18, 19, 23, 22, 21, 20, 24, 25, 26, 27, 30, 29, 28, 31, 32, 33, 34, 35, 39, 38, 37, 36, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 3,  2,  1,  0,  7,  6,  5,  4,  8,  9, 10, 11, 14, 13, 12, 15, 19, 18, 17, 16, 23, 22, 21, 20, 24, 25, 26, 27, 30, 29, 28, 31, 35, 34, 33, 32, 39, 38, 37, 36, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 0,  1,  2,  3,  4,  5,  6,  7, 11, 10,  9,  8, 14, 13, 12, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 26, 25, 24, 30, 29, 28, 31, 32, 33, 34, 35, 36, 37, 38, 39, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 3,  2,  1,  0,  4,  5,  6,  7, 11, 10,  9,  8, 14, 13, 12, 15, 19, 18, 17, 16, 20, 21, 22, 23, 27, 26, 25, 24, 30, 29, 28, 31, 35, 34, 33, 32, 36, 37, 38, 39, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 0,  1,  2,  3,  7,  6,  5,  4, 11, 10,  9,  8, 14, 13, 12, 15, 16, 17, 18, 19, 23, 22, 21, 20, 27, 26, 25, 24, 30, 29, 28, 31, 32, 33, 34, 35, 39, 38, 37, 36, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 3,  2,  1,  0,  7,  6,  5,  4, 11, 10,  9,  8, 14, 13, 12, 15, 19, 18, 17, 16, 23, 22, 21, 20, 27, 26, 25, 24, 30, 29, 28, 31, 35, 34, 33, 32, 39, 38, 37, 36, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 4,  5,  6,  7,  0,  1,  2,  3,  8,  9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29, 30, 31, 36, 37, 38, 39, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 4,  5,  6,  7,  3,  2,  1,  0,  8,  9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 19, 18, 17, 16, 24, 25, 26, 27, 28, 29, 30, 31, 36, 37, 38, 39, 35, 34, 33, 32, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 7,  6,  5,  4,  0,  1,  2,  3,  8,  9, 10, 11, 12, 13, 14, 15, 23, 22, 21, 20, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29, 30, 31, 39, 38, 37, 36, 32, 33, 34, 35, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 7,  6,  5,  4,  3,  2,  1,  0,  8,  9, 10, 11, 12, 13, 14, 15, 23, 22, 21, 20, 19, 18, 17, 16, 24, 25, 26, 27, 28, 29, 30, 31, 39, 38, 37, 36, 35, 34, 33, 32, 40, 41, 42, 43, 44, 45, 46, 47],
-        [ 4,  5,  6,  7,  0,  1,  2,  3, 11, 10,  9,  8, 12, 13, 14, 15, 20, 21, 22, 23, 16, 17, 18, 19, 27, 26, 25, 24, 28, 29, 30, 31, 36, 37, 38, 39, 32, 33, 34, 35, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 4,  5,  6,  7,  3,  2,  1,  0, 11, 10,  9,  8, 12, 13, 14, 15, 20, 21, 22, 23, 19, 18, 17, 16, 27, 26, 25, 24, 28, 29, 30, 31, 36, 37, 38, 39, 35, 34, 33, 32, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 7,  6,  5,  4,  0,  1,  2,  3, 11, 10,  9,  8, 12, 13, 14, 15, 23, 22, 21, 20, 16, 17, 18, 19, 27, 26, 25, 24, 28, 29, 30, 31, 39, 38, 37, 36, 32, 33, 34, 35, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 7,  6,  5,  4,  3,  2,  1,  0, 11, 10,  9,  8, 12, 13, 14, 15, 23, 22, 21, 20, 19, 18, 17, 16, 27, 26, 25, 24, 28, 29, 30, 31, 39, 38, 37, 36, 35, 34, 33, 32, 43, 42, 41, 40, 44, 45, 46, 47],
-        [ 4,  5,  6,  7,  0,  1,  2,  3,  8,  9, 10, 11, 14, 13, 12, 15, 20, 21, 22, 23, 16, 17, 18, 19, 24, 25, 26, 27, 30, 29, 28, 31, 36, 37, 38, 39, 32, 33, 34, 35, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 4,  5,  6,  7,  3,  2,  1,  0,  8,  9, 10, 11, 14, 13, 12, 15, 20, 21, 22, 23, 19, 18, 17, 16, 24, 25, 26, 27, 30, 29, 28, 31, 36, 37, 38, 39, 35, 34, 33, 32, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 7,  6,  5,  4,  0,  1,  2,  3,  8,  9, 10, 11, 14, 13, 12, 15, 23, 22, 21, 20, 16, 17, 18, 19, 24, 25, 26, 27, 30, 29, 28, 31, 39, 38, 37, 36, 32, 33, 34, 35, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 7,  6,  5,  4,  3,  2,  1,  0,  8,  9, 10, 11, 14, 13, 12, 15, 23, 22, 21, 20, 19, 18, 17, 16, 24, 25, 26, 27, 30, 29, 28, 31, 39, 38, 37, 36, 35, 34, 33, 32, 40, 41, 42, 43, 46, 45, 44, 47],
-        [ 4,  5,  6,  7,  0,  1,  2,  3, 11, 10,  9,  8, 14, 13, 12, 15, 20, 21, 22, 23, 16, 17, 18, 19, 27, 26, 25, 24, 30, 29, 28, 31, 36, 37, 38, 39, 32, 33, 34, 35, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 4,  5,  6,  7,  3,  2,  1,  0, 11, 10,  9,  8, 14, 13, 12, 15, 20, 21, 22, 23, 19, 18, 17, 16, 27, 26, 25, 24, 30, 29, 28, 31, 36, 37, 38, 39, 35, 34, 33, 32, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 7,  6,  5,  4,  0,  1,  2,  3, 11, 10,  9,  8, 14, 13, 12, 15, 23, 22, 21, 20, 16, 17, 18, 19, 27, 26, 25, 24, 30, 29, 28, 31, 39, 38, 37, 36, 32, 33, 34, 35, 43, 42, 41, 40, 46, 45, 44, 47],
-        [ 7,  6,  5,  4,  3,  2,  1,  0, 11, 10,  9,  8, 14, 13, 12, 15, 23, 22, 21, 20, 19, 18, 17, 16, 27, 26, 25, 24, 30, 29, 28, 31, 39, 38, 37, 36, 35, 34, 33, 32, 43, 42, 41, 40, 46, 45, 44, 47]
-    ], dtype=np.int64
-)
-
 max_possible_hash = np.iinfo(np.int64).max
+
+T1 = np.array([3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+T2 = np.array([0, 1, 2, 3, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+T3 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 11, 10, 9, 8, 12, 13, 14, 15], dtype=np.int64)
+T4 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 13, 12, 15], dtype=np.int64)
+T5 = np.array([4, 5, 6, 7, 0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+transforms = [T5, T4, T3, T2, T1]
+
+def generate_equivalence_permutations(transforms):
+    """
+    Generates the list of all 32 permutations out of the five
+    transforms, such that all those that use the swap transform
+    are in the second half of the list.
+
+    Arguments:
+      - `transforms`: the list of 5 transforms.
+
+    Returns: a list of all 32 possible combinations of transforms,
+      applied to the full 48 arrays.
+    """
+    n_transforms = len(transforms)
+    equivalence_permutations = np.zeros((2**n_transforms, 48), dtype=np.int64)
+    for j, vertex in enumerate(itertools.product([0, 1], repeat=n_transforms)):
+        original = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+        for i, v in enumerate(vertex):
+            if v == 1:
+                original = original[transforms[i]]
+        equivalence_permutations[j,:16] = original
+        equivalence_permutations[j,16:32] = original + 16
+        equivalence_permutations[j,32:] = original + 32
+    return equivalence_permutations
+
+
+equivalence_permutations = generate_equivalence_permutations(transforms)
+
 
 @njit(cache=True)
 def get_hash_state_only(state, patient_type):
@@ -108,9 +107,11 @@ def get_representative_hash_state(state, patient_type, buffer_state):
       + `buffer_state`: a 48-array with pre-allocated memory. 
 
     Returns: an integer representation of the state, with 0 placeholder
-    for an action.
+    for an action, and the index of the original state in the
+    equivalence_permutations array.
     """
     current_hash = max_possible_hash
+    current_idx = 0
     for equivalence_idx in range(32):
         p = equivalence_permutations[equivalence_idx]
         for i in range(48):
@@ -118,11 +119,23 @@ def get_representative_hash_state(state, patient_type, buffer_state):
         h = get_hash_state_only(state=buffer_state, patient_type=patient_type)
         if h <  current_hash:
             current_hash = h
-    return current_hash
+            current_idx = equivalence_idx
+    return current_hash, current_idx
 
 
 @njit(cache=True)
 def dehash_state(hash_state):
+    """
+    Returns the matrix representation and patient type,
+    from the hashed state integer.
+
+    Arguments:
+      - `hash_state`: the integer representation of the state only
+
+    Returns: a tuple of:
+      - `state`: the matrix representation of the state
+      - `patient_type`: an integer in {0, 1, 2} representing the patient type.
+    """
     patient_type = (hash_state % 100000) // 10000
     remainder = hash_state // 100000
     state = np.zeros(48, dtype=np.int16)
@@ -168,8 +181,12 @@ def get_hash_stateaction(state, patient_type, action, buffer_state):
 
     Returns: an integer representation of the state-action pair.
     """
-    hash_state_only = get_representative_hash_state(state, patient_type, buffer_state)
-    return hash_state_only + action
+    hash_state_only, idx = get_representative_hash_state(
+        state=state,
+        patient_type=patient_type,
+        buffer_state=buffer_state
+    )
+    return hash_state_only + action, idx
 
 
 @njit(cache=True)
@@ -189,6 +206,35 @@ def get_state_action_from_hashstate(hash_state):
     hash_state_only = hash_state - action
     return hash_state_only, action
 
+
+@njit(cache=True)
+def inverse_action(a, equivalence_idx):
+    """
+    Transforms the representative actions a1 and a2 into their
+    original actions, if the permutation used to get the
+    representative actions was `equivalence_idx`.
+
+    Arguments:
+      - `a`: the 4 digit action hash
+      - `equivalence_idx`: the permutation used to go from the
+      current state to the representative state.
+
+    Returns: the transformed a1 and a2.
+    """
+    a1, a2 = dehash_action(a)
+    if equivalence_idx < 16:
+        a1 = equivalence_permutations[equivalence_idx, a1]
+        if a2 < 16:
+            a2 = equivalence_permutations[equivalence_idx, a2]
+    else:
+        a1 = T5[a1]
+        a1 = equivalence_permutations[equivalence_idx, a1]
+        a1 = T5[a1]
+        if a2 < 16:
+            a2 = T5[a2]
+            a2 = equivalence_permutations[equivalence_idx, a2]
+            a2 = T5[a2]
+    return (a1 * 100) + a2
 
 
 @njit(cache=True)

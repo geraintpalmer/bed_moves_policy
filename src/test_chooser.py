@@ -27,30 +27,30 @@ def test_choose_best_action():
     sim.numba_seed(0)
     buffer_state = np.zeros(48, dtype=np.int64)
     state = np.array(
-        (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     patient_type = 1
-    actions_pool = np.array([1313, 1414, 1515, 0, 0, 0, 0, 0, 0], dtype=np.int64)
+    actions_pool = np.array([1212, 1313, 1515, 0, 0, 0, 0, 0, 0], dtype=np.int64)
     valid_count = 3
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
     )
-    hash_state = ward.get_representative_hash_state(
+    hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
-        patient_type=1,
+        patient_type=patient_type,
         buffer_state=buffer_state
     )
 
-    Q_index_map[hash_state + np.int64(1313)] = np.int32(0)
-    Q_index_map[hash_state + np.int64(1414)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(1212)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(1313)] = np.int32(1)
     Q_index_map[hash_state + np.int64(1515)] = np.int32(2)
     Qvals = np.array([55.4, 35.1, 78.2], dtype=np.float32)
     a, Qa = chooser.choose_best_action(
         state=state,
-        patient_type=1,
+        patient_type=patient_type,
         actions_pool=actions_pool,
         valid_count=valid_count,
         Q_index_map=Q_index_map,
@@ -60,26 +60,26 @@ def test_choose_best_action():
     assert a == 1515
     assert Qa == np.float32(78.2)
 
-    Q_index_map[hash_state + np.int64(1313)] = np.int32(0)
-    Q_index_map[hash_state + np.int64(1414)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(1212)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(1313)] = np.int32(1)
     Q_index_map[hash_state + np.int64(1515)] = np.int32(2)
     Qvals = np.array([155.4, 35.1, 78.2], dtype=np.float32)
 
     a, Qa = chooser.choose_best_action(
         state=state,
-        patient_type=1,
+        patient_type=patient_type,
         actions_pool=actions_pool,
         valid_count=valid_count,
         Q_index_map=Q_index_map,
         qval_array=Qvals,
         buffer_state=buffer_state
     )
-    assert a == 1313
+    assert a == 1212
     assert Qa == np.float32(155.4)
 
     # Test randomly chooses in a tie
-    Q_index_map[hash_state + np.int64(1313)] = np.int32(0)
-    Q_index_map[hash_state + np.int64(1414)] = np.int32(1)
+    Q_index_map[hash_state + np.int64(1212)] = np.int32(0)
+    Q_index_map[hash_state + np.int64(1313)] = np.int32(1)
     Q_index_map[hash_state + np.int64(1515)] = np.int32(2)
     Qvals = np.array([0.0, 0.0, 0.0], dtype=np.float32)
 
@@ -88,7 +88,7 @@ def test_choose_best_action():
     for i in range(N):
         a, Qa = chooser.choose_best_action(
             state=state,
-            patient_type=1,
+            patient_type=patient_type,
             actions_pool=actions_pool,
             valid_count=valid_count,
             Q_index_map=Q_index_map,
@@ -97,8 +97,8 @@ def test_choose_best_action():
         )
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[1313] / N, 5) == 0.33208
-    assert round(n_chosen_actions[1414] / N, 5) == 0.33185
+    assert round(n_chosen_actions[1212] / N, 5) == 0.33208
+    assert round(n_chosen_actions[1313] / N, 5) == 0.33185
     assert round(n_chosen_actions[1515] / N, 5) == 0.33607
 
 
@@ -111,9 +111,9 @@ def test_choose_action_10():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
+    hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
+    hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
+    hashS2, equivalence_idx2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
@@ -153,9 +153,9 @@ def test_choose_action_epsilon_00():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
+    hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
+    hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
+    hashS2, equivalence_idx2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
@@ -208,9 +208,9 @@ def test_choose_action_epsilon_07():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    hashS0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
-    hashS1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
-    hashS2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
+    hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
+    hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
+    hashS2, equivalence_idx2 = ward.get_hash_stateaction(state=S, patient_type=0, action=202, buffer_state=buffer_state)
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
