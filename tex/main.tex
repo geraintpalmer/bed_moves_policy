@@ -587,10 +587,11 @@ Section~\ref{sec:state_equivalences}.
 
 If two actions transform a state two different yet equivalent matrices, we only
 need to consider one of these actions.
-For example consider an action $a = (8, 12)$ and $a' = (8, 14)$ operating on a
-state $s = (M, 2)$, where Figure~\ref{fig:action_symmetries} shows beds B08 to
-B14 of $M$, before and after applying these actions - the resulting states are
-equivalent due to transform $T_4$.
+For example consider actions $a_1 = (8, 12)$, $a_2 = (8, 14)$, $a_3 = (11, 12)$,
+and $a_4 = (11, 14)$ operating on a state $s = (M, 2)$, where
+Figure~\ref{fig:action_symmetries} shows beds B08 to B14 of $M$, before and
+after applying these actions - the resulting states are equivalent due to
+transforms $T_3$, $T_4$ and $T_3 \circ T_4$.
 
 \begin{figure}
 \begin{center}
@@ -616,13 +617,13 @@ Section~\ref{sec:representative}.
 For a state $s = (M,p)$, $A_s$ can contain two equivalent actions when acting on
 $s$ if and only if $M$ is a fixed point of some permutation $P$, that is
 $P(M) = M$. Under this condition, any action $a = (b,d)$ where either $b$ or $d$
-is affected by $P$ has a unique equivalent action $a' = (P^{-1}(b), P^{-1}(d))$.
+is affected by $P$ has an equivalent action $a' = (P^{-1}(b), P^{-1}(d))$.
 \end{proposition}
 
 As a preliminary to the proof, consider that applying an action to a state
 results in a matrix that is the sum of the original matrix plus some sparse
 difference matrix with elements in $\{-1, 0, 1\}$; consider the example matrix
-$M^{\star}$ with $a = 3, 6)$, we have $a(M^{\star}, 2) = M^{\star} + \delta_a$,
+$M^{\star}$ with $a = (3, 6)$, we have $a(M^{\star}, 2) = M^{\star} + \delta_a$,
 where the matrix $\delta_a$ corresponds to removing a Stage 2 patient from bed
 B03, inserting a Stage 2 patient into bed B06, and inserting a Stage 3-I
 patient into bed B03:
@@ -635,8 +636,12 @@ patient into bed B03:
 \end{array}\right)
 \end{equation}
 
+Note that if $M$ is a fixed point of multiple permutations,
+$P_1, P_2, \dots P_n$, then $a, P_1(a), P_2(a), \dots P_n(a)$ are all
+equivalent, though not necessarily unique.  
+
 \begin{proof}
-Two actions, $a$ and $a'$ are equivalent if:
+Two actions, $a$ and $a'$ are equivalent if, for some permutation $P$:
 \begin{align}
 a(M) &= P(a'(M)) \\
 M + \delta_a &= P(M + \delta_{a'}) \\
@@ -659,8 +664,8 @@ For this to be true:
   to zero, hence $P(M) = M$, which is a contradiction.
 \end{itemize}
 
-Hence the only scenario that yields equivalent actions is $M$ being a fixed
-point, and $(P^{-1}(b), P^{-1}(d)) = P^{-1}(a) = a = (b, d)$.
+Hence equivalent actions can only arise under permutations $P$ for which $M$ 
+is a fixed point, and $a = (b, d) \equiv a' = (P^{-1}(b), P^{-1}(d))$.
 In order for $a \neq a'$, then either $b$ or $d$ must be columns affected
 by $P$.
 \end{proof}
