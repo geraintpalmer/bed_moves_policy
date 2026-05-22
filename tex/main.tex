@@ -38,7 +38,7 @@
 
 
 \title{\bf Improving ICU Patient Bed Moves Policies with Reinforcement Learning Based Simulation-Optimisation}
-\author{Geraint I. Palmer-Liyu, Mark Tuson, Virginia Ahedo \& Paul R. Harper}
+\author{Geraint I. Palmer-Liyu \and Mark Tuson \and Virginia Ahedo \and Paul R. Harper \and Mathew Pugh \and James Williams \and Matt Morgan}
 
 \begin{document}
 \maketitle
@@ -357,9 +357,9 @@ Therefore the total number of states $s = (M, p)$ is:
 \end{proof}
 
 
-\subsubsection{State Symmetries}\label{sec:state_symmetries}
+\subsubsection{State Equivalences}\label{sec:state_equivalences}
 
-The state matrices exhibit some symmetries.
+The state matrices exhibit some equivalences.
 In the three blocks of 4, and the block of 3, reversed configurations are
 equivalent up to a bed labelling.
 This is shown in Figure~\ref{fig:symmetries}.
@@ -371,12 +371,12 @@ configurations up to a labelling.
 \begin{center}
 \includegraphics[width=0.7\textwidth]{../images/symmetries.pdf}
 \end{center}
-\caption{Example of a symmetry in a block of 4 beds.}
+\caption{Example of an equivalence in a block of 4 beds.}
 \label{fig:symmetries}
 \end{figure}
 
 Therefore define four column-transformation operations on $\mathcal{M}$
-corresponding to these symmetries:
+corresponding to these equivalences:
 \begin{itemize}
   \item $T_1$: reversing columns 0 to 3;
   \item $T_2$: reversing columns 4 to 7;
@@ -483,7 +483,7 @@ including repeats, in any order.
 \end{itemize}
 \end{proof}
 
-As there are five symmetries, $|[M]| \leq 2^5 = 32$. By generating all 32 permutation using Proposition~\ref{thrm:generate_equivalence_classes} we ensure
+As there are five equivalences, $|[M]| \leq 2^5 = 32$. By generating all 32 permutation using Proposition~\ref{thrm:generate_equivalence_classes} we ensure
 all equivalent states are found, though some may duplicate.
 We can generate these in order in such a way that the first 16 elements do not
 use $T_5$ while the second 16 do use $T_5$, implying that knowing if our
@@ -494,7 +494,7 @@ is in the second half of the list.
 
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
 Enumerate combinatorially how many valid representative MDP states exist.
-Due to the four symmetries, I expect this to be around $2^5 = 32$ times smaller,
+Due to the five equivalences, I expect this to be around $2^5 = 32$ times smaller,
 not including symmetric states.
 \end{tcolorbox}
 
@@ -575,18 +575,31 @@ Enumerate combinatorially how many valid MDP states-action pairs exist.
 \end{tcolorbox}
 
 These action sets are defined for all states $s \in S$, however due to state
-symmetries, we only need to define them for all $s \in S^{\star}$.
+equivalences, we only need to define them for all $s \in S^{\star}$.
 When in state $s \neq S^{\star}$, we transform $s$ my permutation $P$ into a
 representative of its equivalence class, such that $P(s) \in S^{\star}$,
 Now a policy will then give an action $a$, which only applies to $P(s)$ and not
 $s$; to transform the action back, we use the inverse $P^{-1}(a)$ to get the
 corresponding action for $s$; where the inverse is given in
-Section~\ref{sec:state_symmetries}.
+Section~\ref{sec:state_equivalences}.
 
-\subsubsection{Action Symmetries}\label{sec:action_symmetries}
+\subsubsection{Action Equivalences}\label{sec:action_equivalences}
 
 If two actions transform a state two different yet equivalent matrices, we only
 need to consider one of these actions.
+For example consider an action $a = (8, 12)$ and $a' = (8, 14)$ operating on a
+state $s = (M, 2)$, where Figure~\ref{fig:action_symmetries} shows beds B08 to
+B14 of $M$, before and after applying these actions - the resulting states are
+equivalent due to transform $T_4$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{../images/action_symmetries.pdf}
+\end{center}
+\caption{Example of an action equivalence.}
+\label{fig:action_symmetries}
+\end{figure}
+
 Therefore define a relation $\equiv$ such that
 $a_1 \equiv a_2$ if $a_2(s) \sim a_1(s)$, that is if the ward states they
 produce belong to the same equivalence class.
@@ -600,12 +613,10 @@ How this representative action is chosen is detailed in
 Section~\ref{sec:representative}.
 
 \begin{proposition}
-The only states $s = (M, p)$ where $A_s$ can contain two equivalent actions are
-states where $P(M) = M$, for some permutation $P$.
-That is $M$ is a fixed point of $P$.
-The only equivalent actions in this case are $a = (b, d)$ and
-$P^{-1}(a) = (P^{-1}(b), P^{-1}(d))$, where either $b$ or $d$ are columns
-affected by $P$.
+For a state $s = (M,p)$, $A_s$ can contain two equivalent actions when acting on
+$s$ if and only if $M$ is a fixed point of some permutation $P$, that is
+$P(M) = M$. Under this condition, any action $a = (b,d)$ where either $b$ or $d$
+is affected by $P$ has a unique equivalent action $a' = (P^{-1}(b), P^{-1}(d))$.
 \end{proposition}
 
 As a preliminary to the proof, consider that applying an action to a state
@@ -640,7 +651,7 @@ For this to be true:
   \item either $P(M) = M$, and so $M$ is a fixed point of $P$, and
   $P(\delta_{a'}) = \delta_a$, implying that $P(a') = a$, and so
   $a' = P^{-1}(a)$;
-  \item $P(M) \neq M$. In this case the left hand side of
+  \item or $P(M) \neq M$. In this case the left hand side of
   Equation~\ref{eqn:action_symmetry_identity} must have the property that
   permuted columns have opposite signs.
   For the same property to occur in the right hand side, we must have
@@ -841,7 +852,7 @@ is the ward state given in Equation~\ref{eqn:example_M}.
 
 
 \subsubsection{Choosing Representative States and Actions}\label{sec:representative}
-In Sections~\ref{sec:state_symmetries} and~\ref{sec:action_symmetries} we
+In Sections~\ref{sec:state_equivalences} and~\ref{sec:action_equivalences} we
 introduced the idea of representative ward states and representative action,
 that can stand in place for all ward states and all actions in the same
 equivalence class.
