@@ -578,10 +578,53 @@ These action sets are defined for all states $s \in S$, however due to state
 equivalences, we only need to define them for all $s \in S^{\star}$.
 When in state $s \neq S^{\star}$, we transform $s$ my permutation $P$ into a
 representative of its equivalence class, such that $P(s) \in S^{\star}$,
-Now a policy will then give an action $a$, which only applies to $P(s)$ and not
-$s$; to transform the action back, we use the inverse $P^{-1}(a)$ to get the
-corresponding action for $s$; where the inverse is given in
-Section~\ref{sec:state_equivalences}.
+These state equivalences mean that when the simulation visits a particular
+state-action pair, the reinforcement learning agent will update the $Q$-value
+of a representative state-action pair.
+This is given in Proposition~\ref{thrm:representative_stateaction}, where
+applying the permutation to a state corresponds to applying the permutation to
+the corresponding ward state matrix: $P(s) = (P(M), p)$.
+
+\begin{proposition}\label{thrm:representative_stateaction}
+For the state-action pair $(s, a)$, the representative state-action pair is
+$(P(s), P^{-1}(a))$, where $P$ is the permutation that takes the state to its
+representative state.
+\end{proposition}
+
+\begin{proof}
+Let $s$, $a$ and $P$ be given, such that $P$ is the permutation that takes
+state $s$ to its representative state.
+Let $(s', a')$ be the representative state-action pair.
+
+It is clear that the state component of the representative state-action pair,
+$s' = P(s)$, be definition of $P$.
+
+If applying $a(s) = \tilde{s}$, we wish to find an action $a'$ such that
+$a'(s') = \tilde{s}'$, and that $\tilde{s}'$ can be reached from $\tilde{s}$ by
+the same permutation $P$.
+That is:
+
+\begin{align}
+P(\tilde{s}) &= \tilde{s}' \\
+P(a(s)) &= a'(s') \\
+P(a(s)) &= a'(P(s))
+\end{align}
+
+We wish that this relationship be true for any state $s$, and so we want the
+operations $P \circ a$ and $a' \circ P$ are equal:
+
+\begin{align}
+a' \circ P &= P \circ a \\
+a' \circ P \circ P^{-1} &= P \circ a \circ P^{-1} \\
+a' \circ \mathbb{I} &= P \circ a \circ P^{-1} \\
+a' &= P \circ a \circ P^{-1} \label{eqn:conjugate}
+\end{align}
+
+where Equation~\ref{eqn:conjugate} is a conjugation, which on permutations
+acts as a relabelling, we have that $a' = P^{-1}(a)$ \cite[p.~125]{dummit04},
+hence $(s', a') = (P(s), P^{-1}(a))$ as required.
+\end{proof}
+
 
 \subsubsection{Action Equivalences}\label{sec:action_equivalences}
 
@@ -669,6 +712,29 @@ is a fixed point, and $a = (b, d) \equiv a' = (P^{-1}(b), P^{-1}(d))$.
 In order for $a \neq a'$, then either $b$ or $d$ must be columns affected
 by $P$.
 \end{proof}
+
+An efficient way is needed to check which of the 32 permutations a state is a
+fixed point of.
+We propose to do this with a maximum of six checks: because $T_3$ and $T_4$
+operate on distinct sets of columns to the other transforms, then a fixed point
+of a permutation $P$ that is made up from composing $T_3$ or $T_4$ with any
+other combination of transforms must also be a fixed point of $T_3$ or $T_4$
+respectively.
+The other three transforms interact with the overlapping columns, and so a
+decision tree with a maximum of four checks is constructed, shown in
+Figure~\ref{fig:fixed_point_decision_tree}.
+Hence we can find the full set of permutations that a state is a fixed point of
+by checking it is a fixed point of $T_3$, of $T_4$, and then between two and
+four checks by following the decision tree.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{../images/fixed_point_decision_tree}
+\caption{Decision tree to check if a state is a fixed point of a permutation
+containing $T_1$, $T_2$, $T_5$, or compositions of their combinations.}
+\label{fig:fixed_point_decision_tree}
+\end{figure}
+
+
 
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
 Enumerate combinatorially how many valid representative MDP states-action pairs
