@@ -1,5 +1,4 @@
 import sim, ward, chooser, rl
-import ciw
 import yaml
 import argparse
 import numpy as np
@@ -50,22 +49,22 @@ def train(
 
     S = sim.WardTraining(
         arrival_distributions=[
-            ciw.dists.Exponential(rate=3.0),
-            ciw.dists.Exponential(rate=2.0),
-            ciw.dists.Exponential(rate=1.0)
+            ('Exponential', 3.0),
+            ('Exponential', 2.0),
+            ('Exponential', 1.0)
         ],
         los_distributions=[
-            ciw.dists.Exponential(rate=0.3),
-            ciw.dists.Exponential(rate=0.7),
-            ciw.dists.Exponential(rate=0.4)
+            ('Exponential', 0.3),
+            ('Exponential', 0.7),
+            ('Exponential', 0.4)
         ],
         deterioration_distributions=[
-            ciw.dists.Deterministic(value=np.inf),
-            ciw.dists.Deterministic(value=np.inf)
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
         ],
         improvement_distributions=[
-            ciw.dists.Deterministic(value=np.inf),
-            ciw.dists.Deterministic(value=np.inf)
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
         ],
         occupancy_arrival_probs=occupancy_arrival_probs,
         isolation_penalty=8.0,

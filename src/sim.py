@@ -5,6 +5,45 @@ import ward
 import chooser
 import rl
 
+def make_sampling_function(dist_info):
+    """
+    Makes an @njit sampling function.
+
+    Arguments:
+      - `dist_info`: a tuple containing the information of the distribution.
+           The first entry is a string of the distirbution's name,
+           remaining entries are the parameters, following Ciw's distirbution
+           intput parameter ordering.
+
+    Returns: a function that samples from that distribution.
+    """
+    if dist_info[0] == 'Exponential':
+        inv_rate = 1 / dist_info[1]
+        
+        @njit(cache=True)
+        def sample():
+            return -np.log(1.0 - np.random.random()) * inv_rate
+
+        return sample
+
+    if dist_info[0] == 'Deterministic':
+        value = dist_info[1]
+
+        @njit(cache=True)
+        def sample():
+            return value
+
+        return sample
+
+def get_mean(dist_info):
+    """
+    Return the expected value of a distribution.
+    """
+    if dist_info[0] == 'Exponential':
+        return 1 / dist_info[1]
+    if dist_info[0] == 'Deterministic':
+        return dist_info[1]
+
 @njit
 def numba_seed(seed):
     np.random.seed(seed)
@@ -134,10 +173,10 @@ class WardSimulation:
         np.random.seed(seed)
         numba_seed(seed)
 
-        self.arrival_distributions = arrival_distributions
-        self.los_distributions = los_distributions
-        self.deterioration_distributions = deterioration_distributions + [ciw.dists.Deterministic(value=np.inf)]
-        self.improvement_distributions = [ciw.dists.Deterministic(value=np.inf)] + improvement_distributions
+        self.arrival_distributions = tuple(make_sampling_function(dist_info) for dist_info in arrival_distributions)
+        self.los_distributions = tuple(make_sampling_function(dist_info) for dist_info in los_distributions)
+        self.deterioration_distributions = tuple(make_sampling_function(dist_info) for dist_info in deterioration_distributions + [('Deterministic', np.inf)])
+        self.improvement_distributions = tuple(make_sampling_function(dist_info) for dist_info in [('Deterministic', np.inf)] + improvement_distributions)
         self.occupancy_arrival_probs = occupancy_arrival_probs
         self.isolation_penalty = np.float32(isolation_penalty)
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
@@ -152,9 +191,9 @@ class WardSimulation:
 
         self.next_arrivals = np.array(
             [
-                self.arrival_distributions[0].sample(),
-                self.arrival_distributions[1].sample(),
-                self.arrival_distributions[2].sample()
+                self.arrival_distributions[0](),
+                self.arrival_distributions[1](),
+                self.arrival_distributions[2]()
             ]
         )
 
@@ -183,7 +222,7 @@ class WardSimulation:
         if M is not None:
             self.M = M
         else:
-            self.M = np.ceil(2 * max_time * sum((1/d.mean) for d in arrival_distributions)).astype(np.int64)
+            self.M = np.ceil(2 * max_time * sum((1/get_mean(d)) for d in arrival_distributions)).astype(np.int64)
         self.setup_qvals(initial_keys, initial_qvals, initial_policy)
 
     def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
@@ -244,7 +283,7 @@ class WardSimulation:
                         patient_type=patient_type
                     )
                 else:
-                    interarrival = self.arrival_distributions[patient_type].sample()
+                    interarrival = self.arrival_distributions[patient_type]()
                     self.next_arrivals[patient_type] += interarrival
 
                 next_arrival, patient_type = find_next_arrival_date(
@@ -306,11 +345,11 @@ class WardSimulation:
           + `patient_type`: the type of patient that the next arrival
                will be.
         """
-        interarrival = self.arrival_distributions[patient_type].sample()
+        interarrival = self.arrival_distributions[patient_type]()
         self.next_arrivals[patient_type] += interarrival
-        los = self.los_distributions[patient_type].sample()
-        det = self.deterioration_distributions[patient_type].sample()
-        imp = self.improvement_distributions[patient_type].sample()
+        los = self.los_distributions[patient_type]()
+        det = self.deterioration_distributions[patient_type]()
+        imp = self.improvement_distributions[patient_type]()
 
         if self.patients_number_free > 0:
             a, next_hash_state, next_equivalence_idx = self.decide_action(patient_type)
@@ -440,10 +479,10 @@ class WardSimulation:
         self.patients_patient_types[patient_idx] += 1
         det = self.deterioration_distributions[
             self.patients_patient_types[patient_idx]
-        ].sample()
+        ]()
         imp = self.improvement_distributions[
             self.patients_patient_types[patient_idx]
-        ].sample()
+        ]()
         self.patients_deterioration_dates[patient_idx] = self.now + det
         self.patients_improvement_dates[patient_idx] = self.now + imp
 
@@ -475,10 +514,10 @@ class WardSimulation:
         self.patients_patient_types[patient_idx] -= 1
         det = self.deterioration_distributions[
             self.patients_patient_types[patient_idx]
-        ].sample()
+        ]()
         imp = self.improvement_distributions[
             self.patients_patient_types[patient_idx]
-        ].sample()
+        ]()
         self.patients_deterioration_dates[patient_idx] = self.now + det
         self.patients_improvement_dates[patient_idx] = self.now + imp
 
