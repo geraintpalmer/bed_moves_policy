@@ -63,18 +63,28 @@ def generate_equivalence_permutations(transforms):
     """
     n_transforms = len(transforms)
     equivalence_permutations = np.zeros((2**n_transforms, 48), dtype=np.int64)
+    equivalence_inverse_permutations = np.zeros((2**n_transforms, 48), dtype=np.int64)
     for j, vertex in enumerate(itertools.product([0, 1], repeat=n_transforms)):
         original = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+        original_inv = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
+        if j > 16:
+            original_inv = original_inv[T5]
         for i, v in enumerate(vertex):
             if v == 1:
                 original = original[transforms[i]]
+                original_inv = original_inv[transforms[i]]
+        if j > 16:
+            original_inv = original_inv[T5]
         equivalence_permutations[j,:16] = original
         equivalence_permutations[j,16:32] = original + 16
         equivalence_permutations[j,32:] = original + 32
-    return equivalence_permutations
+        equivalence_inverse_permutations[j,:16] = original_inv
+        equivalence_inverse_permutations[j,16:32] = original_inv + 16
+        equivalence_inverse_permutations[j,32:] = original_inv + 32
+    return equivalence_permutations, equivalence_inverse_permutations
 
 
-equivalence_permutations = generate_equivalence_permutations(transforms)
+equivalence_permutations, equivalence_inverse_permutations = generate_equivalence_permutations(transforms)
 
 
 @njit(cache=True)
@@ -167,6 +177,18 @@ def dehash_action(action_hash):
 
 
 @njit(cache=True)
+def permute_action(action, equivalence_idx):
+    """
+    Permutes an action according to the `equivalence_idx`.
+    """
+    a1, a2 = dehash_action(action)
+    a1 = equivalence_permutations[equivalence_idx, a1]
+    if a2 < 16:
+        a2 = equivalence_permutations[equivalence_idx, a2]
+    return (100 * a1) + a2
+
+
+@njit(cache=True)
 def get_hash_stateaction(state, patient_type, action, buffer_state):
     """
     Returns a hashable version of the state-action pair.
@@ -179,14 +201,16 @@ def get_hash_stateaction(state, patient_type, action, buffer_state):
       + `hash_weights`: the array of weights that convert the state to
            a hash via a dot product.
 
-    Returns: an integer representation of the state-action pair.
+    Returns:
+      + an integer representation of the state-action pair.
+      + the equivalence index used to transform to the representative.
     """
     hash_state_only, idx = get_representative_hash_state(
         state=state,
         patient_type=patient_type,
         buffer_state=buffer_state
     )
-    return hash_state_only + action, idx
+    return hash_state_only + inverse_action(action, idx), idx
 
 
 @njit(cache=True)
@@ -222,18 +246,9 @@ def inverse_action(a, equivalence_idx):
     Returns: the transformed a1 and a2.
     """
     a1, a2 = dehash_action(a)
-    if equivalence_idx < 16:
-        a1 = equivalence_permutations[equivalence_idx, a1]
-        if a2 < 16:
-            a2 = equivalence_permutations[equivalence_idx, a2]
-    else:
-        a1 = T5[a1]
-        a1 = equivalence_permutations[equivalence_idx, a1]
-        a1 = T5[a1]
-        if a2 < 16:
-            a2 = T5[a2]
-            a2 = equivalence_permutations[equivalence_idx, a2]
-            a2 = T5[a2]
+    a1 = equivalence_inverse_permutations[equivalence_idx, a1]
+    if a2 < 16:
+        a2 = equivalence_inverse_permutations[equivalence_idx, a2]
     return (a1 * 100) + a2
 
 
@@ -589,6 +604,6 @@ def find_idx_of_patient_to_move(
     Returns: an index where they match.
     """
     for i in range(17):
-        if (patients_types[i] == patient_type) & (block == patients_blocks[i]):
+        if (block == patients_blocks[i]) and (patients_types[i] == patient_type):
             return i
     return -1

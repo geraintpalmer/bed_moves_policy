@@ -111,13 +111,14 @@ def update_master_head_inplace(vals1, hits1, vals2, hits2):
 @njit(cache=True)
 def get_best_future_reward(
     state,
+    hash_state,
     patient_type,
     qval_array,
     Q_index_map,
     just_chose_best,
     prev_best_Q,
     actions_pool,
-    buffer_state,
+    equivalence_idx,
 ):
     """
     Returns the maximum future reward if taking the optimal action
@@ -147,15 +148,14 @@ def get_best_future_reward(
         patient_type=patient_type,
         actions_pool=actions_pool
     )
-    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
-        state=state,
-        patient_type=patient_type,
-        buffer_state=buffer_state
+    hash_state_only, a = ward.get_state_action_from_hashstate(
+        hash_state=hash_state
     )
 
     best_Q = worst_Q
     for i in range(valid_count):
-        hash_state = hash_state_only + np.int64(actions_pool[i])
+        a = ward.inverse_action(actions_pool[i], equivalence_idx)
+        hash_state = hash_state_only + a
         if hash_state in Q_index_map:
             idx = Q_index_map[hash_state]
             Q = qval_array[idx]
@@ -171,6 +171,8 @@ def update_Q_values(
     next_state,
     next_patient_type,
     next_action,
+    next_hash_state,
+    next_equivalence_idx,
     states_array,
     qval_array,
     hits_array,
@@ -182,8 +184,7 @@ def update_Q_values(
     just_chose_best,
     prev_best_Q,
     default_future_reward,
-    actions_pool,
-    buffer_state
+    actions_pool
 ):
     """
     Updates the Q-values according to the Q-learning update:
@@ -220,23 +221,17 @@ def update_Q_values(
     """
     best_future_reward = get_best_future_reward(
         state=next_state,
+        hash_state=next_hash_state,
         patient_type=next_patient_type,
         qval_array=qval_array,
         Q_index_map=Q_index_map,
         just_chose_best=just_chose_best,
         prev_best_Q=prev_best_Q,
         actions_pool=actions_pool,
-        buffer_state=buffer_state
+        equivalence_idx=next_equivalence_idx
     )
     if best_future_reward < check_worst:
         best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
-
-    next_hash_state, equivalence_idx = ward.get_hash_stateaction(
-        state=next_state,
-        patient_type=next_patient_type,
-        action=next_action,
-        buffer_state=buffer_state
-    )
 
     try:
         idx = np.int64(Q_index_map[hash_state])
@@ -253,12 +248,14 @@ def update_Q_values(
         h = np.int16(1)
 
     newQ = (
-        ((1.0 - learning_rate) * oldQ)
-        + (learning_rate * (
+        (
+            (1.0 - learning_rate) * oldQ
+        ) + (learning_rate * (
             reward + (
                 discount_factor * best_future_reward
+                )
             )
-        ))
+        )
     )
     states_array[idx] = hash_state
     qval_array[idx] = np.float32(newQ)

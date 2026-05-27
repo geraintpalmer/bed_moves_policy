@@ -46,8 +46,13 @@ def find_next_activity_date(dates):
     Returns: the date of the next patient to exit, and the index
                of the patient to exit.
     """
-    idx = dates.argmin()
-    return dates[idx], idx
+    date = float('inf')
+    idx = -1
+    for bed in range(17):
+        if dates[bed] < date:
+            date = dates[bed]
+            idx = bed
+    return date, idx
 
 @njit(cache=True)
 def get_state_cost(state, update_time, prev_time, isolation_penalty):
@@ -308,9 +313,9 @@ class WardSimulation:
         imp = self.improvement_distributions[patient_type].sample()
 
         if self.patients_number_free > 0:
-            a = self.decide_action(patient_type)
+            a, next_hash_state, next_equivalence_idx = self.decide_action(patient_type)
             a1, a2 = ward.dehash_action(action_hash=a)
-            
+
             state_cost = get_state_cost(
                 state=self.state,
                 update_time=next_arrival,
@@ -334,7 +339,7 @@ class WardSimulation:
                 update_time=next_arrival
             )
             self.now = next_arrival
-            self.learn(patient_type, a)
+            self.learn(patient_type, a, next_hash_state, next_equivalence_idx)
 
             if a1 != a2:
                 move_idx = ward.find_idx_of_patient_to_move(
@@ -515,7 +520,7 @@ class WardTraining(WardSimulation):
 
         Returns: an action.
         """
-        a, Qa = chooser.choose_action(
+        a, Qa, next_hash_state, next_equivalence_idx = chooser.choose_action(
             state=self.state,
             patient_type=patient_type,
             epsilon=self.epsilon,
@@ -526,9 +531,9 @@ class WardTraining(WardSimulation):
         )
         self.just_chose_best = Qa is not None
         self.prev_best_Q = Qa
-        return a
+        return a, next_hash_state, next_equivalence_idx
 
-    def learn(self, patient_type, action):
+    def learn(self, patient_type, action, next_hash_state, next_equivalence_idx):
         """
         Performs some Q-Learning.
 
@@ -549,6 +554,8 @@ class WardTraining(WardSimulation):
                 next_state=self.state,
                 next_patient_type=patient_type,
                 next_action=action,
+                next_hash_state=next_hash_state,
+                next_equivalence_idx=next_equivalence_idx,
                 states_array=self.states,
                 qval_array=self.Qvals,
                 hits_array=self.hits,
@@ -560,8 +567,7 @@ class WardTraining(WardSimulation):
                 just_chose_best=self.just_chose_best,
                 prev_best_Q=self.prev_best_Q,
                 default_future_reward=self.average_reward,
-                actions_pool=self.actions_pool,
-                buffer_state=self.buffer_state
+                actions_pool=self.actions_pool
             )
         else:
             self.hash_state, equivalence_idx = ward.get_hash_stateaction(
@@ -619,9 +625,9 @@ class WardEvaluation(WardSimulation):
             actions_pool=self.actions_pool,
             buffer_state=self.buffer_state
         )
-        return a
+        return a, None, None
 
-    def learn(self, patient_type, action):
+    def learn(self, patient_type, action, next_hash_state, next_equivalence_idx):
         """
         Passes as no learning takes place.
         """

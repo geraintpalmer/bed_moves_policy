@@ -217,28 +217,28 @@ def test_dehash_state():
 def test_get_hash_stateaction():
     buffer_state = np.zeros(48, dtype=np.int64)
     S = np.array(
-        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0,
-         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        (0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0,
+         0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
     )
     Shash, idx = ward.get_hash_stateaction(
         state=S,
         patient_type=2,
-        action=1104,
+        action=1102,
         buffer_state=buffer_state
     )
-    assert Shash == 412377609521104
-    assert idx == 26
+    assert Shash == 412377609521102
+    assert idx == 0
 
     hash_states = [
         ward.get_hash_stateaction(
             state=ward.empty_state,
             patient_type=1,
-            action=(a * 1111),
+            action=(a * 101),
             buffer_state=buffer_state
         )[0] for a in range(9)
     ]
-    assert hash_states == [10000, 11111, 12222, 13333, 14444, 15555, 16666, 17777, 18888]
+    assert hash_states == [10000, 10101, 10202, 10303, 10404, 10505, 10606, 10707, 10808]
 
     S = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -251,51 +251,24 @@ def test_get_hash_stateaction():
             patient_type=2,
             action=np.array(a),
             buffer_state=buffer_state
-        )[0] for a in [2002, 1212, 2222, 3232, 4242, 5252, 6262, 7272]
+        )[0] for a in [101, 102, 103, 201, 202, 203, 1101, 1102, 1103]
     ]
-    assert hash_states == [122002, 121212, 122222, 123232, 124242, 125252, 126262, 127272]
+    assert hash_states == [120101, 120102, 120103, 120201, 120202, 120203, 121101, 121102, 121103]
 
     S = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0)
+    ) # The represenative state for this will have [12, 13, 14] flipped to [14, 13, 12]
     hash_states = [
         ward.get_hash_stateaction(
             state=S,
             patient_type=0,
             action=np.array(a),
             buffer_state=buffer_state
-        )[0] for a in [  20, 1221, 2222, 3223, 4224, 5225, 6226, 7227,
-                       8000, 8001, 8002, 8003, 8004, 8005, 8006, 8007]
+        )[0] for a in [101, 202, 1414, 1201, 1213, 1214] # So these actions will be flipped too
     ]
-    assert hash_states == [
-        900020, 901221, 902222, 903223, 904224, 905225, 906226, 907227,
-        908000, 908001, 908002, 908003, 908004, 908005, 908006, 908007
-    ]
-
-    S = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    )
-    hash_states = [
-        ward.get_hash_stateaction(
-            state=S,
-            patient_type=1,
-            action=np.array(a),
-            buffer_state=buffer_state
-        )[0] for a in [ 110, 1111, 2212, 3313, 4414, 5515,
-                       6600, 6601, 6602, 6603, 6604, 6605,
-                       7700, 7701, 7702, 7703, 7704, 7705,
-                       8800, 8801, 8802, 8803, 8804, 8805]
-    ]
-    assert hash_states == [
-        29410110, 29411111, 29412212, 29413313, 29414414, 29415515,
-        29416600, 29416601, 29416602, 29416603, 29416604, 29416605,
-        29417700, 29417701, 29417702, 29417703, 29417704, 29417705,
-        29418800, 29418801, 29418802, 29418803, 29418804, 29418805
-    ]
+    assert hash_states == [1900101, 1900202, 1901212, 1901401, 1901413, 1901412]
 
 
 def test_get_state_action_from_hashstate():

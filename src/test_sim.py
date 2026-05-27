@@ -596,7 +596,7 @@ def test_initial_array_preallocations():
     assert len(S.hits) == 1357
 
 
-def test_long_run():
+def test_long_training_run():
     S = sim.WardTraining(
         arrival_distributions=[
             ciw.dists.Exponential(rate=0.5),
@@ -629,10 +629,42 @@ def test_long_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 167142.52
-    assert S.max_idx == 31304
-    assert len(S.Q_index_map) == 31304
+    assert S.overall_cost == 166375.77
+    assert S.max_idx == 30904
+    assert len(S.Q_index_map) == 30904
 
+def test_long_evaluation_run():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ciw.dists.Exponential(rate=0.5),
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=1.5)
+        ],
+        los_distributions=[
+            ciw.dists.Exponential(rate=1.0),
+            ciw.dists.Exponential(rate=1.5),
+            ciw.dists.Exponential(rate=0.5)
+        ],
+        deterioration_distributions=[
+            ciw.dists.Exponential(rate=2.0),
+            ciw.dists.Exponential(rate=2.0)
+        ],
+        improvement_distributions=[
+            ciw.dists.Deterministic(value=np.inf),
+            ciw.dists.Deterministic(value=np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(18),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        epsilon=1.0,
+        seed=0,
+        max_time=10000.0,
+        warmup=1000.0
+    )
+    S.simulate_until_max_time()
+
+    assert S.overall_cost == 168162.66
 
 def test_give_policy():
     S = sim.WardEvaluation(

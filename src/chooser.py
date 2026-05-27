@@ -22,12 +22,13 @@ def choose_random_action(actions_pool, valid_count):
 @njit(cache=True)
 def choose_best_action(
     state,
+    hash_state_only,
+    equivalence_idx,
     patient_type,
     actions_pool,
     valid_count,
     Q_index_map,
-    qval_array,
-    buffer_state
+    qval_array
 ):
     """
     Chooses the best action.
@@ -46,28 +47,22 @@ def choose_best_action(
     Returns: an action, and the Q-value associated with that
              state-best-action pair
     """
-    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
-        state=state,
-        patient_type=patient_type,
-        buffer_state=buffer_state
-    )
-
-    available_actions_Q = np.zeros(valid_count)
+    best_Q = -np.float32(np.inf)
+    best_noisy_Q = -np.float32(np.inf)
+    best_idx = -1
     for i in range(valid_count):
         key = hash_state_only + np.int64(ward.inverse_action(actions_pool[i], equivalence_idx))
         if key in Q_index_map:
             idx = Q_index_map[key]
-            available_actions_Q[i] = qval_array[np.int64(idx)]
-
-    Qs_with_rnd = (
-        available_actions_Q + (
-            np.random.random(valid_count).astype(np.float32) * np.float32(10e-6)
-        )
-    )
-
-    aidx = Qs_with_rnd.argmax()
-    a = actions_pool[aidx]
-    return a, available_actions_Q[aidx]
+            Q = qval_array[np.int64(idx)]
+        else:
+            Q = np.float32(0.0)
+        noise = np.float32(np.random.random() * np.float32(1e-5))
+        if best_noisy_Q < (Q + noise):
+            best_Q = Q
+            best_noisy_Q = Q + noise
+            best_idx = i
+    return actions_pool[best_idx], best_Q
 
 
 @njit(cache=True)
@@ -105,23 +100,32 @@ def choose_action(
         patient_type=patient_type,
         actions_pool=actions_pool
     )
+    hash_state_only, equivalence_idx = ward.get_representative_hash_state(
+        state=state,
+        patient_type=patient_type,
+        buffer_state=buffer_state
+    )
+
     if np.random.random() < epsilon:
         a, Qa = choose_best_action(
             state=state,
+            hash_state_only=hash_state_only,
+            equivalence_idx=equivalence_idx,
             patient_type=patient_type,
             actions_pool=actions_pool,
             valid_count=valid_count,
             Q_index_map=Q_index_map,
-            qval_array=qval_array,
-            buffer_state=buffer_state
+            qval_array=qval_array
         )
-        return a, Qa
+        next_hash_state = hash_state_only + ward.inverse_action(a, equivalence_idx)
+        return a, Qa, next_hash_state, equivalence_idx
 
     a = choose_random_action(
         actions_pool=actions_pool,
         valid_count=valid_count
     )
-    return a, None
+    next_hash_state = hash_state_only + ward.inverse_action(a, equivalence_idx)
+    return a, None, next_hash_state, equivalence_idx
 
 
 @njit(cache=True)
@@ -144,9 +148,10 @@ def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
         patient_type=patient_type,
         buffer_state=buffer_state
     )
+
     if hash_state_only in policy:
         a = policy[hash_state_only]
-        return ward.inverse_action(a, equivalence_idx)
+        return ward.permute_action(a, equivalence_idx)
 
     actions_pool, valid_count = ward.get_available_actions(
         state=state,
