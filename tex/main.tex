@@ -858,12 +858,16 @@ When state-action pairs are visited for the first time, the state-action pair is
 added to the dictionary, mapping it to the $Q$-value calculated using
 Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other
 unexplored state-action pairs.
-In these cases, the overall average $Q$-value found up to that point is used as
-a default value, $\bar{Q}$, which can be obtained by keeping track of the
-overall average reward, $\bar{R}$, using Equation~\ref{eqn:averageQ}.
+In these cases, we want the baseline $Q$-value for unexplored states to be
+undesireable.
+Assuming $Q$-values follow a Normal distribution, we use their 20th percentile
+as a default value, $Q_{0.2}$, using Equation~\ref{eqn:averageQ}, which can be
+obtained by keeping track of the running mean and variance of the rewards,
+$\bar{R}$ and $s_R^2$, using updates such as Welford's update \cite{welford62},
+and the 20th percentile of the standard Normal distribution, $z_{0.2}$.
 
 \begin{equation}\label{eqn:averageQ}
-\bar{Q} = \frac{\bar{R}}{1 - \gamma}
+Q_{0.2} = \frac{\bar{R} - z_{0.2} s_R^2}{1 - \gamma}
 \end{equation}
 
 
@@ -1008,6 +1012,16 @@ stages.
 After each stage the combined $Q$-values are saved and so the incumbent policy
 can be evaluated by running the simulation, without any $Q$-learning, choosing
 actions based on that incumbent policy.
+
+As it is standard for any run of a simulation to begin from an empty state, a
+larger number of parallel trials at each stage yield the added benefit of
+obliging the agent to sufficiently explore early, near-empty states; despite
+visits to these states possibly being rarer in reality.
+This can be beneficial because the agent needs to learn a route from an empty
+state to the commonly visited states, especially those visited under an optimal
+policy, to ensure that any time a simulation is run it quickly reaches useful
+states.
+This is vital when researting each stage, but also for policy evaluation.
 
 
 \subsection{Pruning}
