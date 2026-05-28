@@ -25,6 +25,7 @@ def choose_best_action(
     hash_state_only,
     equivalence_idx,
     patient_type,
+    default_future_reward,
     actions_pool,
     valid_count,
     Q_index_map,
@@ -51,12 +52,13 @@ def choose_best_action(
     best_noisy_Q = -np.float32(np.inf)
     best_idx = -1
     for i in range(valid_count):
-        key = hash_state_only + np.int64(ward.inverse_action(actions_pool[i], equivalence_idx))
+        a = np.int64(ward.inverse_action(actions_pool[i], equivalence_idx))
+        key = hash_state_only + a
         if key in Q_index_map:
             idx = Q_index_map[key]
             Q = qval_array[np.int64(idx)]
         else:
-            Q = np.float32(0.0)
+            Q = np.float32(default_future_reward)
         noise = np.float32(np.random.random() * np.float32(1e-5))
         if best_noisy_Q < (Q + noise):
             best_Q = Q
@@ -70,6 +72,7 @@ def choose_action(
     state,
     patient_type,
     epsilon,
+    default_future_reward,
     Q_index_map,
     qval_array,
     actions_pool,
@@ -112,6 +115,7 @@ def choose_action(
             hash_state_only=hash_state_only,
             equivalence_idx=equivalence_idx,
             patient_type=patient_type,
+            default_future_reward=default_future_reward,
             actions_pool=actions_pool,
             valid_count=valid_count,
             Q_index_map=Q_index_map,

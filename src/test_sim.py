@@ -628,9 +628,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 166081.34
-    assert S.max_idx == 30917
-    assert len(S.Q_index_map) == 30917
+    assert S.overall_cost == 159589.88
+    assert S.max_idx == 24917
+    assert len(S.Q_index_map) == 24917
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(

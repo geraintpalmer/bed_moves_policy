@@ -179,7 +179,7 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=np.float32(-300),
-        default_future_reward=np.float32(-10),
+        default_future_reward=np.float32(-100),
         actions_pool=actions_pool
     )
     assert new_next_hash_state == 31876710310101
@@ -209,7 +209,7 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=False,
         prev_best_Q=np.float32(-300),
-        default_future_reward=np.float32(-10),
+        default_future_reward=np.float32(-100),
         actions_pool=actions_pool
     )
 
@@ -240,7 +240,7 @@ def test_update_Q_values():
         discount_factor=0.9,
         just_chose_best=True,
         prev_best_Q=np.float32(-10000),
-        default_future_reward=np.float32(-10),
+        default_future_reward=np.float32(-100),
         actions_pool=actions_pool
     )
 
@@ -315,7 +315,7 @@ def test_update_Q_values_default_future():
     assert len(Q_index_map) == 1
     assert max_idx == 1
     assert Q_index_map[hash_state + 808] == 0
-    assert Qvals[0] == np.float32((0.5 * 200) + (0.5 * (0.9 * (0.2 / 0.1))))
+    assert Qvals[0] == np.float32((0.5 * 200) + (0.5 * (0.9 * 0.2)))
     assert hits[0] == 1
 
 

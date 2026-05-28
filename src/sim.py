@@ -201,6 +201,7 @@ class WardSimulation:
         self.overall_cost = np.float32(0.0)
         self.previous_cost = np.float32(0.0)
         self.average_reward = np.float32(0.0)
+        self.variance_reward = np.float32(0.0)
         self.n_rewards = 0
         self.warmup = warmup
         self.warmup_cost = np.float32(0.0)
@@ -222,7 +223,7 @@ class WardSimulation:
         if M is not None:
             self.M = M
         else:
-            self.M = np.ceil(2 * max_time * sum((1/get_mean(d)) for d in arrival_distributions)).astype(np.int64)
+            self.M = np.ceil(2 * max_time * sum((1 / get_mean(d)) for d in arrival_distributions)).astype(np.int64)
         self.setup_qvals(initial_keys, initial_qvals, initial_policy)
 
     def setup_qvals(self, initial_keys, initial_qvals, initial_policy):
@@ -527,6 +528,20 @@ class WardSimulation:
         """
         pass
 
+    @property
+    def pessimistic_default(self):
+        """
+        This is the pessemistic default value used when no
+        exploration has been done, i.e. the Q-value for unexplored states.
+        It corresponds to the 20% percentile of a standard normal
+        distribution with mean and variance of the observed rewards.
+        """
+        if self.variance_reward <= 0.0:
+            return self.average_reward
+        stdev = self.variance_reward ** 0.5
+        percentile = self.average_reward - (0.84 * stdev)
+        return  percentile / (1.0 - self.discount_factor)
+
     def decide_action(self, patient_type):
         """
         Placeholder for deciding an action.
@@ -563,6 +578,7 @@ class WardTraining(WardSimulation):
             state=self.state,
             patient_type=patient_type,
             epsilon=self.epsilon,
+            default_future_reward=self.pessimistic_default,
             Q_index_map=self.Q_index_map,
             qval_array=self.Qvals,
             actions_pool=self.actions_pool,
@@ -585,6 +601,9 @@ class WardTraining(WardSimulation):
         self.previous_cost = self.overall_cost
 
         self.n_rewards += 1
+        if self.n_rewards > 1:
+            self.variance_reward *= ((self.n_rewards - 2) / (self.n_rewards - 1))
+            self.variance_reward += ((R - self.average_reward) ** 2) / self.n_rewards
         self.average_reward += ((R - self.average_reward) / self.n_rewards)
 
         if self.hash_state is not None:
@@ -605,7 +624,7 @@ class WardTraining(WardSimulation):
                 discount_factor=self.discount_factor,
                 just_chose_best=self.just_chose_best,
                 prev_best_Q=self.prev_best_Q,
-                default_future_reward=self.average_reward,
+                default_future_reward=self.pessimistic_default,
                 actions_pool=self.actions_pool
             )
         else:

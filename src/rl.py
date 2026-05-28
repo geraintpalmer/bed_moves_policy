@@ -231,7 +231,7 @@ def update_Q_values(
         equivalence_idx=next_equivalence_idx
     )
     if best_future_reward < check_worst:
-        best_future_reward = default_future_reward / (np.float32(1.0) - discount_factor)
+        best_future_reward = default_future_reward
 
     try:
         idx = np.int64(Q_index_map[hash_state])
