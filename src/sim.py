@@ -78,8 +78,8 @@ def find_next_activity_date(dates):
     patient that is to participate.
 
     Arguments:
-      + `dates`: a numpy array of length 17 representing the dates
-          of activity of the patients occupying each of the 17 beds
+      + `dates`: a numpy array of length 16 representing the dates
+          of activity of the patients occupying each of the 16 beds
           in the ward. An unoccupied bed will have value np.inf.
 
     Returns: the date of the next patient to exit, and the index
@@ -87,7 +87,7 @@ def find_next_activity_date(dates):
     """
     date = float('inf')
     idx = -1
-    for bed in range(17):
+    for bed in range(16):
         if dates[bed] < date:
             date = dates[bed]
             idx = bed
@@ -207,14 +207,14 @@ class WardSimulation:
         self.warmup_cost = np.float32(0.0)
         self.pre_warmup = True
 
-        self.actions_pool = np.empty(16 * 17, dtype=np.int32)
-        self.patients_patient_types = -np.ones(17, dtype='int64')
-        self.patients_exit_dates = np.ones(17) * np.inf
-        self.patients_deterioration_dates = np.ones(17) * np.inf
-        self.patients_improvement_dates = np.ones(17) * np.inf
-        self.patients_blocks = -np.ones(17, dtype='int64')
-        self.patients_free_indices = [i for i in range(17)]
-        self.patients_number_free = 17
+        self.actions_pool = np.empty(15 * 16, dtype=np.int32)
+        self.patients_patient_types = -np.ones(16, dtype='int64')
+        self.patients_exit_dates = np.ones(16) * np.inf
+        self.patients_deterioration_dates = np.ones(16) * np.inf
+        self.patients_improvement_dates = np.ones(16) * np.inf
+        self.patients_blocks = -np.ones(16, dtype='int64')
+        self.patients_free_indices = [i for i in range(16)]
+        self.patients_number_free = 16
 
         self.state = ward.empty_state.copy()
         self.buffer_state = ward.empty_state.copy()
@@ -278,7 +278,7 @@ class WardSimulation:
 
         while self.now < self.max_time:
             if (next_arrival <= next_exit) and (next_arrival <= next_deterioration) and (next_arrival < next_improvement):
-                if np.random.random() < self.occupancy_arrival_probs[17 - self.patients_number_free]:
+                if np.random.random() < self.occupancy_arrival_probs[16 - self.patients_number_free]:
                     self.arrival(
                         next_arrival=next_arrival,
                         patient_type=patient_type
@@ -395,7 +395,7 @@ class WardSimulation:
                     to_block=a2,
                     from_block=a1
                 )
-                if a2 == 16:
+                if a2 == 15:
                     self.patients_patient_types[move_idx] = -1
                     self.patients_exit_dates[move_idx] = np.inf
                     self.patients_deterioration_dates[move_idx] = np.inf

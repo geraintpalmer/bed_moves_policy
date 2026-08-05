@@ -10,7 +10,7 @@ def choose_random_action(actions_pool, valid_count):
 
     Arguments:
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
       + `valid_count`: the number of actions that are valid
 
     Returns: an action.
@@ -35,12 +35,12 @@ def choose_best_action(
     Chooses the best action.
 
     Arguments:
-      + `state` a numpy array of 27 integers {0, 1, 2, 3} representing
+      + `state` a numpy array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient arriving, either
            2: 'red', 1: 'amber', or 0: 'green'
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
       + `valid_count`: the number of actions that are valid
       + `Q_index_map`: dictionary of stateaction to indices
       + `qval_array`: array of q-values
@@ -83,7 +83,7 @@ def choose_action(
     Otherwise chooses the best.
 
     Arguments:
-      + `state` a numpy array of 27 integers {0, 1, 2, 3} representing
+      + `state` a numpy array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient arriving, either
            2: 'red', 1: 'amber', or 0: 'green'
@@ -92,7 +92,7 @@ def choose_action(
       + `Q_index_map`: dictionary of stateaction to indices
       + `qval_array`: array of q-values
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
 
     Returns: a tuple of two things: the best action (None if no action
                can be taken), the q-value associated with that best action
@@ -138,12 +138,12 @@ def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
     Choose an action by exploiting the policy.
 
     Arguments:
-      + `state` a numpy array of 27 integers {0, 1, 2, 3} representing
+      + `state` a numpy array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the arriving patient (0, 1, or 2)
       + `policy`: the Numba typed dictionary mapping hash states to best actions
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
 
     Returns: the best action.
     """

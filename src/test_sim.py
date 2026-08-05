@@ -55,9 +55,9 @@ def test_find_next_activity_date():
 
 def test_get_state_cost():
     S = np.array(
-        (0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
-         1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+         1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     cost = sim.get_state_cost(
         state=S,
@@ -68,9 +68,9 @@ def test_get_state_cost():
     assert cost == 99.0
 
     S = np.array(
-        (0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+        (0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
     )
 
     cost = sim.get_state_cost(
@@ -102,7 +102,7 @@ def test_WardSimulation_arrival_and_exit():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=2.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -113,21 +113,21 @@ def test_WardSimulation_arrival_and_exit():
         discount_factor=0.9
     )
     expected_state_before = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     expected_state_after = np.array(
-        (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     assert np.array_equal(S.next_arrivals, np.array([5.0, 9.0, 11.0]))
-    assert len(S.patients_patient_types) == 17
-    assert len(S.patients_exit_dates) == 17
-    assert len(S.patients_blocks) == 17
-    assert len(S.patients_free_indices) == 17
-    assert S.patients_number_free == 17
+    assert len(S.patients_patient_types) == 16
+    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_blocks) == 16
+    assert len(S.patients_free_indices) == 16
+    assert S.patients_number_free == 16
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == -1
     assert np.min(S.patients_blocks) == -1
@@ -137,32 +137,32 @@ def test_WardSimulation_arrival_and_exit():
     assert S.now == 0.0
     assert S.max_time == 500.0
     assert np.array_equal(S.state, expected_state_before)
-    assert np.array_equal(S.patients_free_indices, [i for i in range(17)])
+    assert np.array_equal(S.patients_free_indices, [i for i in range(16)])
 
     S.arrival(next_arrival=5.0, patient_type=0)
 
     assert np.array_equal(S.next_arrivals, np.array([10.0, 9.0, 11.0]))
     assert S.now == 5.0
     assert np.array_equal(S.state, expected_state_after)
-    assert len(S.patients_patient_types) == 17
-    assert len(S.patients_exit_dates) == 17
-    assert len(S.patients_blocks) == 17
-    assert len(S.patients_free_indices) == 16
+    assert len(S.patients_patient_types) == 16
+    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_blocks) == 16
+    assert len(S.patients_free_indices) == 15
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == 0
     assert np.min(S.patients_blocks) == -1
     assert np.max(S.patients_blocks) == 5
     assert np.min(S.patients_exit_dates) == 6.0
     assert np.max(S.patients_exit_dates) == np.inf
-    assert np.array_equal(S.patients_free_indices, [i for i in range(16)])
+    assert np.array_equal(S.patients_free_indices, [i for i in range(15)])
 
-    S.exit(patient_idx=16)
+    S.exit(patient_idx=15)
 
     assert np.array_equal(S.next_arrivals, np.array([10.0, 9.0, 11.0]))
-    assert len(S.patients_patient_types) == 17
-    assert len(S.patients_exit_dates) == 17
-    assert len(S.patients_blocks) == 17
-    assert len(S.patients_free_indices) == 17
+    assert len(S.patients_patient_types) == 16
+    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_blocks) == 16
+    assert len(S.patients_free_indices) == 16
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == -1
     assert np.min(S.patients_blocks) == -1
@@ -171,12 +171,12 @@ def test_WardSimulation_arrival_and_exit():
     assert np.max(S.patients_exit_dates) == np.inf
     assert S.now == 6.0
     assert np.array_equal(S.state, expected_state_before)
-    assert np.array_equal(S.patients_free_indices, [i for i in range(17)])
+    assert np.array_equal(S.patients_free_indices, [i for i in range(16)])
 
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([93388800101], dtype=np.int64)
+    keys = np.array([23347200101], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
     hits = np.array([34], dtype=np.int16)
     
@@ -199,7 +199,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -212,7 +212,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(93388800101) in S.Q_index_map
+    assert np.int64(23347200101) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -240,7 +240,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -253,7 +253,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(93388800101) in S.Q_index_map
+    assert np.int64(23347200101) in S.Q_index_map
     assert np.int64(22) in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -281,7 +281,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -294,7 +294,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(93388800101) in S.Q_index_map
+    assert np.int64(23347200101) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
 
@@ -318,7 +318,7 @@ def test_using_warmup():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -329,8 +329,8 @@ def test_using_warmup():
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 691.60815
-    assert S.warmup_cost == 691.60815
+    assert S.overall_cost == 631.70044
+    assert S.warmup_cost == 631.70044
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -351,7 +351,7 @@ def test_using_warmup():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -362,8 +362,8 @@ def test_using_warmup():
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 1014.19354
-    assert S.warmup_cost == 834.87354
+    assert S.overall_cost == 990.7791
+    assert S.warmup_cost == 867.35223
 
 
 def test_deterioration():
@@ -386,7 +386,7 @@ def test_deterioration():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -397,14 +397,14 @@ def test_deterioration():
     )
 
     S_A = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     S_B = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     
     S.simulate_until_max_time()
@@ -430,7 +430,7 @@ def test_deterioration():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -464,7 +464,7 @@ def test_improvement():
             ('Deterministic', 2.0),
             ('Deterministic', 2.0)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -475,14 +475,14 @@ def test_improvement():
     )
 
     S_A = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), dtype=np.int32
     )
     S_B = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     
     S.simulate_until_max_time()
@@ -508,7 +508,7 @@ def test_improvement():
             ('Deterministic', 2.0),
             ('Deterministic', 2.0)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -546,7 +546,7 @@ def test_initial_array_preallocations():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -579,7 +579,7 @@ def test_initial_array_preallocations():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -615,7 +615,7 @@ def test_long_training_run():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -628,9 +628,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 159589.88
-    assert S.max_idx == 24917
-    assert len(S.Q_index_map) == 24917
+    assert S.overall_cost == 172314.22
+    assert S.max_idx == 23729
+    assert len(S.Q_index_map) == 23729
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(
@@ -652,7 +652,7 @@ def test_long_evaluation_run():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -663,7 +663,7 @@ def test_long_evaluation_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 164496.78
+    assert S.overall_cost == 175482.17
 
 def test_give_policy():
     S = sim.WardEvaluation(
@@ -685,7 +685,7 @@ def test_give_policy():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -724,7 +724,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18),
+        occupancy_arrival_probs=np.ones(17),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -737,7 +737,7 @@ def test_state_dependent_arrivals():
     )
     S.simulate_until_max_time()
     assert len(S.Q_index_map) == 12
-    assert sum(S.state) == 13
+    assert sum(S.state) == 12
 
     S = sim.WardTraining(
         arrival_distributions=[
@@ -758,7 +758,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.ones(18)*0.5,
+        occupancy_arrival_probs=np.ones(17)*0.5,
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -792,7 +792,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', np.inf),
             ('Deterministic', np.inf)
         ],
-        occupancy_arrival_probs=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        occupancy_arrival_probs=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
@@ -804,5 +804,5 @@ def test_state_dependent_arrivals():
         warmup=1.0,
     )
     S.simulate_until_max_time()
-    assert len(S.Q_index_map) == 7
+    assert len(S.Q_index_map) == 8
     assert sum(S.state) == 8

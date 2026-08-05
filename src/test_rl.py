@@ -79,12 +79,12 @@ def test_can_update_empty_arrays():
 
 
 def test_get_best_future_reward():
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     state = np.array(
-        (0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
@@ -128,12 +128,12 @@ def test_get_best_future_reward():
 
 
 def test_update_Q_values():
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     state = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
@@ -141,9 +141,9 @@ def test_update_Q_values():
         buffer_state=buffer_state
     )
     next_state = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state, next_equivalence_idx = ward.get_representative_hash_state(
         state=next_state,
@@ -182,7 +182,7 @@ def test_update_Q_values():
         default_future_reward=np.float32(-100),
         actions_pool=actions_pool
     )
-    assert new_next_hash_state == 31876710310101
+    assert new_next_hash_state == 7969177510101
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -213,7 +213,7 @@ def test_update_Q_values():
         actions_pool=actions_pool
     )
 
-    assert new_next_hash_state == 31876710310101
+    assert new_next_hash_state == 7969177510101
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -244,7 +244,7 @@ def test_update_Q_values():
         actions_pool=actions_pool
     )
 
-    assert new_next_hash_state == 31876710310101
+    assert new_next_hash_state == 7969177510101
     assert len(Qvals) == 6
     assert len(hits) == 6
     assert len(states) == 6
@@ -256,12 +256,12 @@ def test_update_Q_values():
 
 
 def test_update_Q_values_default_future():
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     state = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hash_state, equivalence_idx = ward.get_representative_hash_state(
         state=state,
@@ -269,9 +269,9 @@ def test_update_Q_values_default_future():
         buffer_state=buffer_state
     )
     next_state = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     next_hash_state, next_equivalence_idx = ward.get_representative_hash_state(
         state=next_state,
@@ -308,7 +308,7 @@ def test_update_Q_values_default_future():
         actions_pool=actions_pool
     )
 
-    assert new_next_hash_state == 31876710310101
+    assert new_next_hash_state == 7969177510101
     assert len(Qvals) == 5
     assert len(hits) == 5
     assert len(states) == 5

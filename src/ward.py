@@ -3,37 +3,36 @@ from numba import njit
 import itertools
 
 hash_weights = np.array(
-    (3 * 19 * (4 ** 14), 3 * 19 * (4 ** 13), 3 * 19 * (4 ** 12), 3 * 19 * (4 ** 11), 3 * 19 * (4 ** 10), 3 * 19 * (4 ** 9), 3 * 19 * (4 ** 8), 3 * 19 * (4 ** 7), 3 * 19 * (4 ** 6), 3 * 19 * (4 ** 5), 3 * 19 * (4 ** 4), 3 * 19 * (4 ** 3), 3 * 19 * (4 ** 2), 3 * 19 * (4 ** 1), 3 * 19, 9,
-     2 * 19 * (4 ** 14), 2 * 19 * (4 ** 13), 2 * 19 * (4 ** 12), 2 * 19 * (4 ** 11), 2 * 19 * (4 ** 10), 2 * 19 * (4 ** 9), 2 * 19 * (4 ** 8), 2 * 19 * (4 ** 7), 2 * 19 * (4 ** 6), 2 * 19 * (4 ** 5), 2 * 19 * (4 ** 4), 2 * 19 * (4 ** 3), 2 * 19 * (4 ** 2), 2 * 19 * (4 ** 1), 2 * 19, 3,
-     1 * 19 * (4 ** 14), 1 * 19 * (4 ** 13), 1 * 19 * (4 ** 12), 1 * 19 * (4 ** 11), 1 * 19 * (4 ** 10), 1 * 19 * (4 ** 9), 1 * 19 * (4 ** 8), 1 * 19 * (4 ** 7), 1 * 19 * (4 ** 6), 1 * 19 * (4 ** 5), 1 * 19 * (4 ** 4), 1 * 19 * (4 ** 3), 1 * 19 * (4 ** 2), 1 * 19 * (4 ** 1), 1 * 19, 1
+    (3 * 19 * (4 ** 13), 3 * 19 * (4 ** 12), 3 * 19 * (4 ** 11), 3 * 19 * (4 ** 10), 3 * 19 * (4 ** 9), 3 * 19 * (4 ** 8), 3 * 19 * (4 ** 7), 3 * 19 * (4 ** 6), 3 * 19 * (4 ** 5), 3 * 19 * (4 ** 4), 3 * 19 * (4 ** 3), 3 * 19 * (4 ** 2), 3 * 19 * (4 ** 1), 3 * 19, 9,
+     2 * 19 * (4 ** 13), 2 * 19 * (4 ** 12), 2 * 19 * (4 ** 11), 2 * 19 * (4 ** 10), 2 * 19 * (4 ** 9), 2 * 19 * (4 ** 8), 2 * 19 * (4 ** 7), 2 * 19 * (4 ** 6), 2 * 19 * (4 ** 5), 2 * 19 * (4 ** 4), 2 * 19 * (4 ** 3), 2 * 19 * (4 ** 2), 2 * 19 * (4 ** 1), 2 * 19, 3,
+     1 * 19 * (4 ** 13), 1 * 19 * (4 ** 12), 1 * 19 * (4 ** 11), 1 * 19 * (4 ** 10), 1 * 19 * (4 ** 9), 1 * 19 * (4 ** 8), 1 * 19 * (4 ** 7), 1 * 19 * (4 ** 6), 1 * 19 * (4 ** 5), 1 * 19 * (4 ** 4), 1 * 19 * (4 ** 3), 1 * 19 * (4 ** 2), 1 * 19 * (4 ** 1), 1 * 19, 1
     ), dtype=np.int64
 )
 
 empty_state = np.array(
-    (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ), dtype=np.int32
 )
 
 adjacency_matrix = np.array(
     [
-        [2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 2, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 2, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 0, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 0, 0, 0, 0, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 0, 0, 0, 0, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 1, 3],
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3]
+        [2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 2, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 2, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 0, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 0, 0, 0, 0, 2, 0, 1, 1, 1, 1, 1, 1, 1, 3],
+        [0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 0, 0, 0, 0, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 0, 0, 0, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 2, 0, 0, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3]
     ], dtype=np.int32
 )
 
@@ -42,47 +41,46 @@ tiling_3 = np.array([0, 1, 1, 1, 1, 2, 1, 2])
 
 max_possible_hash = np.iinfo(np.int64).max
 
-T1 = np.array([3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
-T2 = np.array([0, 1, 2, 3, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
-T3 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 11, 10, 9, 8, 12, 13, 14, 15], dtype=np.int64)
-T4 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 14, 13, 12, 15], dtype=np.int64)
-T5 = np.array([4, 5, 6, 7, 0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
-transforms = [T5, T4, T3, T2, T1]
+T1 = np.array([3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
+T2 = np.array([0, 1, 2, 3, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
+T3 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 10, 9, 8, 11, 12, 13, 14], dtype=np.int64)
+T4 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 12, 11, 14], dtype=np.int64)
+T5 = np.array([4, 5, 6, 7, 0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
+T6 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 8, 9, 10, 14], dtype=np.int64)
+transforms = [T6, T5, T4, T3, T2, T1]
 
 def generate_equivalence_permutations(transforms):
     """
-    Generates the list of all 32 permutations out of the five
+    Generates the list of all 64 permutations out of the five
     transforms, such that all those that use the swap transform
     are in the second half of the list.
 
     Arguments:
-      - `transforms`: the list of 5 transforms.
+      - `transforms`: the list of transforms.
 
-    Returns: a list of all 32 possible combinations of transforms,
-      applied to the full 48 arrays.
+    Returns: a list of all 64 possible combinations of transforms,
+      applied to the full 45 arrays.
     """
     n_transforms = len(transforms)
-    equivalence_permutations = np.zeros((2**n_transforms, 48), dtype=np.int64)
-    equivalence_inverse_permutations = np.zeros((2**n_transforms, 48), dtype=np.int64)
+    n_perms = 2 ** n_transforms
+    equivalence_permutations = np.zeros((n_perms, 45), dtype=np.int64)
+    equivalence_inverse_permutations = np.zeros((n_perms, 45), dtype=np.int64)
     for j, vertex in enumerate(itertools.product([0, 1], repeat=n_transforms)):
-        original = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
-        original_inv = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], dtype=np.int64)
-        if j > 16:
-            original_inv = original_inv[T5]
+        original = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
+        original_inv = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
+
         for i, v in enumerate(vertex):
             if v == 1:
                 original = original[transforms[i]]
-                original_inv = original_inv[transforms[i]]
-        if j > 16:
-            original_inv = original_inv[T5]
-        equivalence_permutations[j,:16] = original
-        equivalence_permutations[j,16:32] = original + 16
-        equivalence_permutations[j,32:] = original + 32
-        equivalence_inverse_permutations[j,:16] = original_inv
-        equivalence_inverse_permutations[j,16:32] = original_inv + 16
-        equivalence_inverse_permutations[j,32:] = original_inv + 32
-    return equivalence_permutations, equivalence_inverse_permutations
+                original_inv = np.argsort(original)
 
+        equivalence_permutations[j,:15] = original
+        equivalence_permutations[j,15:30] = original + 15
+        equivalence_permutations[j,30:] = original + 30
+        equivalence_inverse_permutations[j,:15] = original_inv
+        equivalence_inverse_permutations[j,15:30] = original_inv + 15
+        equivalence_inverse_permutations[j,30:] = original_inv + 30
+    return equivalence_permutations, equivalence_inverse_permutations
 
 equivalence_permutations, equivalence_inverse_permutations = generate_equivalence_permutations(transforms)
 
@@ -114,7 +112,7 @@ def get_representative_hash_state(state, patient_type, buffer_state):
       + `state`: a numpy array representing the state of the system,
       + `patient_type`: an integer representing the arriving customer
            type.
-      + `buffer_state`: a 48-array with pre-allocated memory. 
+      + `buffer_state`: a 45-array with pre-allocated memory. 
 
     Returns: an integer representation of the state, with 0 placeholder
     for an action, and the index of the original state in the
@@ -122,9 +120,9 @@ def get_representative_hash_state(state, patient_type, buffer_state):
     """
     current_hash = max_possible_hash
     current_idx = 0
-    for equivalence_idx in range(32):
+    for equivalence_idx in range(64):
         p = equivalence_permutations[equivalence_idx]
-        for i in range(48):
+        for i in range(45):
             buffer_state[i] = state[p[i]]
         h = get_hash_state_only(state=buffer_state, patient_type=patient_type)
         if h <  current_hash:
@@ -148,7 +146,7 @@ def dehash_state(hash_state):
     """
     patient_type = (hash_state % 100000) // 10000
     remainder = hash_state // 100000
-    state = np.zeros(48, dtype=np.int16)
+    state = np.zeros(45, dtype=np.int16)
 
     order = np.argsort(hash_weights)[::-1]
     
@@ -183,7 +181,7 @@ def permute_action(action, equivalence_idx):
     """
     a1, a2 = dehash_action(action)
     a1 = equivalence_permutations[equivalence_idx, a1]
-    if a2 < 16:
+    if a2 < 15:
         a2 = equivalence_permutations[equivalence_idx, a2]
     return (100 * a1) + a2
 
@@ -247,7 +245,7 @@ def inverse_action(a, equivalence_idx):
     """
     a1, a2 = dehash_action(a)
     a1 = equivalence_inverse_permutations[equivalence_idx, a1]
-    if a2 < 16:
+    if a2 < 15:
         a2 = equivalence_inverse_permutations[equivalence_idx, a2]
     return (a1 * 100) + a2
 
@@ -256,7 +254,7 @@ def inverse_action(a, equivalence_idx):
 def get_stage2_staffing(state_row):
     """
     Gets the staffing requirements for Stage 2 patients only.
-    Converts the 4, 4, 4, and 3 bed ward configurations into integers,
+    Converts the 4, 4, 3, and 3 bed ward configurations into integers,
     and looks up the staffing tiling resource requirement
 
     Arguments:
@@ -267,16 +265,16 @@ def get_stage2_staffing(state_row):
     staffing = 0
     idx41 = 0
     idx42 = 0
-    idx43 = 0
     for i in range(4):
         idx41 += state_row[3 - i] << i
         idx42 += state_row[7 - i] << i
-        idx43 += state_row[11 - i] << i
-    idx3 = 0
+    idx31 = 0
+    idx32 = 0
     for i in range(3):
-        idx3 += state_row[14 - i] << i
-    staffing += tiling_4[idx41] + tiling_4[idx42] + tiling_4[idx43]
-    staffing += tiling_3[idx3]
+        idx31 += state_row[10 - i] << i
+        idx32 += state_row[13 - i] << i
+    staffing += tiling_4[idx41] + tiling_4[idx42]
+    staffing += tiling_3[idx31] + tiling_3[idx32]
     return staffing
 
 
@@ -290,12 +288,12 @@ def get_resource_use_per_time_unit(state):
     + One FTE per red patient
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
 
     Returns: and integer number of resources used per time unit.
     """
-    return get_stage2_staffing(state[:15]) + state[15:].sum()
+    return get_stage2_staffing(state[:14]) + state[14:].sum()
 
 
 @njit(cache=True, fastmath=True)
@@ -305,14 +303,14 @@ def get_penalty_per_time_unit(state, isolation_penalty):
     general block
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `isolation_penalty`: the numerical penalty patient per
            time unit of not being in an isolation ward.
 
     Returns: a numerical penalty per time unit for the given state.
     """
-    return state[32:47].sum() * isolation_penalty
+    return state[30:44].sum() * isolation_penalty
 
 
 @njit(cache=True)
@@ -351,7 +349,7 @@ def insert_patient(state, patient_type, to_block):
     Returns the state that results from inserting a patient.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient being inserted, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
@@ -359,7 +357,7 @@ def insert_patient(state, patient_type, to_block):
 
     Returns: a numpy array representing the state after the insert.
     """
-    state[(patient_type * 16) + to_block] += 1
+    state[(patient_type * 15) + to_block] += 1
 
 
 @njit(cache=True)
@@ -368,7 +366,7 @@ def move_patient(state, patient_type, to_block, from_block):
     Returns the state that results from moving a patient.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient being inserted, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
@@ -379,9 +377,9 @@ def move_patient(state, patient_type, to_block, from_block):
                patient.
     """
     find_patient_type_to_move(state=state, from_block=from_block)
-    state[(patient_type * 16) + from_block] -= 1
-    if to_block != 16:
-        state[(patient_type * 16) + to_block] += 1
+    state[(patient_type * 15) + from_block] -= 1
+    if to_block != 15:
+        state[(patient_type * 15) + to_block] += 1
 
 
 @njit(cache=True)
@@ -391,7 +389,7 @@ def find_patient_type_to_move(state, from_block):
     returns the type of patient that is to be moved.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `from_block`: the block the patient was removed from
 
@@ -399,7 +397,7 @@ def find_patient_type_to_move(state, from_block):
         to move.
     """
     patient_type = 0
-    while patient_type < 2 and state[(patient_type * 16) + from_block] == 0:
+    while patient_type < 2 and state[(patient_type * 15) + from_block] == 0:
         patient_type += 1
     return patient_type
 
@@ -410,7 +408,7 @@ def remove_patient(state, patient_type, from_block):
     Returns the state that results from removing a patient.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient being removed, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
@@ -419,7 +417,7 @@ def remove_patient(state, patient_type, from_block):
     Returns: a numpy array representing the state after removing the
                patient.
     """
-    state[(patient_type * 16) + from_block] -= 1
+    state[(patient_type * 15) + from_block] -= 1
 
 @njit(cache=True)
 def deteriorate_patient(state, patient_type, block):
@@ -427,7 +425,7 @@ def deteriorate_patient(state, patient_type, block):
     Returns the state that results from a patient deteriorating.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient deteriorating, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
@@ -435,8 +433,8 @@ def deteriorate_patient(state, patient_type, block):
 
     Returns: a numpy array representing the state after the deterioration.
     """
-    state[(patient_type * 16) + block] -= 1
-    state[((patient_type + 1) * 16) + block] += 1
+    state[(patient_type * 15) + block] -= 1
+    state[((patient_type + 1) * 15) + block] += 1
 
 
 @njit(cache=True)
@@ -445,7 +443,7 @@ def improve_patient(state, patient_type, block):
     Returns the state that results from a patient improving.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient improving, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
@@ -453,8 +451,8 @@ def improve_patient(state, patient_type, block):
 
     Returns: a numpy array representing the state after the improvement.
     """
-    state[(patient_type * 16) + block] -= 1
-    state[((patient_type - 1) * 16) + block] += 1
+    state[(patient_type * 15) + block] -= 1
+    state[((patient_type - 1) * 15) + block] += 1
 
 
 @njit(cache=True)
@@ -463,12 +461,12 @@ def get_available_noniso_insert_moves(state):
     Lists all available places where a patient can be inserted.
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
 
-    Returns: a list of blocks that the patient can be inserted.    
+    Returns: a list of blocks that the patient can be inserted.
     """
-    occupancy = state[0:15] + state[16:31] + state[32:47]
+    occupancy = state[0:14] + state[15:29] + state[30:44]
     return (occupancy < 1).nonzero()[0]
 
 
@@ -488,21 +486,21 @@ def get_available_actions(state, patient_type, actions_pool):
     In cases where no bed moved happen, we have (b = d).
 
     Arguments:
-      + `state` an array of 48 integers {0, 1, 2} representing
+      + `state` an array of 45 integers {0, 1, 2} representing
            the state of the ward.
       + `patient_type`: the type of the patient to move, either
            2: 'Stage 3-I', 1: 'Stage 3', or 0: 'Stage 2'
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 16x17
+           size 15x16
 
-    Returns: an array of actions, where each row is an integer abc, and the
+    Returns: an array of actions, where each row is an integer bd, and the
              count of valid actions.
     """
     valid_count = 0
 
-    isolation_has_0 = state[15] > 0
-    isolation_full = (state[15] + state[31] + state[47]) == 2
-    isolation_full_with_3i = state[(2 * 16) + 15] == 2
+    isolation_has_0 = state[14] > 0
+    isolation_full = (state[14] + state[29] + state[44]) == 2
+    isolation_full_with_3i = state[(2 * 15) + 14] == 2
     available_blocks = get_available_noniso_insert_moves(state)
 
     if patient_type == 2:
@@ -510,44 +508,44 @@ def get_available_actions(state, patient_type, actions_pool):
             for a1 in available_blocks:
                 actions_pool[valid_count] = a1 * 101
                 valid_count += 1
-            beds_with_0 = np.where(state[:15] > 0)[0]
+            beds_with_0 = np.where(state[:14] > 0)[0]
             for a1 in beds_with_0:
                 for a2 in available_blocks:
                     actions_pool[valid_count] = (a1 * 100) + a2
                     valid_count += 1
-                actions_pool[valid_count] = (a1 * 100) + 16
+                actions_pool[valid_count] = (a1 * 100) + 15
                 valid_count += 1
-            beds_with_1 = np.where(state[16:31] > 0)[0]
+            beds_with_1 = np.where(state[15:29] > 0)[0]
             for a1 in beds_with_1:
                 for a2 in available_blocks:
                     actions_pool[valid_count] = (a1 * 100) + a2
                     valid_count += 1
         elif isolation_full:
             for a2 in available_blocks:
-                actions_pool[valid_count] = 1500 + a2
+                actions_pool[valid_count] = 1400 + a2
                 valid_count += 1
             if isolation_has_0:
-                actions_pool[valid_count] = 1516
+                actions_pool[valid_count] = 1415
                 valid_count += 1
         elif not isolation_full:
-            actions_pool[valid_count] = 1515
+            actions_pool[valid_count] = 1414
             valid_count += 1
     if patient_type == 1:
         for a1 in available_blocks:
             actions_pool[valid_count] = a1 * 101
             valid_count += 1
         if not isolation_full:
-            actions_pool[valid_count] = 1515
+            actions_pool[valid_count] = 1414
             valid_count += 1
-        beds_with_0 = np.where(state[:15] > 0)[0]
+        beds_with_0 = np.where(state[:14] > 0)[0]
         for a1 in beds_with_0:
             for a2 in available_blocks:
                 if a1 != a2:
                     actions_pool[valid_count] = (a1 * 100) + a2
                     valid_count += 1
-            actions_pool[valid_count] = (a1 * 100) + 16
+            actions_pool[valid_count] = (a1 * 100) + 15
             valid_count += 1
-        beds_with_2 = np.where(state[32:47] > 0)[0]
+        beds_with_2 = np.where(state[30:45] > 0)[0]
         for a1 in beds_with_2:
             for a2 in available_blocks:
                 if a1 != a2:
@@ -555,24 +553,24 @@ def get_available_actions(state, patient_type, actions_pool):
                     valid_count += 1
         if isolation_has_0:
             for a2 in available_blocks:
-                actions_pool[valid_count] = 1500 + a2
+                actions_pool[valid_count] = 1400 + a2
                 valid_count += 1
-            actions_pool[valid_count] = 1516
+            actions_pool[valid_count] = 1415
             valid_count += 1
     if patient_type == 0:
         for a1 in available_blocks:
             actions_pool[valid_count] = a1 * 101
             valid_count += 1
         if (len(available_blocks) == 0) and (not isolation_full):
-            actions_pool[valid_count] = 1515
+            actions_pool[valid_count] = 1414
             valid_count += 1
-        beds_with_1 = np.where(state[16:31] > 0)[0]
+        beds_with_1 = np.where(state[15:29] > 0)[0]
         for a1 in beds_with_1:
             for a2 in available_blocks:
                 if a1 != a2:
                     actions_pool[valid_count] = (a1 * 100) + a2
                     valid_count += 1
-        beds_with_2 = np.where(state[32:47] > 0)[0]
+        beds_with_2 = np.where(state[30:45] > 0)[0]
         for a1 in beds_with_2:
             for a2 in available_blocks:
                 if a1 != a2:
@@ -596,14 +594,14 @@ def find_idx_of_patient_to_move(
     Arguments:
       + `block`: the block we want to match
       + `patient_type`: the patient type we want to match
-      + `patients_blocks`: a numpy array of length 17 representing the blocks
+      + `patients_blocks`: a numpy array of length 16 representing the blocks
             where each of the patients are
-      + `patients_types`: a numpy array of length 17 representing the patient
+      + `patients_types`: a numpy array of length 16 representing the patient
             types of each patient
 
     Returns: an index where they match.
     """
-    for i in range(17):
+    for i in range(16):
         if (block == patients_blocks[i]) and (patients_types[i] == patient_type):
             return i
     return -1

@@ -135,7 +135,7 @@ def get_best_future_reward(
              simulation chose the best action in the previous step
       + `prev_best_Q`: the previously chosen best q-value
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
 
     Returns: the maximum expected future reward from following the
       best actions from this state onwards.
@@ -214,7 +214,7 @@ def update_Q_values(
       + `default_future_reward`: the future reward given if all
            future actions unexplored
       + `actions_pool`: a pre-assigned numpy empty array of
-           size 9 + (9 * 2 * 8)
+           size 15 * 16
 
     Returns: (updates the Qvals and hits dictionaries) and returns
              the hash state of the newly reached state.

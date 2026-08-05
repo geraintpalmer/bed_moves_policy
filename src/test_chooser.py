@@ -8,7 +8,7 @@ from numba import typed, types
 def test_choose_random_action():
     sim.numba_seed(0)
     chosen_actions = []
-    actions_pool = np.array([616, 717, 826, 0, 0, 0, 0, 0, 0])
+    actions_pool = np.array([615, 713, 802, 0, 0, 0, 0, 0, 0])
     valid_count = 3
     N = 100000
     for i in range(N):
@@ -18,21 +18,21 @@ def test_choose_random_action():
         )
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[616] / N, 5) == 0.33404
-    assert round(n_chosen_actions[717] / N, 5) == 0.33343
-    assert round(n_chosen_actions[826] / N, 5) == 0.33253
+    assert round(n_chosen_actions[615] / N, 5) == 0.33404
+    assert round(n_chosen_actions[713] / N, 5) == 0.33343
+    assert round(n_chosen_actions[802] / N, 5) == 0.33253
 
 
 def test_choose_best_action():
     sim.numba_seed(0)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    buffer_state = np.zeros(45, dtype=np.int64)
     state = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     patient_type = 1
-    actions_pool = np.array([1212, 1313, 1515, 0, 0, 0, 0, 0, 0], dtype=np.int64)
+    actions_pool = np.array([808, 909, 1414, 0, 0, 0, 0, 0, 0], dtype=np.int64)
     valid_count = 3
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
@@ -44,9 +44,9 @@ def test_choose_best_action():
         buffer_state=buffer_state
     )
 
-    Q_index_map[hash_state_only + np.int64(1212)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(1313)] = np.int32(1)
-    Q_index_map[hash_state_only + np.int64(1515)] = np.int32(2)
+    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([55.4, 35.1, 78.2], dtype=np.float32)
     a, Qa = chooser.choose_best_action(
         state=state,
@@ -59,12 +59,12 @@ def test_choose_best_action():
         Q_index_map=Q_index_map,
         qval_array=Qvals
     )
-    assert a == 1515
+    assert a == 1414
     assert Qa == np.float32(78.2)
 
-    Q_index_map[hash_state_only + np.int64(1212)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(1313)] = np.int32(1)
-    Q_index_map[hash_state_only + np.int64(1515)] = np.int32(2)
+    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([155.4, 35.1, 78.2], dtype=np.float32)
 
     a, Qa = chooser.choose_best_action(
@@ -78,13 +78,13 @@ def test_choose_best_action():
         Q_index_map=Q_index_map,
         qval_array=Qvals
     )
-    assert a == 1212
+    assert a == 808
     assert Qa == np.float32(155.4)
 
     # Test randomly chooses in a tie
-    Q_index_map[hash_state_only + np.int64(1212)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(1313)] = np.int32(1)
-    Q_index_map[hash_state_only + np.int64(1515)] = np.int32(2)
+    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([0.0, 0.0, 0.0], dtype=np.float32)
 
     chosen_actions = []
@@ -103,19 +103,19 @@ def test_choose_best_action():
         )
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[1212] / N, 5) == 0.33208
-    assert round(n_chosen_actions[1313] / N, 5) == 0.33185
-    assert round(n_chosen_actions[1515] / N, 5) == 0.33607
+    assert round(n_chosen_actions[808] / N, 5) == 0.33208
+    assert round(n_chosen_actions[909] / N, 5) == 0.33185
+    assert round(n_chosen_actions[1414] / N, 5) == 0.33607
 
 
 def test_choose_action_10():
     sim.numba_seed(0)
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     S = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
     hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
@@ -146,18 +146,18 @@ def test_choose_action_10():
 
 
 def test_choose_action_epsilon_00():
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     sim.numba_seed(0)
     S9 = np.array(
-        (1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     S = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
     hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
@@ -206,13 +206,13 @@ def test_choose_action_epsilon_00():
 
 
 def test_choose_action_epsilon_07():
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    buffer_state = np.zeros(48, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
     sim.numba_seed(0)
     S = np.array(
-        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+        (0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     hashS0, equivalence_idx0 = ward.get_hash_stateaction(state=S, patient_type=0, action=0, buffer_state=buffer_state)
     hashS1, equivalence_idx1 = ward.get_hash_stateaction(state=S, patient_type=0, action=101, buffer_state=buffer_state)
@@ -239,8 +239,8 @@ def test_choose_action_epsilon_07():
 
 def test_exploit_policy():
     sim.numba_seed(0)
-    buffer_state = np.zeros(48, dtype=np.int64)
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
+    buffer_state = np.zeros(45, dtype=np.int64)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
     policy = typed.Dict.empty(
         key_type=types.int64,
         value_type=types.int32
@@ -250,9 +250,9 @@ def test_exploit_policy():
     policy[120000] = np.int32(101)
 
     S = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
     )
     a = chooser.exploit_policy(state=S, patient_type=0, policy=policy, actions_pool=actions_pool, buffer_state=buffer_state)
     assert a == 303
@@ -263,9 +263,9 @@ def test_exploit_policy():
 
     # Test randomly chooses if unseen
     S = np.array(
-        (1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        (1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     chosen_actions = []
     N = 100000
