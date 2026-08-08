@@ -515,3 +515,40 @@ def test_prune_and_save():
     assert n == 3
     os.remove(keys_fname)
     os.remove(qval_fname)
+
+
+def test_get_param_schedule():
+    epsilons = rl.get_param_schedule(n_stages=5, max_value=1.0)
+    expected_epsilons = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
+    for i in range(5):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=5, max_value=0.5)
+    expected_epsilons = np.array([0.0, 0.125, 0.25, 0.375, 0.5])
+    for i in range(5):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=4, max_value=0.3)
+    expected_epsilons = np.array([0.0, 0.1, 0.2, 0.3])
+    for i in range(4):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=4, max_value=0.6)
+    expected_epsilons = np.array([0.0, 0.2, 0.4, 0.6])
+    for i in range(4):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=11, max_value=1.0)
+    expected_epsilons = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    for i in range(11):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=11, max_value=0.5)
+    expected_epsilons = np.array([0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5])
+    for i in range(11):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+
+    epsilons = rl.get_param_schedule(n_stages=10, max_value=1.0)
+    expected_epsilons = np.array([0.0, 0.1111, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1.0])
+    for i in range(10):
+        assert round(epsilons[i], 4) == expected_epsilons[i]

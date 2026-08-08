@@ -126,6 +126,7 @@ class WardSimulation:
         isolation_penalty,
         move_penalties,
         surge_penalty,
+        selection_policy,
         epsilon,
         seed,
         max_time,
@@ -185,6 +186,7 @@ class WardSimulation:
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
+        self.selection_policy = selection_policy
         self.epsilon = epsilon
         self.just_chose_best = False
         self.prev_best_Q = np.float32(0.0)
@@ -208,6 +210,7 @@ class WardSimulation:
         self.pre_warmup = True
 
         self.actions_pool = np.empty(15 * 16, dtype=np.int32)
+        self.q_value_pool = np.empty(15 * 16, dtype=np.float32)
         self.patients_patient_types = -np.ones(16, dtype='int64')
         self.patients_exit_dates = np.ones(16) * np.inf
         self.patients_deterioration_dates = np.ones(16) * np.inf
@@ -577,12 +580,14 @@ class WardTraining(WardSimulation):
         a, Qa, next_hash_state, next_equivalence_idx = chooser.choose_action(
             state=self.state,
             patient_type=patient_type,
+            selection_policy=self.selection_policy,
             epsilon=self.epsilon,
             default_future_reward=self.pessimistic_default,
             Q_index_map=self.Q_index_map,
             qval_array=self.Qvals,
             actions_pool=self.actions_pool,
-            buffer_state=self.buffer_state
+            buffer_state=self.buffer_state,
+            q_value_pool=self.q_value_pool,
         )
         self.just_chose_best = Qa is not None
         self.prev_best_Q = Qa

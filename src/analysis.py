@@ -4,19 +4,22 @@ import yaml
 plt.style.use("seaborn-v0_8-whitegrid")
 import numpy as np
 import argparse
+import rl
+import chooser
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
     args = parser.parse_args()
 
-    with open(args.experiment + "/params_eval.yml") as f:
+    with open(args.experiment + "/params.yml") as f:
         params_raw = f.read()
         params = yaml.safe_load(params_raw)
 
-    epsilon_step = 1.0 / (params['n_stages'] - 1)
-    epsilons = [(i * epsilon_step) for i in range(params['n_stages'])]
-    stage_labels = [f"Stage {stage} (epsilon={round(epsilons[stage-1], 3)})" for stage in range(1, params['n_stages'] + 1)]
+    max_epsilon = float(params['max_epsilon'])
+    epsilons = rl.get_param_schedule(n_stages=int(params['n_stages']), max_value=max_epsilon)
+
+    stage_labels = [fr"Stage {stage} ($\epsilon={round(epsilons[stage-1], 3)})$" for stage in range(1, params['n_stages'] + 1)]
     ticklabels = ['Random'] + stage_labels
 
     data = pd.read_csv(args.experiment + "/results/evaluation.csv")

@@ -397,3 +397,16 @@ def prune_and_save(keys_fname, qval_fname, keys, qval, hits, prune_limit):
                     f_qval.write(qval[i:i+1].tobytes())
                     unpruned += 1
     return unpruned
+
+
+def get_param_schedule(n_stages, max_value):
+    """
+    Linearly scales params from 0.0 to max_value across stages.
+
+    Arguments:
+      - `n_stages`: the integer number of stages
+      - `max_value`: the maximum epsilon value to produce
+
+    Returns: an array schedule of epsilons.
+    """
+    return np.linspace(0.0, max_value, n_stages)

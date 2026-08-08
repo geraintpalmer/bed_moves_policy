@@ -1,6 +1,7 @@
 import sim
 import pytest
 import numpy as np
+import chooser
 
 def test_find_next_arrival_date():
     next_arrivals = np.array([56.7, 12.2, 34.3])
@@ -106,6 +107,7 @@ def test_WardSimulation_arrival_and_exit():
         isolation_penalty=2.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=500.0,
@@ -203,6 +205,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -244,6 +247,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -285,6 +289,7 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=2.0,
@@ -322,6 +327,7 @@ def test_using_warmup():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=40.0,
@@ -355,6 +361,7 @@ def test_using_warmup():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=60.0,
@@ -390,6 +397,7 @@ def test_deterioration():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=6.0, # only one arrival
@@ -434,6 +442,7 @@ def test_deterioration():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
@@ -468,6 +477,7 @@ def test_improvement():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=6.0, # only one arrival
@@ -512,6 +522,7 @@ def test_improvement():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
@@ -550,6 +561,7 @@ def test_initial_array_preallocations():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=100.0,
@@ -583,6 +595,7 @@ def test_initial_array_preallocations():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=100.0,
@@ -619,6 +632,7 @@ def test_long_training_run():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.5,
         learning_rate=0.5,
         discount_factor=0.8,
@@ -656,6 +670,7 @@ def test_long_evaluation_run():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
         seed=0,
         max_time=10000.0,
@@ -689,6 +704,7 @@ def test_give_policy():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
         seed=0,
         max_time=800.0,
@@ -728,6 +744,7 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,
@@ -762,6 +779,7 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,
@@ -796,6 +814,7 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,

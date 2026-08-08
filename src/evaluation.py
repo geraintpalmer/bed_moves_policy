@@ -28,6 +28,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 def evaluate(
     max_time,
     occupancy_arrival_probs,
+    selection_policy,
     epsilon,
     initial_keys_path,
     initial_policy_path,
@@ -69,6 +70,7 @@ def evaluate(
         isolation_penalty=8.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=15.0,
+        selection_policy=selection_policy,
         epsilon=epsilon,
         seed=seed,
         max_time=max_time,
@@ -88,39 +90,43 @@ if __name__ == '__main__':
     parser.add_argument('n_threads', help='The number of parallel processers to use.')
     args = parser.parse_args()
 
-    with open(args.experiment + "/params_eval.yml") as f:
+    with open(args.experiment + "/params.yml") as f:
         params_raw = f.read()
         params = yaml.safe_load(params_raw)
 
     n_stages = int(params['n_stages'])
-    trials_per_stage = int(params['trials_per_stage'])
-    max_time = float(params['max_time'])
-    warmup = float(params['warmup'])
+    trials_per_stage = int(params['trials_per_stage_eval'])
+    max_time = float(params['max_time_eval'])
+    warmup = float(params['warmup_eval'])
     n_threads = int(args.n_threads)
+    max_epsilon = float(params['max_epsilon'])
+    if params['selection_policy'] == 'epsilon_greedy':
+        selection_policy = chooser.EPSILON_GREEDY
+    if params['selection_policy'] == 'mixture':
+        selection_policy = chooser.MIXTURE
 
     occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
 
-    epsilon_step = 1.0 / (n_stages - 1)
-    training_epsilons = [(i * epsilon_step) for i in range(n_stages)]
-    seed = 0
-
+    training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon)
     eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
-    
+    seed = 0
     costs = {}
     multiprocessing.set_start_method("spawn", force=True)
     manager = multiprocessing.Manager()
     
-    for stage in range(n_stages+1):
+    for stage in range(n_stages+1):        
         if stage > 0:
-            keys = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_keys_epsilon_{round(training_epsilons[stage-1], 3)}.bin", dtype=np.int64, mode='r')
-            qvals = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_qvals_epsilon_{round(training_epsilons[stage-1], 3)}.bin", dtype=np.float32, mode='r')
+            stage_param_name = f"epsilon_{round(training_epsilons[stage-1], 3)}"
+
+            keys = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_keys_{stage_param_name}.bin", dtype=np.int64, mode='r')
+            qvals = np.memmap(f"{args.experiment}/results/stage_{stage}_overall_qvals_{stage_param_name}.bin", dtype=np.float32, mode='r')
             policy_keys, policy_actions = rl.initialise_policy(
                 keys_array=keys,
                 qval_array=qvals
             )
-            policy_keys_path = f"{args.experiment}/results/stage_{stage}_overall_policykeys_epsilon_{round(training_epsilons[stage-1], 3)}.bin"
+            policy_keys_path = f"{args.experiment}/results/stage_{stage}_overall_policykeys_{stage_param_name}.bin"
             policy_keys.tofile(policy_keys_path)
-            policy_actions_path = f"{args.experiment}/results/stage_{stage}_overall_policyactions_epsilon_{round(training_epsilons[stage-1], 3)}.bin"
+            policy_actions_path = f"{args.experiment}/results/stage_{stage}_overall_policyactions_{stage_param_name}.bin"
             policy_actions.tofile(policy_actions_path)
         else:
             policy_keys_path = None
@@ -132,6 +138,7 @@ if __name__ == '__main__':
             (
                 max_time,
                 occupancy_arrival_probs,
+                selection_policy,
                 eval_epsilons[stage],
                 policy_keys_path,
                 policy_actions_path,

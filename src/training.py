@@ -28,6 +28,7 @@ def train(
     occupancy_arrival_probs,
     learning_rate,
     discount_factor,
+    selection_policy,
     epsilon,
     initial_keys_path,
     initial_qvals_path,
@@ -70,6 +71,7 @@ def train(
         isolation_penalty=8.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=15.0,
+        selection_policy=selection_policy,
         epsilon=epsilon,
         seed=seed,
         max_time=max_time,
@@ -121,11 +123,15 @@ if __name__ == '__main__':
     learning_rate = float(params['learning_rate'])
     discount_factor = float(params['discount_factor'])
     n_threads = int(args.n_threads)
+    max_epsilon = float(params['max_epsilon'])
+    if params['selection_policy'] == 'epsilon_greedy':
+        selection_policy = chooser.EPSILON_GREEDY
+    if params['selection_policy'] == 'mixture':
+        selection_policy = chooser.MIXTURE
 
     occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
 
-    epsilon_step = 1.0 / (n_stages - 1)
-    epsilons = [(i * epsilon_step) for i in range(n_stages)]
+    epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon)
     seed = 0
 
     states_per_stage = np.zeros(n_stages, dtype=np.int64)
@@ -151,6 +157,7 @@ if __name__ == '__main__':
                 occupancy_arrival_probs,
                 learning_rate,
                 discount_factor,
+                selection_policy,
                 epsilons[stage-1],
                 keys_path,
                 qvals_path,
