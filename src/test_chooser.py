@@ -28,11 +28,11 @@ def test_choose_best_action():
     buffer_state = np.zeros(45, dtype=np.int64)
     state = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0,
+         1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
     patient_type = 1
-    actions_pool = np.array([808, 909, 1414, 0, 0, 0, 0, 0, 0], dtype=np.int64)
+    actions_pool = np.array([101, 202, 1414, 0, 0, 0, 0, 0, 0], dtype=np.int64)
     valid_count = 3
     Q_index_map = typed.Dict.empty(
         key_type=types.int64,
@@ -44,8 +44,8 @@ def test_choose_best_action():
         buffer_state=buffer_state
     )
 
-    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(101)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(202)] = np.int32(1)
     Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([55.4, 35.1, 78.2], dtype=np.float32)
     a, Qa = chooser.choose_best_action(
@@ -62,8 +62,8 @@ def test_choose_best_action():
     assert a == 1414
     assert Qa == np.float32(78.2)
 
-    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(101)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(202)] = np.int32(1)
     Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([155.4, 35.1, 78.2], dtype=np.float32)
 
@@ -78,12 +78,12 @@ def test_choose_best_action():
         Q_index_map=Q_index_map,
         qval_array=Qvals
     )
-    assert a == 808
+    assert a == 101
     assert Qa == np.float32(155.4)
 
     # Test randomly chooses in a tie
-    Q_index_map[hash_state_only + np.int64(808)] = np.int32(0)
-    Q_index_map[hash_state_only + np.int64(909)] = np.int32(1)
+    Q_index_map[hash_state_only + np.int64(101)] = np.int32(0)
+    Q_index_map[hash_state_only + np.int64(202)] = np.int32(1)
     Q_index_map[hash_state_only + np.int64(1414)] = np.int32(2)
     Qvals = np.array([0.0, 0.0, 0.0], dtype=np.float32)
 
@@ -103,8 +103,8 @@ def test_choose_best_action():
         )
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[808] / N, 5) == 0.33208
-    assert round(n_chosen_actions[909] / N, 5) == 0.33185
+    assert round(n_chosen_actions[101] / N, 5) == 0.33208
+    assert round(n_chosen_actions[202] / N, 5) == 0.33185
     assert round(n_chosen_actions[1414] / N, 5) == 0.33607
 
 

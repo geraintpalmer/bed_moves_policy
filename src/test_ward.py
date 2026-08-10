@@ -63,56 +63,62 @@ def test_get_hash_state_only():
 
 def test_get_representative_hash_state():
     # First define some states all in the same equivalence class.
-    S1 = np.array(
-        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0,
+    S = np.array(
+        (1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
-    S2 = np.array(
-        (0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0,
+    ST1 = np.array(
+        (0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
          1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
-    S3 = np.array(
-        (1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+    ST2 = np.array(
+        (1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0,
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
-    S4 = np.array(
-        (1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0,
+    ST5 = np.array(
+        (0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+    )
+    ST3 = np.array(
+        (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0,
+         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2)
+    )
+    ST4T6 = np.array(
+        (1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
-    S5 = np.array(
-        (1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0,
-         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
+    ST5T6 = np.array(
+        (0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
     )
-    S6 = np.array(
-        (1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+    ST1T5T6 = np.array(
+        (0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0,
          0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
-    )
-    S7 = np.array(
-        (0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0,
-         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
-    )
-    S8 = np.array(
-        (1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0,
-         0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2)
+         0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
     )
     buffer_state = np.zeros(45, dtype=np.int64)
-    hS1, idx1 = ward.get_representative_hash_state(state=S1, patient_type=1, buffer_state=buffer_state)
-    hS2, idx2 = ward.get_representative_hash_state(state=S2, patient_type=1, buffer_state=buffer_state)
-    hS3, idx3 = ward.get_representative_hash_state(state=S3, patient_type=1, buffer_state=buffer_state)
-    hS4, idx4 = ward.get_representative_hash_state(state=S4, patient_type=1, buffer_state=buffer_state)
-    hS5, idx5 = ward.get_representative_hash_state(state=S5, patient_type=1, buffer_state=buffer_state)
-    hS6, idx6 = ward.get_representative_hash_state(state=S6, patient_type=1, buffer_state=buffer_state)
-    hS7, idx7 = ward.get_representative_hash_state(state=S7, patient_type=1, buffer_state=buffer_state)
-    hS8, idx8 = ward.get_representative_hash_state(state=S8, patient_type=1, buffer_state=buffer_state)
-    assert hS1 == hS2 == hS3 == hS4 == hS5 == hS6 == hS7 == hS8
+    hS1, idx1 = ward.get_representative_hash_state(state=S, patient_type=1, buffer_state=buffer_state)
+    hS2, idx2 = ward.get_representative_hash_state(state=ST1, patient_type=1, buffer_state=buffer_state)
+    hS3, idx3 = ward.get_representative_hash_state(state=ST2, patient_type=1, buffer_state=buffer_state)
+    hS4, idx4 = ward.get_representative_hash_state(state=ST5, patient_type=1, buffer_state=buffer_state)
+    hS5, idx5 = ward.get_representative_hash_state(state=ST3, patient_type=1, buffer_state=buffer_state)
+    hS6, idx6 = ward.get_representative_hash_state(state=ST4T6, patient_type=1, buffer_state=buffer_state)
+    hS7, idx7 = ward.get_representative_hash_state(state=ST5T6, patient_type=1, buffer_state=buffer_state)
+    hS8, idx8 = ward.get_representative_hash_state(state=ST1T5T6, patient_type=1, buffer_state=buffer_state)
+    assert hS1 == hS2
+    assert hS1 == hS3
+    assert hS1 == hS4
+    assert hS1 == hS5
+    assert hS1 == hS6
+    assert hS1 == hS7
+    assert hS1 == hS8
 
     # Now some states not in the same equivalence class.
     Z1 = np.array(
@@ -301,44 +307,44 @@ def test_inverse_action():
     assert a == 3
     a = ward.inverse_action(a=205, equivalence_idx=5)
     assert a == 105
-    a = ward.inverse_action(a=307, equivalence_idx=5)
-    assert a == 7
+    a = ward.inverse_action(a=306, equivalence_idx=5)
+    assert a == 6
     a = ward.inverse_action(a=8, equivalence_idx=5)
-    assert a == 310
+    assert a == 309
     a = ward.inverse_action(a=509, equivalence_idx=5)
-    assert a == 509
+    assert a == 508
     a = ward.inverse_action(a=316, equivalence_idx=5)
     assert a == 16
     a = ward.inverse_action(a=616, equivalence_idx=5)
     assert a == 616
     # Now consider transform T_5, T_4 and T_2 together. That is (0, 1, 1, 0, 1, 0) = 2^4 + 2^3 + 2^1 = 26
     a = ward.inverse_action(a=2, equivalence_idx=26)
-    assert a == 705
-    a = ward.inverse_action(a=716, equivalence_idx=26)
-    assert a == 316
+    assert a == 709
+    a = ward.inverse_action(a=615, equivalence_idx=26)
+    assert a == 415
     a = ward.inverse_action(a=310, equivalence_idx=26)
-    assert a == 410
+    assert a == 1003
     a = ward.inverse_action(a=1406, equivalence_idx=26)
-    assert a == 1402
+    assert a == 1404
     a = ward.inverse_action(a=1302, equivalence_idx=26)
-    assert a == 1105
+    assert a == 1109
     # Now consider transform T_5 and T_4 together: That is (0, 1, 1, 0, 0, 0) = 2^4 + 2^3 = 24
     a = ward.inverse_action(a=2, equivalence_idx=24)
-    assert a == 406
+    assert a == 709
     a = ward.inverse_action(a=1113, equivalence_idx=24)
     assert a == 1311
     a = ward.inverse_action(a=1112, equivalence_idx=24)
     assert a == 1312
     a = ward.inverse_action(a=400, equivalence_idx=24)
-    assert a == 4
+    assert a == 407
     a = ward.inverse_action(a=107, equivalence_idx=24)
-    assert a == 503
+    assert a == 800
     a = ward.inverse_action(a=915, equivalence_idx=24)
-    assert a == 915
+    assert a == 215
     a = ward.inverse_action(a=1106, equivalence_idx=24)
-    assert a == 1302
+    assert a == 1306
     a = ward.inverse_action(a=1008, equivalence_idx=24)
-    assert a == 1008
+    assert a == 301
 
 
 def test_get_resource_use_per_time_unit():
@@ -350,7 +356,7 @@ def test_get_resource_use_per_time_unit():
     assert ward.get_resource_use_per_time_unit(S) == 10
 
     S = np.array(
-        (1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0,
+        (1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
          0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2)
     )
@@ -392,7 +398,7 @@ def test_get_resource_use_per_time_unit():
     assert ward.get_resource_use_per_time_unit(S) == 1
 
     S = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+        (0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
@@ -466,24 +472,24 @@ def test_get_move_penalty():
         ]
     )
     assert ward.get_move_penalty(0, 1, 0, 0, move_penalties, 33.0) == 5.0
-    assert ward.get_move_penalty(0, 10, 0, 0, move_penalties, 33.0) == 5.5
+    assert ward.get_move_penalty(0, 5, 0, 0, move_penalties, 33.0) == 5.5
     assert ward.get_move_penalty(0, 14, 0, 0, move_penalties, 33.0) == 5.5
     assert ward.get_move_penalty(0, 1, 1, 0, move_penalties, 33.0) == 6.0
-    assert ward.get_move_penalty(0, 10, 1, 0, move_penalties, 33.0) == 6.5
+    assert ward.get_move_penalty(0, 5, 1, 0, move_penalties, 33.0) == 6.5
     assert ward.get_move_penalty(0, 14, 1, 0, move_penalties, 33.0) == 6.5
     assert ward.get_move_penalty(0, 1, 2, 0, move_penalties, 33.0) == 7.0
-    assert ward.get_move_penalty(0, 10, 2, 0, move_penalties, 33.0) == 7.5
+    assert ward.get_move_penalty(0, 5, 2, 0, move_penalties, 33.0) == 7.5
     assert ward.get_move_penalty(0, 14, 2, 0, move_penalties, 33.0) == 7.5
-    assert ward.get_move_penalty(5, 5, 1, 1, move_penalties, 33.0) == 0.0
+    assert ward.get_move_penalty(7, 7, 1, 1, move_penalties, 33.0) == 0.0
     assert ward.get_move_penalty(1, 0, 0, 0, move_penalties, 33.0) == 5.0
-    assert ward.get_move_penalty(10, 0, 0, 0, move_penalties, 33.0) == 5.5
+    assert ward.get_move_penalty(5, 0, 0, 0, move_penalties, 33.0) == 5.5
     assert ward.get_move_penalty(14, 0, 0, 0, move_penalties, 33.0) == 5.5
     assert ward.get_move_penalty(1, 0, 1, 0, move_penalties, 33.0) == 6.0
-    assert ward.get_move_penalty(10, 0, 1, 0, move_penalties, 33.0) == 6.5
+    assert ward.get_move_penalty(5, 0, 1, 0, move_penalties, 33.0) == 6.5
     assert ward.get_move_penalty(1, 0, 2, 0, move_penalties, 33.0) == 7.0
-    assert ward.get_move_penalty(10, 0, 2, 0, move_penalties, 33.0) == 7.5
+    assert ward.get_move_penalty(5, 0, 2, 0, move_penalties, 33.0) == 7.5
     assert ward.get_move_penalty(0, 15, 0, 1, move_penalties, 33.0) == 33.0
-    assert ward.get_move_penalty(10, 15, 0, 1, move_penalties, 33.0) == 33.0
+    assert ward.get_move_penalty(5, 15, 0, 1, move_penalties, 33.0) == 33.0
     assert ward.get_move_penalty(14, 15, 0, 1, move_penalties, 33.0) == 33.0
 
 

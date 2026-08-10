@@ -178,7 +178,7 @@ def test_WardSimulation_arrival_and_exit():
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([23347200101], dtype=np.int64)
+    keys = np.array([1464911306], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
     hits = np.array([34], dtype=np.int16)
     
@@ -215,7 +215,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(23347200101) in S.Q_index_map
+    assert np.int64(1464911306) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -257,7 +257,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(23347200101) in S.Q_index_map
+    assert np.int64(1464911306) in S.Q_index_map
     assert np.int64(22) in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -299,7 +299,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(23347200101) in S.Q_index_map
+    assert np.int64(1464911306) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
 
@@ -335,8 +335,8 @@ def test_using_warmup():
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 631.70044
-    assert S.warmup_cost == 631.70044
+    assert S.overall_cost == 633.0676
+    assert S.warmup_cost == 633.0676
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -369,8 +369,8 @@ def test_using_warmup():
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 990.7791
-    assert S.warmup_cost == 867.35223
+    assert S.overall_cost == 987.55756
+    assert S.warmup_cost == 866.29346
 
 
 def test_deterioration():
@@ -642,9 +642,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 172314.22
-    assert S.max_idx == 23729
-    assert len(S.Q_index_map) == 23729
+    assert S.overall_cost == 174813.92
+    assert S.max_idx == 24059
+    assert len(S.Q_index_map) == 24059
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(
@@ -678,7 +678,7 @@ def test_long_evaluation_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 175482.17
+    assert S.overall_cost == 175397.73
 
 def test_give_policy():
     S = sim.WardEvaluation(
