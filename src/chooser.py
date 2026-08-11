@@ -84,7 +84,8 @@ def choose_action(
     qval_array,
     actions_pool,
     buffer_state,
-    q_value_pool
+    q_value_pool,
+    fixed_mask
 ):
     """
     Randomly chooses an action (1-epsilon) of the time.
@@ -108,11 +109,18 @@ def choose_action(
                can be taken), the q-value associated with that best action
                (only if choosing the best action, None otherwise)
     """
+    ward.fixed_point_decision_tree(
+        state=state,
+        not_composed_of=ward.not_composed_of,
+        fixed_mask=fixed_mask
+    )
     actions_pool, valid_count = ward.get_available_actions(
         state=state,
         patient_type=patient_type,
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
+
     hash_state_only, equivalence_idx = ward.get_representative_hash_state(
         state=state,
         patient_type=patient_type,
@@ -295,7 +303,7 @@ def top3_mixture(
 
 
 @njit(cache=True)
-def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
+def exploit_policy(state, patient_type, policy, actions_pool, buffer_state, fixed_mask):
     """
     Choose an action by exploiting the policy.
 
@@ -319,10 +327,17 @@ def exploit_policy(state, patient_type, policy, actions_pool, buffer_state):
         a = policy[hash_state_only]
         return ward.permute_action(a, equivalence_idx)
 
+    ward.fixed_point_decision_tree(
+        state=state,
+        not_composed_of=ward.not_composed_of,
+        fixed_mask=fixed_mask
+    )
+
     actions_pool, valid_count = ward.get_available_actions(
         state=state,
         patient_type=patient_type,
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
     return choose_random_action(
         actions_pool=actions_pool,

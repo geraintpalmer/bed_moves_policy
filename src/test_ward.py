@@ -806,12 +806,16 @@ def test_get_available_actions():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([0, 101, 202, 303, 404, 505, 606, 707, 808, 909, 1010, 1111, 1212, 1313], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([0, 101, 202, 303, 404, 505, 606, 707, 808, 909, 1010, 1111, 1212, 1313, 1414], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1414], dtype=np.int32))
 
     S = np.array(
@@ -819,12 +823,12 @@ def test_get_available_actions():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
-    actions_pool = np.empty(16 * 17, dtype=np.int32)
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404, 4, 15, 104, 115, 204, 215, 304, 315, 504, 515, 604, 615, 704, 715, 804, 815, 904, 915, 1004, 1015, 1104, 1115, 1204, 1215, 1304, 1315, 1404, 1415], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1404, 1415], dtype=np.int32))
 
     S = np.array(
@@ -832,11 +836,11 @@ def test_get_available_actions():
          1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404, 4, 104, 204, 304, 504, 604, 704, 804, 904, 1004, 1104, 1204, 1304], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1404], dtype=np.int32))
 
     S = np.array(
@@ -844,11 +848,11 @@ def test_get_available_actions():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2)
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404, 4, 104, 204, 304, 504, 604, 704, 804, 904, 1004, 1104, 1204, 1304, 1404], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404, 4, 104, 204, 304, 504, 604, 704, 804, 904, 1004, 1104, 1204, 1304, 1404], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([404], dtype=np.int32))
 
 
@@ -857,11 +861,11 @@ def test_get_available_actions():
          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1,
          0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0)
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([15, 315, 615, 915, 1115, 1415], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1415], dtype=np.int32))
 
     S = np.array(
@@ -869,11 +873,11 @@ def test_get_available_actions():
          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1,
          0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0)
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1111, 111, 411, 711, 1011, 1211, 211, 511, 811, 1311], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1111, 11, 15, 311, 315, 611, 615, 911, 915, 211, 511, 811, 1311, 1411, 1415], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([1411, 1415], dtype=np.int32))
 
     S = np.array(
@@ -881,11 +885,11 @@ def test_get_available_actions():
          0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0,
          0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 2)
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=1, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([15, 315, 615, 915], dtype=np.int32))
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=2, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([15, 315, 615, 915], dtype=np.int32))
 
     S = np.array(
@@ -893,8 +897,46 @@ def test_get_available_actions():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
     )
-    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
     assert np.array_equal(available_moves[:valid_count], np.array([0, 101, 202], dtype=np.int32))
+
+
+def test_get_available_actions_with_equivalencies():
+    S = np.array(
+        (1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    # First with no equivalencies:
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
+    assert np.array_equal(available_moves[:valid_count], np.array([101, 202, 1101, 1102, 1201, 1202, 1301, 1302], dtype=np.int32))
+    # Now with equivalencies:
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
+    assert np.array_equal(available_moves[:valid_count], np.array([101, 1101, 1201], dtype=np.int32))
+
+    S = np.array(
+        (1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0,
+         0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2), dtype=np.int64
+    )
+    actions_pool = np.empty(15 * 16, dtype=np.int32)
+    # First with no equivalencies:
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
+    assert np.array_equal(available_moves[:valid_count], np.array([101, 808, 601, 608, 1301, 1308, 1401, 1408], dtype=np.int32))
+    # Now with equivalencies:
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    available_moves, valid_count = ward.get_available_actions(state=S, patient_type=0, actions_pool=actions_pool, fixed_mask=fixed_mask)
+    assert np.array_equal(available_moves[:valid_count], np.array([101, 601, 1401], dtype=np.int32))
 
 
 def test_find_idx_of_patient_to_move():

@@ -211,6 +211,8 @@ class WardSimulation:
 
         self.actions_pool = np.empty(15 * 16, dtype=np.int32)
         self.q_value_pool = np.empty(15 * 16, dtype=np.float32)
+        self.fixed_mask = np.empty(64, dtype=bool)
+
         self.patients_patient_types = -np.ones(16, dtype='int64')
         self.patients_exit_dates = np.ones(16) * np.inf
         self.patients_deterioration_dates = np.ones(16) * np.inf
@@ -588,6 +590,7 @@ class WardTraining(WardSimulation):
             actions_pool=self.actions_pool,
             buffer_state=self.buffer_state,
             q_value_pool=self.q_value_pool,
+            fixed_mask=self.fixed_mask
         )
         self.just_chose_best = Qa is not None
         self.prev_best_Q = Qa
@@ -686,7 +689,8 @@ class WardEvaluation(WardSimulation):
             patient_type=patient_type,
             policy=self.policy,
             actions_pool=self.actions_pool,
-            buffer_state=self.buffer_state
+            buffer_state=self.buffer_state,
+            fixed_mask=self.fixed_mask
         )
         return a, None, None
 

@@ -120,7 +120,7 @@ def test_WardSimulation_arrival_and_exit():
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
     expected_state_after = np.array(
-        (0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        (0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     )
@@ -153,7 +153,7 @@ def test_WardSimulation_arrival_and_exit():
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == 0
     assert np.min(S.patients_blocks) == -1
-    assert np.max(S.patients_blocks) == 5
+    assert np.max(S.patients_blocks) == 1
     assert np.min(S.patients_exit_dates) == 6.0
     assert np.max(S.patients_exit_dates) == np.inf
     assert np.array_equal(S.patients_free_indices, [i for i in range(15)])
@@ -178,7 +178,7 @@ def test_WardSimulation_arrival_and_exit():
 
 def test_can_simulate_with_initial_Qvals():
     # First test on a state-action I will encounter
-    keys = np.array([1464911306], dtype=np.int64)
+    keys = np.array([364800808], dtype=np.int64)
     qval = np.array([2.5], dtype=np.float32)
     hits = np.array([34], dtype=np.int16)
     
@@ -215,7 +215,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(1464911306) in S.Q_index_map
+    assert np.int64(364800808) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -257,7 +257,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(1464911306) in S.Q_index_map
+    assert np.int64(364800808) in S.Q_index_map
     assert np.int64(22) in S.Q_index_map
     assert np.int64(162521625229227) not in S.Q_index_map
 
@@ -299,7 +299,7 @@ def test_can_simulate_with_initial_Qvals():
         initial_qvals=qval
     )
     S.simulate_until_max_time()
-    assert np.int64(1464911306) in S.Q_index_map
+    assert np.int64(364800808) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
 
@@ -335,8 +335,8 @@ def test_using_warmup():
     )
     # Simulate for less than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 633.0676
-    assert S.warmup_cost == 633.0676
+    assert S.overall_cost == 619.3043
+    assert S.warmup_cost == 619.3043
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -369,8 +369,8 @@ def test_using_warmup():
     )
     # Simulate for more than the warmup time
     S.simulate_until_max_time()
-    assert S.overall_cost == 987.55756
-    assert S.warmup_cost == 866.29346
+    assert S.overall_cost == 916.1252
+    assert S.warmup_cost == 800.6037
 
 
 def test_deterioration():
@@ -405,13 +405,13 @@ def test_deterioration():
     )
 
     S_A = np.array(
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+        (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     S_B = np.array(
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int32
     )
     
@@ -642,9 +642,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 174813.92
-    assert S.max_idx == 24059
-    assert len(S.Q_index_map) == 24059
+    assert S.overall_cost == 169766.45
+    assert S.max_idx == 23251
+    assert len(S.Q_index_map) == 23251
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(
@@ -678,7 +678,7 @@ def test_long_evaluation_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 175397.73
+    assert S.overall_cost == 180077.02
 
 def test_give_policy():
     S = sim.WardEvaluation(
@@ -749,12 +749,12 @@ def test_state_dependent_arrivals():
         discount_factor=0.5,
         epsilon=0.0,
         seed=0,
-        max_time=4.9, # I expect 12 arrivals (1, 1.1, 1.2, 2, 2.2, 2.4, 3, 3.3, 3.6, 4, 4.4, 4.8)
+        max_time=4.9, # I expect 13 arrivals (1, 1.1, 1.2, 2, 2.2, 2.4, 3, 3.3, 3.6, 4, 4.4, 4.8, one at 5.0 to 'end' the loop).
         warmup=1.0,
     )
     S.simulate_until_max_time()
     assert len(S.Q_index_map) == 12
-    assert sum(S.state) == 12
+    assert sum(S.state) == 13
 
     S = sim.WardTraining(
         arrival_distributions=[
@@ -823,5 +823,5 @@ def test_state_dependent_arrivals():
         warmup=1.0,
     )
     S.simulate_until_max_time()
-    assert len(S.Q_index_map) == 8
+    assert len(S.Q_index_map) == 7
     assert sum(S.state) == 8

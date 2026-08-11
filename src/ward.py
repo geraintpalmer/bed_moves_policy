@@ -506,9 +506,19 @@ def get_available_noniso_insert_moves(state):
     occupancy = state[0:14] + state[15:29] + state[30:44]
     return (occupancy < 1).nonzero()[0]
 
+@njit(cache=True)
+def insert_action(a, fixed_mask, actions_pool, valid_count):
+    """
+    Conditionally writes an action to actions_pool if it is representative.
+    Returns the updated valid_count.
+    """
+    if is_representative_action(a=a, fixed_mask=fixed_mask):
+        actions_pool[valid_count] = a
+        return valid_count + 1
+    return valid_count
 
 @njit(cache=True)
-def get_available_actions(state, patient_type, actions_pool):
+def get_available_actions(state, patient_type, actions_pool, fixed_mask):
     """
     Lists all available actions that can happend when a patient of type
     `patient_type` arrives when the ward is in state `state`.
@@ -537,40 +547,68 @@ def get_available_actions(state, patient_type, actions_pool):
 
     isolation_has_0 = state[14] > 0
     isolation_full = (state[14] + state[29] + state[44]) == 2
-    isolation_full_with_3i = state[(2 * 15) + 14] == 2
+    isolation_full_with_3i = state[44] == 2
     available_blocks = get_available_noniso_insert_moves(state)
 
     if patient_type == 2:
         if isolation_full_with_3i:
             for a1 in available_blocks:
-                actions_pool[valid_count] = a1 * 101
-                valid_count += 1
+                valid_count = insert_action(
+                    a=a1 * 101,
+                    fixed_mask=fixed_mask,
+                    actions_pool=actions_pool,
+                    valid_count=valid_count
+                )
             beds_with_0 = np.where(state[:14] > 0)[0]
             for a1 in beds_with_0:
                 for a2 in available_blocks:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
-                actions_pool[valid_count] = (a1 * 100) + 15
-                valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
+                valid_count = insert_action(
+                    a=(a1 * 100) + 15,
+                    fixed_mask=fixed_mask,
+                    actions_pool=actions_pool,
+                    valid_count=valid_count
+                )
             beds_with_1 = np.where(state[15:29] > 0)[0]
             for a1 in beds_with_1:
                 for a2 in available_blocks:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
         elif isolation_full:
             for a2 in available_blocks:
-                actions_pool[valid_count] = 1400 + a2
-                valid_count += 1
+                valid_count = insert_action(
+                    a=1400 + a2,
+                    fixed_mask=fixed_mask,
+                    actions_pool=actions_pool,
+                    valid_count=valid_count
+                )
             if isolation_has_0:
-                actions_pool[valid_count] = 1415
-                valid_count += 1
+                valid_count = insert_action(
+                    a=1415,
+                    fixed_mask=fixed_mask,
+                    actions_pool=actions_pool,
+                    valid_count=valid_count
+                )
         elif not isolation_full:
             actions_pool[valid_count] = 1414
             valid_count += 1
     if patient_type == 1:
         for a1 in available_blocks:
-            actions_pool[valid_count] = a1 * 101
-            valid_count += 1
+            valid_count = insert_action(
+                a=a1 * 101,
+                fixed_mask=fixed_mask,
+                actions_pool=actions_pool,
+                valid_count=valid_count
+            )
         if not isolation_full:
             actions_pool[valid_count] = 1414
             valid_count += 1
@@ -578,26 +616,50 @@ def get_available_actions(state, patient_type, actions_pool):
         for a1 in beds_with_0:
             for a2 in available_blocks:
                 if a1 != a2:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
-            actions_pool[valid_count] = (a1 * 100) + 15
-            valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
+            valid_count = insert_action(
+                a=(a1 * 100) + 15,
+                fixed_mask=fixed_mask,
+                actions_pool=actions_pool,
+                valid_count=valid_count
+            )
         beds_with_2 = np.where(state[30:45] > 0)[0]
         for a1 in beds_with_2:
             for a2 in available_blocks:
                 if a1 != a2:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
         if isolation_has_0:
             for a2 in available_blocks:
-                actions_pool[valid_count] = 1400 + a2
-                valid_count += 1
-            actions_pool[valid_count] = 1415
-            valid_count += 1
+                valid_count = insert_action(
+                    a=1400 + a2,
+                    fixed_mask=fixed_mask,
+                    actions_pool=actions_pool,
+                    valid_count=valid_count
+                )
+            valid_count = insert_action(
+                a=1415,
+                fixed_mask=fixed_mask,
+                actions_pool=actions_pool,
+                valid_count=valid_count
+            )
     if patient_type == 0:
         for a1 in available_blocks:
-            actions_pool[valid_count] = a1 * 101
-            valid_count += 1
+            valid_count = insert_action(
+                a=a1 * 101,
+                fixed_mask=fixed_mask,
+                actions_pool=actions_pool,
+                valid_count=valid_count
+            )
         if (len(available_blocks) == 0) and (not isolation_full):
             actions_pool[valid_count] = 1414
             valid_count += 1
@@ -605,14 +667,22 @@ def get_available_actions(state, patient_type, actions_pool):
         for a1 in beds_with_1:
             for a2 in available_blocks:
                 if a1 != a2:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
         beds_with_2 = np.where(state[30:45] > 0)[0]
         for a1 in beds_with_2:
             for a2 in available_blocks:
                 if a1 != a2:
-                    actions_pool[valid_count] = (a1 * 100) + a2
-                    valid_count += 1
+                    valid_count = insert_action(
+                        a=(a1 * 100) + a2,
+                        fixed_mask=fixed_mask,
+                        actions_pool=actions_pool,
+                        valid_count=valid_count
+                    )
     return actions_pool, valid_count
 
 
