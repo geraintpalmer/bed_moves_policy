@@ -47,7 +47,17 @@ T3 = np.array([0, 1, 2, 3, 4, 5, 6, 10, 9, 8, 7, 11, 12, 13, 14], dtype=np.int64
 T4 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 12, 11, 14], dtype=np.int64)
 T5 = np.array([7, 8, 9, 10, 4, 5, 6, 0, 1, 2, 3, 11, 12, 13, 14], dtype=np.int64)
 T6 = np.array([0, 1, 2, 3, 11, 12, 13, 7, 8, 9, 10, 4, 5, 6, 14], dtype=np.int64)
-transforms = [T6, T5, T4, T3, T2, T1]
+transforms = [T1, T2, T3, T4, T5, T6]
+
+# Define indicies for the masks:
+idx_T1 = 0
+idx_T2 = 1
+idx_T3 = 2
+idx_T4 = 3
+idx_T5 = 4
+idx_T6 = 5
+idx_T1T3T5 = 6
+idx_T2T4T6 = 7
 
 def generate_equivalence_permutations(transforms):
     """
@@ -65,7 +75,9 @@ def generate_equivalence_permutations(transforms):
     n_perms = 2 ** n_transforms
     equivalence_permutations = np.zeros((n_perms, 45), dtype=np.int64)
     equivalence_inverse_permutations = np.zeros((n_perms, 45), dtype=np.int64)
+    vertex_matrix = np.empty((n_perms, n_transforms), dtype=np.uint64)
     for j, vertex in enumerate(itertools.product([0, 1], repeat=n_transforms)):
+        vertex_matrix[j] = vertex
         original = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
         original_inv = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], dtype=np.int64)
 
@@ -80,9 +92,34 @@ def generate_equivalence_permutations(transforms):
         equivalence_inverse_permutations[j,:15] = original_inv
         equivalence_inverse_permutations[j,15:30] = original_inv + 15
         equivalence_inverse_permutations[j,30:] = original_inv + 30
-    return equivalence_permutations, equivalence_inverse_permutations
 
-equivalence_permutations, equivalence_inverse_permutations = generate_equivalence_permutations(transforms)
+    k = vertex_matrix.T.astype(bool)
+    
+    mask_T1T3T5 = k[idx_T1] & k[idx_T3] & k[idx_T5]
+    mask_T2T4T6 = k[idx_T2] & k[idx_T4] & k[idx_T6]
+    mask_pure_T1 = k[idx_T1] & ~mask_T1T3T5
+    mask_pure_T3 = k[idx_T3] & ~mask_T1T3T5
+    mask_pure_T5 = k[idx_T5] & ~mask_T1T3T5
+    mask_pure_T2 = k[idx_T2] & ~mask_T2T4T6
+    mask_pure_T4 = k[idx_T4] & ~mask_T2T4T6
+    mask_pure_T6 = k[idx_T6] & ~mask_T2T4T6
+
+    not_composed_of = np.array(
+        [
+            ~mask_pure_T1,
+            ~mask_pure_T2,
+            ~mask_pure_T3,
+            ~mask_pure_T4,
+            ~mask_pure_T5,
+            ~mask_pure_T6,
+            ~mask_T1T3T5,
+            ~mask_T2T4T6,
+        ], dtype=np.bool_
+    )
+
+    return equivalence_permutations, equivalence_inverse_permutations, not_composed_of
+
+equivalence_permutations, equivalence_inverse_permutations, not_composed_of = generate_equivalence_permutations(transforms)
 
 
 @njit(cache=True)
@@ -577,8 +614,26 @@ def get_available_actions(state, patient_type, actions_pool):
                     actions_pool[valid_count] = (a1 * 100) + a2
                     valid_count += 1
     return actions_pool, valid_count
-        
 
+
+@njit(cache=True)
+def is_representative_action(a, fixed_mask):
+    """
+    Checks if an action is a representative action or not.
+
+    Arguments:
+      - `a`: the action
+      - `fixed_mask`: a binary 64-array indicating
+          which permutations fix the current state
+
+    Returns: a Boolean.
+    """
+    for idx in range(64):
+        if fixed_mask[idx]:
+            a_eq = inverse_action(a=a, equivalence_idx=idx)
+            if a_eq < a:
+                return False
+    return True
 
 
 @njit(cache=True)
@@ -605,3 +660,227 @@ def find_idx_of_patient_to_move(
         if (block == patients_blocks[i]) and (patients_types[i] == patient_type):
             return i
     return -1
+
+
+@njit(cache=True)
+def is_fixed_point_T1(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T1.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 0] != state[r + 3]:
+            return False
+        if state[r + 1] != state[r + 2]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T2(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T2.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 4] != state[r + 6]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T3(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T3.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 7] != state[r + 10]:
+            return False
+        if state[r + 8] != state[r + 9]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T4(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T4.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 11] != state[r + 13]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T5(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T5.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 0] != state[r + 7]:
+            return False
+        if state[r + 1] != state[r + 8]:
+            return False
+        if state[r + 2] != state[r + 9]:
+            return False
+        if state[r + 3] != state[r + 10]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T6(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T6.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 4] != state[r + 11]:
+            return False
+        if state[r + 5] != state[r + 12]:
+            return False
+        if state[r + 6] != state[r + 13]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T1T3T5(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T1 o T5.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 3] != state[r + 7]:
+            return False
+        if state[r + 2] != state[r + 8]:
+            return False
+        if state[r + 1] != state[r + 9]:
+            return False
+        if state[r + 0] != state[r + 10]:
+            return False
+    return True
+
+@njit(cache=True)
+def is_fixed_point_T2T4T6(state):
+    """
+    Returns a boolean indicating if `state` is a fixed point of transform T2 o T6.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+
+    Returns: A Boolean.
+    """
+    for row in range(3):
+        r = row * 15
+        if state[r + 6] != state[r + 11]:
+            return False
+        if state[r + 5] != state[r + 12]:
+            return False
+        if state[r + 4] != state[r + 13]:
+            return False
+    return True
+
+
+@njit(cache=True)
+def fixed_point_decision_tree(state, not_composed_of, fixed_mask):
+    """
+    Returns an integer coding the binary mask of which of the 64
+    permutations the state is a fixed point of.
+
+    Arguments:
+      + `state`: a numpy array representing the state of the system,
+      + `not_composed_of`: an array of masks
+      + `fixed_mask`: a 64-array of integers.
+    """
+    for i in range(64):
+        fixed_mask[i] = 1
+
+    # Odd decision tree
+    fixes_T1 = is_fixed_point_T1(state)
+    fixes_T3 = is_fixed_point_T3(state)
+    if (fixes_T1 and not fixes_T3):
+        fixed_mask &= not_composed_of[idx_T3]
+        fixed_mask &= not_composed_of[idx_T5]
+        fixed_mask &= not_composed_of[idx_T1T3T5]
+    elif (not fixes_T1 and fixes_T3):
+        fixed_mask &= not_composed_of[idx_T1]
+        fixed_mask &= not_composed_of[idx_T5]
+        fixed_mask &= not_composed_of[idx_T1T3T5]
+    elif (fixes_T1 and fixes_T3):
+        fixes_T5 = is_fixed_point_T5(state)
+        if not fixes_T5:
+            fixed_mask &= not_composed_of[idx_T5]
+            fixed_mask &= not_composed_of[idx_T1T3T5]
+    else:
+        fixed_mask &= not_composed_of[idx_T1]
+        fixed_mask &= not_composed_of[idx_T3]
+        fixes_T5 = is_fixed_point_T5(state)
+        if fixes_T5:
+            fixed_mask &= not_composed_of[idx_T1T3T5]
+        else:
+            fixed_mask &= not_composed_of[idx_T5]
+            fixes_T1T3T5 = is_fixed_point_T1T3T5(state)
+            if not fixes_T1T3T5:
+                fixed_mask &= not_composed_of[idx_T1T3T5]
+
+    # Even decision tree
+    fixes_T2 = is_fixed_point_T2(state)
+    fixes_T4 = is_fixed_point_T4(state)
+    if (fixes_T2 and not fixes_T4):
+        fixed_mask &= not_composed_of[idx_T4]
+        fixed_mask &= not_composed_of[idx_T6]
+        fixed_mask &= not_composed_of[idx_T2T4T6]
+    elif (not fixes_T2 and fixes_T4):
+        fixed_mask &= not_composed_of[idx_T2]
+        fixed_mask &= not_composed_of[idx_T6]
+        fixed_mask &= not_composed_of[idx_T2T4T6]
+    elif (fixes_T2 and fixes_T4):
+        fixes_T6 = is_fixed_point_T6(state)
+        if not fixes_T6:
+            fixed_mask &= not_composed_of[idx_T6]
+            fixed_mask &= not_composed_of[idx_T2T4T6]
+    else:
+        fixed_mask &= not_composed_of[idx_T2]
+        fixed_mask &= not_composed_of[idx_T4]
+        fixes_T6 = is_fixed_point_T6(state)
+        if fixes_T6:
+            fixed_mask &= not_composed_of[idx_T2T4T6]
+        else:
+            fixed_mask &= not_composed_of[idx_T6]
+            fixes_T2T4T6 = is_fixed_point_T2T4T6(state)
+            if not fixes_T2T4T6:
+                fixed_mask &= not_composed_of[idx_T2T4T6]

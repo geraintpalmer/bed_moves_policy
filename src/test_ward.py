@@ -296,54 +296,54 @@ def test_get_state_action_from_hashstate():
 
 
 def test_inverse_action():
-    # First consider transform T_1 and T_3 together. That is (0, 0, 0, 1, 0, 1) = 2^2 + 2^0 = 5
-    a = ward.inverse_action(a=0, equivalence_idx=5)
+    # First consider transform T_1 and T_3 together. That is (1, 0, 1, 0, 0, 0) = 2^5 + 2^3 = 40
+    a = ward.inverse_action(a=0, equivalence_idx=40)
     assert a == 303
-    a = ward.inverse_action(a=100, equivalence_idx=5)
+    a = ward.inverse_action(a=100, equivalence_idx=40)
     assert a == 203
-    a = ward.inverse_action(a=200, equivalence_idx=5)
+    a = ward.inverse_action(a=200, equivalence_idx=40)
     assert a == 103
-    a = ward.inverse_action(a=300, equivalence_idx=5)
+    a = ward.inverse_action(a=300, equivalence_idx=40)
     assert a == 3
-    a = ward.inverse_action(a=205, equivalence_idx=5)
+    a = ward.inverse_action(a=205, equivalence_idx=40)
     assert a == 105
-    a = ward.inverse_action(a=306, equivalence_idx=5)
+    a = ward.inverse_action(a=306, equivalence_idx=40)
     assert a == 6
-    a = ward.inverse_action(a=8, equivalence_idx=5)
+    a = ward.inverse_action(a=8, equivalence_idx=40)
     assert a == 309
-    a = ward.inverse_action(a=509, equivalence_idx=5)
+    a = ward.inverse_action(a=509, equivalence_idx=40)
     assert a == 508
-    a = ward.inverse_action(a=316, equivalence_idx=5)
+    a = ward.inverse_action(a=316, equivalence_idx=40)
     assert a == 16
-    a = ward.inverse_action(a=616, equivalence_idx=5)
+    a = ward.inverse_action(a=616, equivalence_idx=40)
     assert a == 616
-    # Now consider transform T_5, T_4 and T_2 together. That is (0, 1, 1, 0, 1, 0) = 2^4 + 2^3 + 2^1 = 26
-    a = ward.inverse_action(a=2, equivalence_idx=26)
+    # Now consider transform T_5, T_4 and T_2 together. That is (0, 1, 0, 1, 1, 0) = 2^4 + 2^2 + 2^1 = 22
+    a = ward.inverse_action(a=2, equivalence_idx=22)
     assert a == 709
-    a = ward.inverse_action(a=615, equivalence_idx=26)
+    a = ward.inverse_action(a=615, equivalence_idx=22)
     assert a == 415
-    a = ward.inverse_action(a=310, equivalence_idx=26)
+    a = ward.inverse_action(a=310, equivalence_idx=22)
     assert a == 1003
-    a = ward.inverse_action(a=1406, equivalence_idx=26)
+    a = ward.inverse_action(a=1406, equivalence_idx=22)
     assert a == 1404
-    a = ward.inverse_action(a=1302, equivalence_idx=26)
+    a = ward.inverse_action(a=1302, equivalence_idx=22)
     assert a == 1109
-    # Now consider transform T_5 and T_4 together: That is (0, 1, 1, 0, 0, 0) = 2^4 + 2^3 = 24
-    a = ward.inverse_action(a=2, equivalence_idx=24)
+    # Now consider transform T_5 and T_4 together: That is (0, 0, 0, 1, 1, 0) = 2^2 + 2^1 = 6
+    a = ward.inverse_action(a=2, equivalence_idx=6)
     assert a == 709
-    a = ward.inverse_action(a=1113, equivalence_idx=24)
+    a = ward.inverse_action(a=1113, equivalence_idx=6)
     assert a == 1311
-    a = ward.inverse_action(a=1112, equivalence_idx=24)
+    a = ward.inverse_action(a=1112, equivalence_idx=6)
     assert a == 1312
-    a = ward.inverse_action(a=400, equivalence_idx=24)
+    a = ward.inverse_action(a=400, equivalence_idx=6)
     assert a == 407
-    a = ward.inverse_action(a=107, equivalence_idx=24)
+    a = ward.inverse_action(a=107, equivalence_idx=6)
     assert a == 800
-    a = ward.inverse_action(a=915, equivalence_idx=24)
+    a = ward.inverse_action(a=915, equivalence_idx=6)
     assert a == 215
-    a = ward.inverse_action(a=1106, equivalence_idx=24)
+    a = ward.inverse_action(a=1106, equivalence_idx=6)
     assert a == 1306
-    a = ward.inverse_action(a=1008, equivalence_idx=24)
+    a = ward.inverse_action(a=1008, equivalence_idx=6)
     assert a == 301
 
 
@@ -905,3 +905,373 @@ def test_find_idx_of_patient_to_move():
     assert 15 == ward.find_idx_of_patient_to_move(block=8, patient_type=1, patients_blocks=patients_blocks, patients_types=patients_types)
     assert 5 == ward.find_idx_of_patient_to_move(block=2, patient_type=0, patients_blocks=patients_blocks, patients_types=patients_types)
     assert 6 == ward.find_idx_of_patient_to_move(block=2, patient_type=1, patients_blocks=patients_blocks, patients_types=patients_types)
+
+
+def test_is_fixed_point():
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == True
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == True
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == True
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == True
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == True
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == True
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == True
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == True
+
+    S = np.array(
+        (1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 2,
+         0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == True
+    assert ward.is_fixed_point_T2(state=S) == False
+    assert ward.is_fixed_point_T3(state=S) == True
+    assert ward.is_fixed_point_T4(state=S) == False
+    assert ward.is_fixed_point_T5(state=S) == True
+    assert ward.is_fixed_point_T6(state=S) == False
+    assert ward.is_fixed_point_T1T3T5(state=S) == True
+    assert ward.is_fixed_point_T2T4T6(state=S) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+         0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == False
+    assert ward.is_fixed_point_T2(state=S) == True
+    assert ward.is_fixed_point_T3(state=S) == False
+    assert ward.is_fixed_point_T4(state=S) == True
+    assert ward.is_fixed_point_T5(state=S) == False
+    assert ward.is_fixed_point_T6(state=S) == True
+    assert ward.is_fixed_point_T1T3T5(state=S) == False
+    assert ward.is_fixed_point_T2T4T6(state=S) == True
+
+    S = np.array(
+        (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1(state=S) == True
+    assert ward.is_fixed_point_T2(state=S) == True
+    assert ward.is_fixed_point_T3(state=S) == True
+    assert ward.is_fixed_point_T4(state=S) == True
+    assert ward.is_fixed_point_T5(state=S) == True
+    assert ward.is_fixed_point_T6(state=S) == True
+    assert ward.is_fixed_point_T1T3T5(state=S) == True
+    assert ward.is_fixed_point_T2T4T6(state=S) == True
+
+
+def test_fixed_point_decision_tree():
+    S = np.array(
+        (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 2 # identity, and T2 only
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 2 # identity, and T5 only
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 2,
+         0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 8 # identity, and T1, T3, T5, and combinations
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 64 # all pertmutations
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 1 # identity only
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1T3T5(S) == True
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 2 # identity and T1oT3oT5
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+    S = np.array(
+        (1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0,
+         0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0), dtype=np.int64
+    )
+    assert ward.is_fixed_point_T1T3T5(S) == True
+    assert ward.is_fixed_point_T6(S) == True
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    fixed_permutations = ward.equivalence_permutations[fixed_mask]
+    unfixed_permutations = ward.equivalence_permutations[~fixed_mask]
+    assert fixed_mask.sum() == 4 # (identity and T1oT3oT5) x (identity and T6)
+    for P in fixed_permutations:
+        assert np.array_equal(S[P], S)
+    for P in unfixed_permutations:
+        assert not np.array_equal(S[P], S)
+
+
+def test_is_representative_action():
+    S = np.array(
+        (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 2,
+         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+         0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )  # T2 only
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    # test actions un-affected by equivalence:
+    assert ward.is_representative_action(a=115, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=215, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=112, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=212, fixed_mask=fixed_mask) == True
+    # test actions affected by fixed by equivalence:
+    assert ward.is_representative_action(a=415, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=615, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=403, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=603, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=412, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=612, fixed_mask=fixed_mask) == False
+
+    S = np.array(
+        (1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 2,
+         0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )  # T1 and T3
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    # test actions un-affected by equivalence:
+    assert ward.is_representative_action(a=412, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=415, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=512, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=515, fixed_mask=fixed_mask) == True
+    # test actions affected by fixed by equivalence:
+    assert ward.is_representative_action(a=101, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=202, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=1, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=2, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=301, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=302, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=701, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1001, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=702, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=1002, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=801, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=901, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=802, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=902, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=15, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=315, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=715, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1015, fixed_mask=fixed_mask) == False
+    assert ward.is_representative_action(a=815, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=915, fixed_mask=fixed_mask) == False
+
+    S = np.array(
+        (1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1,
+         0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1,
+         0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0), dtype=np.int64
+    )  # No equivalencies
+    fixed_mask = np.empty(64, dtype=bool)
+    ward.fixed_point_decision_tree(state=S, not_composed_of=ward.not_composed_of, fixed_mask=fixed_mask)
+    assert ward.is_representative_action(a=303, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1212, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=3, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=103, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=203, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=403, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=503, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=603, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=703, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=803, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=903, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1003, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1103, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1303, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=12, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=112, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=212, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=412, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=512, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=612, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=712, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=812, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=912, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1012, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1112, fixed_mask=fixed_mask) == True
+    assert ward.is_representative_action(a=1312, fixed_mask=fixed_mask) == True
