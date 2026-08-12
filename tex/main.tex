@@ -1051,15 +1051,15 @@ three ranked actions, proportional to their exponential $Q$-values, similar to
 softmax.
 For an action $a$ with rank $r_a$, in an action space of size $|A_s|$,
 Equation~\ref{eqn:epsilon_mixed} gives the selection probability for this
-scheme, where the exploitaion weights $(0.4718, 0.3162, 0.2120)$ are generated
-by applying a rank-based softmax, that is proportional to $e^{-0.4 r_a}$ for
+scheme, where the exploitaion weights $(0.4368, 0.3236, 0.2370)$ are generated
+by applying a rank-based softmax, that is proportional to $e^{-0.3 r_a}$ for
 $r_a \in \{1, 2, 3\}$.
 
 \begin{equation}\label{eqn:epsilon_mixed}
 \mathbb{P}(a) = \begin{cases}
-0.4718\epsilon + \frac{1 - \epsilon}{|A_s|} & \text{if } r_a = 1 \\ 
-0.3162\epsilon + \frac{1 - \epsilon}{|A_s|}  & \text{if } r_a = 2 \\ 
-0.2120\epsilon + \frac{1 - \epsilon}{|A_s|}  & \text{if } r_a = 3 \\ 
+0.4368\epsilon + \frac{1 - \epsilon}{|A_s|} & \text{if } r_a = 1 \\ 
+0.3236\epsilon + \frac{1 - \epsilon}{|A_s|}  & \text{if } r_a = 2 \\ 
+0.2370\epsilon + \frac{1 - \epsilon}{|A_s|}  & \text{if } r_a = 3 \\ 
 \frac{1 - \epsilon}{|A_s|} & \text{otherwise.} \\ 
 \end{cases}
 \end{equation}

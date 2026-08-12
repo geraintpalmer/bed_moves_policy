@@ -7,7 +7,8 @@ from numba import njit
 EPSILON_GREEDY = 0
 MIXTURE = 1
 
-top3_probs = np.exp(0.4 * np.array([-1, -2, -3])) / np.exp(0.4 * np.array([-1, -2, -3])).sum()
+tau = 0.3
+top3_probs = np.exp(tau * np.array([-1, -2, -3])) / np.exp(tau * np.array([-1, -2, -3])).sum()
 
 @njit(cache=True)
 def choose_random_action(actions_pool, valid_count):
