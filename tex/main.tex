@@ -1098,11 +1098,11 @@ These tables are then combined, weighting each $Q$-value by the number of
 visits, that is:
 
 \begin{equation}
-Q(s, a) = \frac{\sum_{n=0}^N Q_n(s, a) h_n(s, a)}{\sum_{n=0}^N h_n(s, a)}
+Q(s, a) = \frac{\sum_{n=1}^N Q_n(s, a) h_n(s, a)}{\sum_{n=1}^N h_n(s, a)}
 \end{equation}
 
-In the next state, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$,
-gradually increasing the agents rate of exploitation.
+In the next stage, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$,
+gradually increasing the agent's rate of exploitation linearly.
 Then $Q$-values are initialised with the combined $Q$-value tables found at the
 end of the last stage, the $h_n$ are reset to zero, and the training is repeated
 on parallel workers.
@@ -1113,6 +1113,18 @@ stages.
 After each stage the combined $Q$-values are saved and so the incumbent policy
 can be evaluated by running the simulation, without any $Q$-learning, choosing
 actions based on that incumbent policy.
+
+There is a danger of over-fitting when training with high exploitation, that is
+learning 2nd or 3rd best actions which propagate down sequences of state-action
+choices.
+Though the mixed action-selection scheme above addresses this during training,
+evaluation uses a $1.0$-greedy scheme, pure exploitation of learned $Q$-values,
+which can still highlight the over-fitting.
+Therefore to ensure that the best policy is found at the end of the training
+run, the $Q$-values found at the end of each stage are evaluated, and we take
+the set of $Q$-values that minimise the cost.
+This is equivalent to an early-stopping policy with infinite
+patience \cite{goodfellow16}.
 
 As it is standard for any run of a simulation to begin from an empty state, a
 larger number of parallel trials at each stage yield the added benefit of
