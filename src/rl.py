@@ -119,6 +119,7 @@ def get_best_future_reward(
     prev_best_Q,
     actions_pool,
     equivalence_idx,
+    fixed_mask
 ):
     """
     Returns the maximum future reward if taking the optimal action
@@ -146,7 +147,8 @@ def get_best_future_reward(
     actions_pool, valid_count = ward.get_available_actions(
         state=state,
         patient_type=patient_type,
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
     hash_state_only, a = ward.get_state_action_from_hashstate(
         hash_state=hash_state
@@ -184,7 +186,8 @@ def update_Q_values(
     just_chose_best,
     prev_best_Q,
     default_future_reward,
-    actions_pool
+    actions_pool,
+    fixed_mask
 ):
     """
     Updates the Q-values according to the Q-learning update:
@@ -228,7 +231,8 @@ def update_Q_values(
         just_chose_best=just_chose_best,
         prev_best_Q=prev_best_Q,
         actions_pool=actions_pool,
-        equivalence_idx=next_equivalence_idx
+        equivalence_idx=next_equivalence_idx,
+        fixed_mask=fixed_mask
     )
     if best_future_reward < check_worst:
         best_future_reward = default_future_reward

@@ -100,6 +100,11 @@ def test_get_best_future_reward():
     Q_index_map[hash_state + np.int64(808)] = np.int32(2)
     Qvals = np.array([-55.4, -35.1, -78.2], dtype=np.float32)
 
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+
     Q = rl.get_best_future_reward(
         state=state,
         hash_state=hash_state + 202,
@@ -109,7 +114,8 @@ def test_get_best_future_reward():
         just_chose_best=False,
         prev_best_Q=np.float32(-48.9),
         actions_pool=actions_pool,
-        equivalence_idx=0
+        equivalence_idx=0,
+        fixed_mask=fixed_mask
     )
     assert Q == np.float32(-35.1)
 
@@ -122,7 +128,8 @@ def test_get_best_future_reward():
         just_chose_best=True,
         prev_best_Q=np.float32(-48.9),
         actions_pool=actions_pool,
-        equivalence_idx=0
+        equivalence_idx=0,
+        fixed_mask=fixed_mask
     )
     assert Q == np.float32(-48.9)
 
@@ -162,6 +169,11 @@ def test_update_Q_values():
     Qvals = np.array([-150.0, -100.0, -160.0, 0.0, 0.0, 0.0], dtype=np.float32)
     hits = np.array([1, 1, 1, 0, 0, 0], dtype=np.int16)
 
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+
     new_next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+808,
         next_state=next_state,
@@ -180,7 +192,8 @@ def test_update_Q_values():
         just_chose_best=False,
         prev_best_Q=np.float32(-300),
         default_future_reward=np.float32(-100),
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
     assert new_next_hash_state == 7969177510101
     assert len(Qvals) == 6
@@ -210,7 +223,8 @@ def test_update_Q_values():
         just_chose_best=False,
         prev_best_Q=np.float32(-300),
         default_future_reward=np.float32(-100),
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
 
     assert new_next_hash_state == 7969177510101
@@ -241,7 +255,8 @@ def test_update_Q_values():
         just_chose_best=True,
         prev_best_Q=np.float32(-10000),
         default_future_reward=np.float32(-100),
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
 
     assert new_next_hash_state == 7969177510101
@@ -287,6 +302,11 @@ def test_update_Q_values_default_future():
     hits = np.array([0, 0, 0, 0, 0], dtype=np.int16)
     states = np.array([0, 0, 0, 0, 0], dtype=np.int64)
 
+    fixed_mask = np.empty(64, dtype=bool)
+    fixed_mask[0] = True
+    for i in range(63):
+        fixed_mask[i+1] = False
+
     new_next_hash_state, max_idx = rl.update_Q_values(
         hash_state=hash_state+808,
         next_state=next_state,
@@ -305,7 +325,8 @@ def test_update_Q_values_default_future():
         just_chose_best=False,
         prev_best_Q=np.float32(-300),
         default_future_reward=np.float32(0.2),
-        actions_pool=actions_pool
+        actions_pool=actions_pool,
+        fixed_mask=fixed_mask
     )
 
     assert new_next_hash_state == 7969177510101

@@ -1,7 +1,6 @@
 import numpy as np
 import ward
 import random
-import scipy
 from numba import njit
 
 EPSILON_GREEDY = 0

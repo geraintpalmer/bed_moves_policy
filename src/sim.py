@@ -633,7 +633,8 @@ class WardTraining(WardSimulation):
                 just_chose_best=self.just_chose_best,
                 prev_best_Q=self.prev_best_Q,
                 default_future_reward=self.pessimistic_default,
-                actions_pool=self.actions_pool
+                actions_pool=self.actions_pool,
+                fixed_mask=self.fixed_mask
             )
         else:
             self.hash_state, equivalence_idx = ward.get_hash_stateaction(

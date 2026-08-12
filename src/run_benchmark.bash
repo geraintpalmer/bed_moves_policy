@@ -1,3 +1,3 @@
-python training.py experiments/benchmark/ 10
-python evaluation.py experiments/benchmark/ 10
+python training.py experiments/benchmark/ 5
+python evaluation.py experiments/benchmark/ 5
 python analysis.py experiments/benchmark/

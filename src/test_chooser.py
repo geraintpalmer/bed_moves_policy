@@ -361,21 +361,21 @@ def test_top3mixture():
         a, Qa, next_hash_state, next_equiv_idx = chooser.choose_action(state=S, patient_type=0, selection_policy=chooser.MIXTURE, epsilon=0.5, default_future_reward=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool, buffer_state=buffer_state, q_value_pool=q_value_pool, fixed_mask=fixed_mask)
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[0] / N, 5) == 0.23734
+    assert round(n_chosen_actions[0] / N, 5) == 0.2417
     assert round(n_chosen_actions[101] / N, 5) == 0.08444
     assert round(n_chosen_actions[303] / N, 5) == 0.08238
-    assert round(n_chosen_actions[404] / N, 5) == 0.321
+    assert round(n_chosen_actions[404] / N, 5) == 0.30354
     assert round(n_chosen_actions[505] / N, 5) == 0.08546
-    assert round(n_chosen_actions[707] / N, 5) == 0.18938
+    assert round(n_chosen_actions[707] / N, 5) == 0.20248
 
     chosen_actions = []
     for _ in range(N):
         a, Qa, next_hash_state, next_equiv_idx = chooser.choose_action(state=S, patient_type=0, selection_policy=chooser.MIXTURE, epsilon=0.9, default_future_reward=0.0, Q_index_map=Q_index_map, qval_array=Qvals, actions_pool=actions_pool, buffer_state=buffer_state, q_value_pool=q_value_pool, fixed_mask=fixed_mask)
         chosen_actions.append(a)
     n_chosen_actions = Counter(chosen_actions)
-    assert round(n_chosen_actions[0] / N, 5) == 0.3016
+    assert round(n_chosen_actions[0] / N, 5) == 0.30718
     assert round(n_chosen_actions[101] / N, 5) == 0.01594
     assert round(n_chosen_actions[303] / N, 5) == 0.01584
-    assert round(n_chosen_actions[404] / N, 5) == 0.43998
+    assert round(n_chosen_actions[404] / N, 5) == 0.41012
     assert round(n_chosen_actions[505] / N, 5) == 0.01702
-    assert round(n_chosen_actions[707] / N, 5) == 0.20962
+    assert round(n_chosen_actions[707] / N, 5) == 0.2339
