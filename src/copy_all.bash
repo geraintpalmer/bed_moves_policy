@@ -1,0 +1,16 @@
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha02_gamma06/results/evaluation.csv experiments/param_sweep/stage1/alpha02_gamma06/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha02_gamma07/results/evaluation.csv experiments/param_sweep/stage1/alpha02_gamma07/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha02_gamma08/results/evaluation.csv experiments/param_sweep/stage1/alpha02_gamma08/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha02_gamma09/results/evaluation.csv experiments/param_sweep/stage1/alpha02_gamma09/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha04_gamma06/results/evaluation.csv experiments/param_sweep/stage1/alpha04_gamma06/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha04_gamma07/results/evaluation.csv experiments/param_sweep/stage1/alpha04_gamma07/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha04_gamma08/results/evaluation.csv experiments/param_sweep/stage1/alpha04_gamma08/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha04_gamma09/results/evaluation.csv experiments/param_sweep/stage1/alpha04_gamma09/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha06_gamma06/results/evaluation.csv experiments/param_sweep/stage1/alpha06_gamma06/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha06_gamma07/results/evaluation.csv experiments/param_sweep/stage1/alpha06_gamma07/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha06_gamma08/results/evaluation.csv experiments/param_sweep/stage1/alpha06_gamma08/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha06_gamma09/results/evaluation.csv experiments/param_sweep/stage1/alpha06_gamma09/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha08_gamma06/results/evaluation.csv experiments/param_sweep/stage1/alpha08_gamma06/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha08_gamma07/results/evaluation.csv experiments/param_sweep/stage1/alpha08_gamma07/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha08_gamma08/results/evaluation.csv experiments/param_sweep/stage1/alpha08_gamma08/results/
+scp geraint@harpy.maths.cf.ac.uk:bed_moves_policy/src/experiments/param_sweep/stage1/alpha08_gamma09/results/evaluation.csv experiments/param_sweep/stage1/alpha08_gamma09/results/
