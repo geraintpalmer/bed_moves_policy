@@ -303,7 +303,7 @@ def top3_mixture(
 
 
 @njit(cache=True)
-def exploit_policy(state, patient_type, policy, actions_pool, buffer_state, fixed_mask):
+def exploit_policy(state, patient_type, policy, actions_pool, buffer_state, fixed_mask, epsilon=1.0):
     """
     Choose an action by exploiting the policy.
 
@@ -323,9 +323,15 @@ def exploit_policy(state, patient_type, policy, actions_pool, buffer_state, fixe
         buffer_state=buffer_state
     )
 
-    if hash_state_only in policy:
-        a = policy[hash_state_only]
-        return ward.permute_action(a, equivalence_idx)
+    if (epsilon == 1.0):
+        if hash_state_only in policy:
+            a = policy[hash_state_only]
+            return ward.permute_action(a, equivalence_idx)
+    else:
+        if np.random.random() < epsilon:
+            if hash_state_only in policy:
+                a = policy[hash_state_only]
+                return ward.permute_action(a, equivalence_idx)
 
     ward.fixed_point_decision_tree(
         state=state,

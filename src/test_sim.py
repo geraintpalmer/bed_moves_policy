@@ -328,7 +328,7 @@ def test_using_warmup():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
-        epsilon=0.0,
+        epsilon=1.0,
         seed=0,
         max_time=40.0,
         warmup=50.0
@@ -362,7 +362,7 @@ def test_using_warmup():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
-        epsilon=0.0,
+        epsilon=1.0,
         seed=0,
         max_time=60.0,
         warmup=50.0
@@ -398,7 +398,7 @@ def test_deterioration():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
-        epsilon=0.0,
+        epsilon=1.0,
         seed=0,
         max_time=6.0, # only one arrival
         warmup=50.0,
@@ -443,7 +443,7 @@ def test_deterioration():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
-        epsilon=0.0,
+        epsilon=1.0,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
         warmup=50.0,

@@ -691,7 +691,8 @@ class WardEvaluation(WardSimulation):
             policy=self.policy,
             actions_pool=self.actions_pool,
             buffer_state=self.buffer_state,
-            fixed_mask=self.fixed_mask
+            fixed_mask=self.fixed_mask,
+            epsilon=self.epsilon
         )
         return a, None, None
 
