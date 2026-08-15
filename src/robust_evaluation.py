@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon)
     epsilon_to_test = training_epsilons[stage_to_test-1]
-    eval_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon)[::-1]
+    eval_epsilons = np.array([1.0, 0.995, 0.99, 0.98, 0.97, 0.96, 0.95, 0.94, 0.93, 0.92, 0.91, 0.9, 0.875, 0.85, 0.825, 0.8, 0.75, 0.5, 0.25, 0.0])
     seed = 0
     costs = {}
     multiprocessing.set_start_method("spawn", force=True)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     policy_actions.tofile(policy_actions_path)
 
     
-    for stage in range(n_stages):
+    for stage in range(len(eval_epsilons)):
         progress_array = manager.Array('d', [0.0] * trials_per_stage)
         seeds = [seed + trial for trial in range(trials_per_stage)]
         args_list = [

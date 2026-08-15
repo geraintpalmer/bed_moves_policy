@@ -1,0 +1,10 @@
+max_time: 300000
+learning_rate: 0.1
+discount_factor: 0.85
+n_stages: 21
+trials_per_stage: 50
+max_epsilon: 1.0
+selection_policy: 'mixture'
+max_time_eval: 20000
+warmup_eval: 7500
+trials_per_stage_eval: 100
