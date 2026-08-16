@@ -4,6 +4,7 @@ from numba import typed, types, njit
 import ward
 import chooser
 import rl
+import statistics as st
 
 def make_sampling_function(dist_info):
     """
@@ -130,6 +131,7 @@ class WardSimulation:
         epsilon,
         seed,
         max_time,
+        zeta,
         learning_rate=None,
         discount_factor=None,
         initial_keys=None,
@@ -204,6 +206,7 @@ class WardSimulation:
         self.previous_cost = np.float32(0.0)
         self.average_reward = np.float32(0.0)
         self.variance_reward = np.float32(0.0)
+        self.z_zeta = st.NormalDist(0, 1).inv_cdf(zeta)
         self.n_rewards = 0
         self.warmup = warmup
         self.warmup_cost = np.float32(0.0)
@@ -538,13 +541,13 @@ class WardSimulation:
         """
         This is the pessemistic default value used when no
         exploration has been done, i.e. the Q-value for unexplored states.
-        It corresponds to the 20% percentile of a standard normal
+        It corresponds to the zeta% percentile of a standard normal
         distribution with mean and variance of the observed rewards.
         """
         if self.variance_reward <= 0.0:
             return self.average_reward
         stdev = self.variance_reward ** 0.5
-        percentile = self.average_reward - (0.84 * stdev)
+        percentile = self.average_reward + (self.z_zeta * stdev)
         return  percentile / (1.0 - self.discount_factor)
 
     def decide_action(self, patient_type):

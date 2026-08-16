@@ -28,6 +28,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 def evaluate(
     max_time,
     occupancy_arrival_probs,
+    zeta,
     selection_policy,
     epsilon,
     initial_keys_path,
@@ -74,6 +75,7 @@ def evaluate(
         epsilon=epsilon,
         seed=seed,
         max_time=max_time,
+        zeta=zeta,
         initial_keys=initial_keys,
         initial_policy=initial_policy,
         warmup=warmup
@@ -98,6 +100,7 @@ if __name__ == '__main__':
     trials_per_stage = int(params['trials_per_stage_eval'])
     max_time = float(params['max_time_eval'])
     warmup = float(params['warmup_eval'])
+    zeta = float(params['zeta'])
     n_threads = int(args.n_threads)
     max_epsilon = float(params['max_epsilon'])
     if params['selection_policy'] == 'epsilon_greedy':
@@ -138,6 +141,7 @@ if __name__ == '__main__':
             (
                 max_time,
                 occupancy_arrival_probs,
+                zeta,
                 selection_policy,
                 eval_epsilons[stage],
                 policy_keys_path,

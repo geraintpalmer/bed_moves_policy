@@ -111,6 +111,7 @@ def test_WardSimulation_arrival_and_exit():
         epsilon=0.0,
         seed=0,
         max_time=500.0,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.9
     )
@@ -209,6 +210,7 @@ def test_can_simulate_with_initial_Qvals():
         epsilon=0.0,
         seed=0,
         max_time=2.0,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
@@ -251,6 +253,7 @@ def test_can_simulate_with_initial_Qvals():
         epsilon=0.0,
         seed=0,
         max_time=2.0,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
@@ -293,6 +296,7 @@ def test_can_simulate_with_initial_Qvals():
         epsilon=0.0,
         seed=0,
         max_time=2.0,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.9,
         initial_keys=keys,
@@ -329,6 +333,7 @@ def test_using_warmup():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
+        zeta=0.2,
         seed=0,
         max_time=40.0,
         warmup=50.0
@@ -363,6 +368,7 @@ def test_using_warmup():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
+        zeta=0.2,
         seed=0,
         max_time=60.0,
         warmup=50.0
@@ -399,6 +405,7 @@ def test_deterioration():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
+        zeta=0.2,
         seed=0,
         max_time=6.0, # only one arrival
         warmup=50.0,
@@ -444,6 +451,7 @@ def test_deterioration():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
+        zeta=0.2,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
         warmup=50.0,
@@ -479,6 +487,7 @@ def test_improvement():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
+        zeta=0.2,
         seed=0,
         max_time=6.0, # only one arrival
         warmup=50.0,
@@ -524,6 +533,7 @@ def test_improvement():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
+        zeta=0.2,
         seed=0,
         max_time=8.0, # only one arrival, but deteriorates
         warmup=50.0,
@@ -566,6 +576,7 @@ def test_initial_array_preallocations():
         seed=0,
         max_time=100.0,
         warmup=50.0,
+        zeta=0.2
     )
     # should initialise to 800
     assert len(S.states) == 800
@@ -600,6 +611,7 @@ def test_initial_array_preallocations():
         seed=0,
         max_time=100.0,
         warmup=50.0,
+        zeta=0.2,
         M=1357
     )
     # should initialise to 1357
@@ -634,6 +646,7 @@ def test_long_training_run():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.5,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.8,
         seed=0,
@@ -642,9 +655,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 171684.25
-    assert S.max_idx == 23582
-    assert len(S.Q_index_map) == 23582
+    assert S.overall_cost == 171228.61
+    assert S.max_idx == 23555
+    assert len(S.Q_index_map) == 23555
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(
@@ -672,6 +685,7 @@ def test_long_evaluation_run():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
+        zeta=0.2,
         seed=0,
         max_time=10000.0,
         warmup=1000.0
@@ -706,6 +720,7 @@ def test_give_policy():
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
+        zeta=0.2,
         seed=0,
         max_time=800.0,
         initial_keys=np.array([11000, 33000, 22000, 44000], dtype=np.int64),
@@ -745,6 +760,7 @@ def test_state_dependent_arrivals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,
@@ -780,6 +796,7 @@ def test_state_dependent_arrivals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,
@@ -815,6 +832,7 @@ def test_state_dependent_arrivals():
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
         selection_policy=chooser.EPSILON_GREEDY,
+        zeta=0.2,
         learning_rate=0.5,
         discount_factor=0.5,
         epsilon=0.0,
@@ -825,3 +843,125 @@ def test_state_dependent_arrivals():
     S.simulate_until_max_time()
     assert len(S.Q_index_map) == 7
     assert sum(S.state) == 8
+
+def test_vary_zeta():
+    # Testing with no discount factor
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ('Exponential', 1.5),
+            ('Exponential', 1.0),
+            ('Exponential', 0.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        zeta=0.2,
+        learning_rate=0.5,
+        discount_factor=0.0,
+        epsilon=1.0,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0
+    )
+    assert round(S.z_zeta, 4) == -0.8416
+    S.average_reward = 100.0
+    S.variance_reward = 0.0
+    assert S.pessimistic_default == 100.0
+    S.average_reward = 100.0
+    S.variance_reward = (20 ** 2)
+    assert round(S.pessimistic_default, 4) == 83.1676
+
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ('Exponential', 1.5),
+            ('Exponential', 1.0),
+            ('Exponential', 0.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        learning_rate=0.5,
+        discount_factor=0.0,
+        epsilon=1.0,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0,
+        zeta=0.5
+    )
+    assert round(S.z_zeta, 4) == 0.0
+    S.average_reward = 100.0
+    S.variance_reward = 0.0
+    assert S.pessimistic_default == 100.0
+    S.average_reward = 100.0
+    S.variance_reward = (20 ** 2)
+    assert round(S.pessimistic_default, 4) == 100.0
+
+    S = sim.WardTraining(
+        arrival_distributions=[
+            ('Exponential', 1.5),
+            ('Exponential', 1.0),
+            ('Exponential', 0.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        learning_rate=0.5,
+        discount_factor=0.0,
+        epsilon=1.0,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0,
+        zeta=0.8
+    )
+    assert round(S.z_zeta, 4) == 0.8416
+    S.average_reward = 100.0
+    S.variance_reward = 0.0
+    assert S.pessimistic_default == 100.0
+    S.average_reward = 100.0
+    S.variance_reward = (20 ** 2)
+    assert round(S.pessimistic_default, 4) == 116.8324

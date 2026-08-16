@@ -28,6 +28,7 @@ def train(
     occupancy_arrival_probs,
     learning_rate,
     discount_factor,
+    zeta,
     selection_policy,
     epsilon,
     initial_keys_path,
@@ -77,6 +78,7 @@ def train(
         max_time=max_time,
         learning_rate=learning_rate,
         discount_factor=discount_factor,
+        zeta=zeta,
         initial_keys=initial_keys,
         initial_qvals=initial_qvals,
         M=M
@@ -122,6 +124,7 @@ if __name__ == '__main__':
     max_time = float(params['max_time'])
     learning_rate = float(params['learning_rate'])
     discount_factor = float(params['discount_factor'])
+    zeta = float(params['zeta'])
     n_threads = int(args.n_threads)
     max_epsilon = float(params['max_epsilon'])
     if params['selection_policy'] == 'epsilon_greedy':
@@ -157,6 +160,7 @@ if __name__ == '__main__':
                 occupancy_arrival_probs,
                 learning_rate,
                 discount_factor,
+                zeta,
                 selection_policy,
                 epsilons[stage-1],
                 keys_path,
