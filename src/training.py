@@ -72,6 +72,7 @@ def train(
         isolation_penalty=8.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=15.0,
+        move_los_extender=0.05,
         selection_policy=selection_policy,
         epsilon=epsilon,
         seed=seed,

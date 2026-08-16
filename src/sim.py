@@ -127,6 +127,7 @@ class WardSimulation:
         isolation_penalty,
         move_penalties,
         surge_penalty,
+        move_los_extender,
         selection_policy,
         epsilon,
         seed,
@@ -178,6 +179,7 @@ class WardSimulation:
 
         self.arrival_distributions = tuple(make_sampling_function(dist_info) for dist_info in arrival_distributions)
         self.los_distributions = tuple(make_sampling_function(dist_info) for dist_info in los_distributions)
+        self.move_los_extensions = tuple(move_los_extender * get_mean(dist_info) for dist_info in los_distributions)
         self.deterioration_distributions = tuple(make_sampling_function(dist_info) for dist_info in deterioration_distributions + [('Deterministic', np.inf)])
         self.improvement_distributions = tuple(make_sampling_function(dist_info) for dist_info in [('Deterministic', np.inf)] + improvement_distributions)
         self.occupancy_arrival_probs = occupancy_arrival_probs
@@ -403,6 +405,8 @@ class WardSimulation:
                     to_block=a2,
                     from_block=a1
                 )
+                if a2 != 15:
+                    self.patients_exit_dates[move_idx] += self.move_los_extensions[a3]
                 if a2 == 15:
                     self.patients_patient_types[move_idx] = -1
                     self.patients_exit_dates[move_idx] = np.inf
