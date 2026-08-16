@@ -250,7 +250,7 @@ class WardSimulation:
                 self.warmup_cost += cost
             else:
                 residual_cost = np.float32(cost * (
-                    (update_time - self.now) / (update_time - self.warmup)
+                    (self.warmup - self.now) / (update_time - self.now)
                 ))
                 self.warmup_cost += residual_cost
                 self.pre_warmup = False

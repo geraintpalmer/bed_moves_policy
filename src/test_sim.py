@@ -370,7 +370,7 @@ def test_using_warmup():
     # Simulate for more than the warmup time
     S.simulate_until_max_time()
     assert S.overall_cost == 916.1252
-    assert S.warmup_cost == 800.6037
+    assert S.warmup_cost == 784.91235
 
 
 def test_deterioration():
