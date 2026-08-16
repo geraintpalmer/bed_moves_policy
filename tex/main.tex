@@ -132,7 +132,8 @@ We can do some data analysis here.
   \item Stage 2 patients deteriorate into Stage 3 patients with rate $\delta_{01}$,
   \item Stage 3 patients deteriorate into Stage 3-I patients with rate $\delta_{12}$,
   \item Stage 3 patients improve into Stage 2 patients with rate $\delta_{10}$,
-  \item Stage 3-I patients improve into Stage 3 patients with rate $\delta_{21}$.
+  \item Stage 3-I patients improve into Stage 3 patients with rate $\delta_{21}$,
+  \item Each time a patient is moved, their length of stay is extended by some fraction $\mathcal{E}$ of the mean of their length of stay distribution, and $\mathcal{E} = 0.05$.
 \end{itemize}
 
 \section{Problem Decomposition}
