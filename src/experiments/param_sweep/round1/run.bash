@@ -1,16 +1,54 @@
-alphas=("0.2" "0.4" "0.6" "0.8")
-gammas=("0.6" "0.7" "0.8" "0.9")
+python training.py experiments/param_sweep/round1/alpha01_gamma75/ $1
+python evaluation.py experiments/param_sweep/round1/alpha01_gamma75/ $1
+python training.py experiments/param_sweep/round1/alpha01_gamma80/ $1
+python evaluation.py experiments/param_sweep/round1/alpha01_gamma80/ $1
+python training.py experiments/param_sweep/round1/alpha01_gamma85/ $1
+python evaluation.py experiments/param_sweep/round1/alpha01_gamma85/ $1
+python training.py experiments/param_sweep/round1/alpha01_gamma90/ $1
+python evaluation.py experiments/param_sweep/round1/alpha01_gamma90/ $1
+python training.py experiments/param_sweep/round1/alpha01_gamma95/ $1
+python evaluation.py experiments/param_sweep/round1/alpha01_gamma95/ $1
 
-n_cores="$1"
+python training.py experiments/param_sweep/round1/alpha03_gamma75/ $1
+python evaluation.py experiments/param_sweep/round1/alpha03_gamma75/ $1
+python training.py experiments/param_sweep/round1/alpha03_gamma80/ $1
+python evaluation.py experiments/param_sweep/round1/alpha03_gamma80/ $1
+python training.py experiments/param_sweep/round1/alpha03_gamma85/ $1
+python evaluation.py experiments/param_sweep/round1/alpha03_gamma85/ $1
+python training.py experiments/param_sweep/round1/alpha03_gamma90/ $1
+python evaluation.py experiments/param_sweep/round1/alpha03_gamma90/ $1
+python training.py experiments/param_sweep/round1/alpha03_gamma95/ $1
+python evaluation.py experiments/param_sweep/round1/alpha03_gamma95/ $1
 
-for alpha in "${alphas[@]}"; do
-    for gamma in "${gammas[@]}"; do
-        alpha_str=$(echo "$alpha" | tr -d '.')
-        gamma_str=$(echo "$gamma" | tr -d '.')
-        dir="experiments/param_sweep/round1/alpha${alpha_str}_gamma${gamma_str}/"
-        echo "Alpha: ${alpha}; Gamma: ${gamma}"
-        python training.py "$dir" "$n_cores"
-        python evaluation.py "$dir" "$n_cores"
-        python analysis.py "$dir"
-    done
-done
+python training.py experiments/param_sweep/round1/alpha05_gamma75/ $1
+python evaluation.py experiments/param_sweep/round1/alpha05_gamma75/ $1
+python training.py experiments/param_sweep/round1/alpha05_gamma80/ $1
+python evaluation.py experiments/param_sweep/round1/alpha05_gamma80/ $1
+python training.py experiments/param_sweep/round1/alpha05_gamma85/ $1
+python evaluation.py experiments/param_sweep/round1/alpha05_gamma85/ $1
+python training.py experiments/param_sweep/round1/alpha05_gamma90/ $1
+python evaluation.py experiments/param_sweep/round1/alpha05_gamma90/ $1
+python training.py experiments/param_sweep/round1/alpha05_gamma95/ $1
+python evaluation.py experiments/param_sweep/round1/alpha05_gamma95/ $1
+
+python training.py experiments/param_sweep/round1/alpha07_gamma75/ $1
+python evaluation.py experiments/param_sweep/round1/alpha07_gamma75/ $1
+python training.py experiments/param_sweep/round1/alpha07_gamma80/ $1
+python evaluation.py experiments/param_sweep/round1/alpha07_gamma80/ $1
+python training.py experiments/param_sweep/round1/alpha07_gamma85/ $1
+python evaluation.py experiments/param_sweep/round1/alpha07_gamma85/ $1
+python training.py experiments/param_sweep/round1/alpha07_gamma90/ $1
+python evaluation.py experiments/param_sweep/round1/alpha07_gamma90/ $1
+python training.py experiments/param_sweep/round1/alpha07_gamma95/ $1
+python evaluation.py experiments/param_sweep/round1/alpha07_gamma95/ $1
+
+python training.py experiments/param_sweep/round1/alpha09_gamma75/ $1
+python evaluation.py experiments/param_sweep/round1/alpha09_gamma75/ $1
+python training.py experiments/param_sweep/round1/alpha09_gamma80/ $1
+python evaluation.py experiments/param_sweep/round1/alpha09_gamma80/ $1
+python training.py experiments/param_sweep/round1/alpha09_gamma85/ $1
+python evaluation.py experiments/param_sweep/round1/alpha09_gamma85/ $1
+python training.py experiments/param_sweep/round1/alpha09_gamma90/ $1
+python evaluation.py experiments/param_sweep/round1/alpha09_gamma90/ $1
+python training.py experiments/param_sweep/round1/alpha09_gamma95/ $1
+python evaluation.py experiments/param_sweep/round1/alpha09_gamma95/ $1
