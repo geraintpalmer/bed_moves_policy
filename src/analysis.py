@@ -30,13 +30,14 @@ if __name__ == '__main__':
     # Plot evaluation
     fig, ax = plt.subplots(1, figsize=(7, 5))
     viols = ax.violinplot(
-        [data[f'Stage {i}'] for i in range(params['n_stages'] + 1)],
+        [data[f'Stage {i}'][data[f'Stage {i}'] > 165000] for i in range(params['n_stages'] + 1)],
         showextrema=False,
         vert=False
     )
     boxes = ax.boxplot(
         [data[f'Stage {i}'] for i in range(params['n_stages'] + 1)],
-        whis=(0, 100),
+        whis=1.5, #(0, 100),
+        showfliers=False,
         showmeans=True,
         medianprops={'color': 'black'},
         meanprops={
@@ -58,14 +59,3 @@ if __name__ == '__main__':
     plt.tight_layout()
     fig.savefig(args.experiment + '/results/cost_by_stage.pdf')
 
-
-    # # Progression
-    # fig, axarr = plt.subplots(1, 2, figsize=(12, 3.5))
-    # axarr[0].barh(stage_labels, visited_states, color='darkorange', edgecolor='black')
-    # axarr[0].set_xlabel("Total Visited States")
-    # plt.gca().invert_yaxis()
-    # axarr[1].barh(stage_labels, [visited_states[0]] + list(np.diff(visited_states)), color='darkorange', edgecolor='black')
-    # axarr[1].set_xlabel("New States Visited per Stage")
-    # plt.gca().invert_yaxis()
-    # plt.tight_layout()
-    # fig.savefig(args.experiment + '/results/unique_visits_per_stage.pdf')

@@ -1,7 +1,7 @@
 *__pycache__*
 *.ipynb_checkpoints/*
 *src/.ipynb_checkpoints/*
-*src/experiments/vary_gamma/.ipynb_checkpoints/*
+*/.ipynb_checkpoints/*
 *.DS_Store
 *.log
 *.aux
@@ -15,3 +15,4 @@
 *.npz*
 *.npy*
 *.bin*
+*TODO.md*
