@@ -1,75 +1,99 @@
-echo "Alpha=0.4, Gamma=0.81"
-python training.py experiments/param_sweep/round2/alpha040_gamma81/ $1
-python evaluation.py experiments/param_sweep/round2/alpha040_gamma81/ $1
-echo "Alpha=0.4, Gamma=0.83"
-python training.py experiments/param_sweep/round2/alpha040_gamma83/ $1
-python evaluation.py experiments/param_sweep/round2/alpha040_gamma83/ $1
-echo "Alpha=0.4, Gamma=0.85"
-python training.py experiments/param_sweep/round2/alpha040_gamma85/ $1
-python evaluation.py experiments/param_sweep/round2/alpha040_gamma85/ $1
-echo "Alpha=0.4, Gamma=0.87"
-python training.py experiments/param_sweep/round2/alpha040_gamma87/ $1
-python evaluation.py experiments/param_sweep/round2/alpha040_gamma87/ $1
-echo "Alpha=0.4, Gamma=0.89"
-python training.py experiments/param_sweep/round2/alpha040_gamma89/ $1
-python evaluation.py experiments/param_sweep/round2/alpha040_gamma89/ $1
-echo "Alpha=0.45, Gamma=0.81"
-python training.py experiments/param_sweep/round2/alpha045_gamma81/ $1
-python evaluation.py experiments/param_sweep/round2/alpha045_gamma81/ $1
-echo "Alpha=0.45, Gamma=0.83"
-python training.py experiments/param_sweep/round2/alpha045_gamma83/ $1
-python evaluation.py experiments/param_sweep/round2/alpha045_gamma83/ $1
-echo "Alpha=0.45, Gamma=0.85"
-python training.py experiments/param_sweep/round2/alpha045_gamma85/ $1
-python evaluation.py experiments/param_sweep/round2/alpha045_gamma85/ $1
-echo "Alpha=0.45, Gamma=0.87"
-python training.py experiments/param_sweep/round2/alpha045_gamma87/ $1
-python evaluation.py experiments/param_sweep/round2/alpha045_gamma87/ $1
-echo "Alpha=0.45, Gamma=0.89"
-python training.py experiments/param_sweep/round2/alpha045_gamma89/ $1
-python evaluation.py experiments/param_sweep/round2/alpha045_gamma89/ $1
-echo "Alpha=0.5, Gamma=0.81"
-python training.py experiments/param_sweep/round2/alpha050_gamma81/ $1
-python evaluation.py experiments/param_sweep/round2/alpha050_gamma81/ $1
-echo "Alpha=0.5, Gamma=0.83"
-python training.py experiments/param_sweep/round2/alpha050_gamma83/ $1
-python evaluation.py experiments/param_sweep/round2/alpha050_gamma83/ $1
-echo "Alpha=0.5, Gamma=0.85"
-python training.py experiments/param_sweep/round2/alpha050_gamma85/ $1
-python evaluation.py experiments/param_sweep/round2/alpha050_gamma85/ $1
-echo "Alpha=0.5, Gamma=0.87"
-python training.py experiments/param_sweep/round2/alpha050_gamma87/ $1
-python evaluation.py experiments/param_sweep/round2/alpha050_gamma87/ $1
-echo "Alpha=0.5, Gamma=0.89"
-python training.py experiments/param_sweep/round2/alpha050_gamma89/ $1
-python evaluation.py experiments/param_sweep/round2/alpha050_gamma89/ $1
-echo "Alpha=0.55, Gamma=0.81"
-python training.py experiments/param_sweep/round2/alpha055_gamma81/ $1
-python evaluation.py experiments/param_sweep/round2/alpha055_gamma81/ $1
-echo "Alpha=0.55, Gamma=0.83"
-python training.py experiments/param_sweep/round2/alpha055_gamma83/ $1
-python evaluation.py experiments/param_sweep/round2/alpha055_gamma83/ $1
-echo "Alpha=0.55, Gamma=0.85"
-python training.py experiments/param_sweep/round2/alpha055_gamma85/ $1
-python evaluation.py experiments/param_sweep/round2/alpha055_gamma85/ $1
-echo "Alpha=0.55, Gamma=0.87"
-python training.py experiments/param_sweep/round2/alpha055_gamma87/ $1
-python evaluation.py experiments/param_sweep/round2/alpha055_gamma87/ $1
-echo "Alpha=0.55, Gamma=0.89"
-python training.py experiments/param_sweep/round2/alpha055_gamma89/ $1
-python evaluation.py experiments/param_sweep/round2/alpha055_gamma89/ $1
-echo "Alpha=0.6, Gamma=0.81"
-python training.py experiments/param_sweep/round2/alpha060_gamma81/ $1
-python evaluation.py experiments/param_sweep/round2/alpha060_gamma81/ $1
-echo "Alpha=0.6, Gamma=0.83"
-python training.py experiments/param_sweep/round2/alpha060_gamma83/ $1
-python evaluation.py experiments/param_sweep/round2/alpha060_gamma83/ $1
-echo "Alpha=0.6, Gamma=0.85"
-python training.py experiments/param_sweep/round2/alpha060_gamma85/ $1
-python evaluation.py experiments/param_sweep/round2/alpha060_gamma85/ $1
-echo "Alpha=0.6, Gamma=0.87"
-python training.py experiments/param_sweep/round2/alpha060_gamma87/ $1
-python evaluation.py experiments/param_sweep/round2/alpha060_gamma87/ $1
-echo "Alpha=0.6, Gamma=0.89"
-python training.py experiments/param_sweep/round2/alpha060_gamma89/ $1
-python evaluation.py experiments/param_sweep/round2/alpha060_gamma89/ $1
+echo "Alpha=0.04, Gamma=0.85"
+mkdir experiments/param_sweep/round2/alpha004_gamma85/results
+mkdir experiments/param_sweep/round2/alpha004_gamma85/results/tmp
+python training.py experiments/param_sweep/round2/alpha004_gamma85/ $1
+python evaluation.py experiments/param_sweep/round2/alpha004_gamma85/ $1
+rm -rf experiments/param_sweep/round2/alpha004_gamma85/results/*.bin
+echo "Alpha=0.04, Gamma=0.89"
+mkdir experiments/param_sweep/round2/alpha004_gamma89/results
+mkdir experiments/param_sweep/round2/alpha004_gamma89/results/tmp
+python training.py experiments/param_sweep/round2/alpha004_gamma89/ $1
+python evaluation.py experiments/param_sweep/round2/alpha004_gamma89/ $1
+rm -rf experiments/param_sweep/round2/alpha004_gamma89/results/*.bin
+echo "Alpha=0.04, Gamma=0.92"
+mkdir experiments/param_sweep/round2/alpha004_gamma92/results
+mkdir experiments/param_sweep/round2/alpha004_gamma92/results/tmp
+python training.py experiments/param_sweep/round2/alpha004_gamma92/ $1
+python evaluation.py experiments/param_sweep/round2/alpha004_gamma92/ $1
+rm -rf experiments/param_sweep/round2/alpha004_gamma92/results/*.bin
+echo "Alpha=0.04, Gamma=0.94"
+mkdir experiments/param_sweep/round2/alpha004_gamma94/results
+mkdir experiments/param_sweep/round2/alpha004_gamma94/results/tmp
+python training.py experiments/param_sweep/round2/alpha004_gamma94/ $1
+python evaluation.py experiments/param_sweep/round2/alpha004_gamma94/ $1
+rm -rf experiments/param_sweep/round2/alpha004_gamma94/results/*.bin
+
+echo "Alpha=0.08, Gamma=0.85"
+mkdir experiments/param_sweep/round2/alpha008_gamma85/results
+mkdir experiments/param_sweep/round2/alpha008_gamma85/results/tmp
+python training.py experiments/param_sweep/round2/alpha008_gamma85/ $1
+python evaluation.py experiments/param_sweep/round2/alpha008_gamma85/ $1
+rm -rf experiments/param_sweep/round2/alpha008_gamma85/results/*.bin
+echo "Alpha=0.08, Gamma=0.89"
+mkdir experiments/param_sweep/round2/alpha008_gamma89/results
+mkdir experiments/param_sweep/round2/alpha008_gamma89/results/tmp
+python training.py experiments/param_sweep/round2/alpha008_gamma89/ $1
+python evaluation.py experiments/param_sweep/round2/alpha008_gamma89/ $1
+rm -rf experiments/param_sweep/round2/alpha008_gamma89/results/*.bin
+echo "Alpha=0.08, Gamma=0.92"
+mkdir experiments/param_sweep/round2/alpha008_gamma92/results
+mkdir experiments/param_sweep/round2/alpha008_gamma92/results/tmp
+python training.py experiments/param_sweep/round2/alpha008_gamma92/ $1
+python evaluation.py experiments/param_sweep/round2/alpha008_gamma92/ $1
+rm -rf experiments/param_sweep/round2/alpha008_gamma92/results/*.bin
+echo "Alpha=0.08, Gamma=0.94"
+mkdir experiments/param_sweep/round2/alpha008_gamma94/results
+mkdir experiments/param_sweep/round2/alpha008_gamma94/results/tmp
+python training.py experiments/param_sweep/round2/alpha008_gamma94/ $1
+python evaluation.py experiments/param_sweep/round2/alpha008_gamma94/ $1
+rm -rf experiments/param_sweep/round2/alpha008_gamma94/results/*.bin
+
+echo "Alpha=0.12, Gamma=0.85"
+mkdir experiments/param_sweep/round2/alpha012_gamma85/results
+mkdir experiments/param_sweep/round2/alpha012_gamma85/results/tmp
+python training.py experiments/param_sweep/round2/alpha012_gamma85/ $1
+python evaluation.py experiments/param_sweep/round2/alpha012_gamma85/ $1
+rm -rf experiments/param_sweep/round2/alpha012_gamma85/results/*.bin
+echo "Alpha=0.12, Gamma=0.89"
+mkdir experiments/param_sweep/round2/alpha012_gamma89/results
+mkdir experiments/param_sweep/round2/alpha012_gamma89/results/tmp
+python training.py experiments/param_sweep/round2/alpha012_gamma89/ $1
+python evaluation.py experiments/param_sweep/round2/alpha012_gamma89/ $1
+rm -rf experiments/param_sweep/round2/alpha012_gamma89/results/*.bin
+echo "Alpha=0.12, Gamma=0.92"
+mkdir experiments/param_sweep/round2/alpha012_gamma92/results
+mkdir experiments/param_sweep/round2/alpha012_gamma92/results/tmp
+python training.py experiments/param_sweep/round2/alpha012_gamma92/ $1
+python evaluation.py experiments/param_sweep/round2/alpha012_gamma92/ $1
+rm -rf experiments/param_sweep/round2/alpha012_gamma92/results/*.bin
+echo "Alpha=0.12, Gamma=0.94"
+mkdir experiments/param_sweep/round2/alpha012_gamma94/results
+mkdir experiments/param_sweep/round2/alpha012_gamma94/results/tmp
+python training.py experiments/param_sweep/round2/alpha012_gamma94/ $1
+python evaluation.py experiments/param_sweep/round2/alpha012_gamma94/ $1
+rm -rf experiments/param_sweep/round2/alpha012_gamma94/results/*.bin
+
+echo "Alpha=0.16, Gamma=0.85"
+mkdir experiments/param_sweep/round2/alpha016_gamma85/results
+mkdir experiments/param_sweep/round2/alpha016_gamma85/results/tmp
+python training.py experiments/param_sweep/round2/alpha016_gamma85/ $1
+python evaluation.py experiments/param_sweep/round2/alpha016_gamma85/ $1
+rm -rf experiments/param_sweep/round2/alpha016_gamma85/results/*.bin
+echo "Alpha=0.16, Gamma=0.89"
+mkdir experiments/param_sweep/round2/alpha016_gamma89/results
+mkdir experiments/param_sweep/round2/alpha016_gamma89/results/tmp
+python training.py experiments/param_sweep/round2/alpha016_gamma89/ $1
+python evaluation.py experiments/param_sweep/round2/alpha016_gamma89/ $1
+rm -rf experiments/param_sweep/round2/alpha016_gamma89/results/*.bin
+echo "Alpha=0.16, Gamma=0.92"
+mkdir experiments/param_sweep/round2/alpha016_gamma92/results
+mkdir experiments/param_sweep/round2/alpha016_gamma92/results/tmp
+python training.py experiments/param_sweep/round2/alpha016_gamma92/ $1
+python evaluation.py experiments/param_sweep/round2/alpha016_gamma92/ $1
+rm -rf experiments/param_sweep/round2/alpha016_gamma92/results/*.bin
+echo "Alpha=0.16, Gamma=0.94"
+mkdir experiments/param_sweep/round2/alpha016_gamma94/results
+mkdir experiments/param_sweep/round2/alpha016_gamma94/results/tmp
+python training.py experiments/param_sweep/round2/alpha016_gamma94/ $1
+python evaluation.py experiments/param_sweep/round2/alpha016_gamma94/ $1
+rm -rf experiments/param_sweep/round2/alpha016_gamma94/results/*.bin
