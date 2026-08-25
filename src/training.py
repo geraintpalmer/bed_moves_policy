@@ -263,11 +263,13 @@ if __name__ == '__main__':
             keys=keys,
             qval=qvals,
             hits=hits,
-            prune_limit=prune_limit
+            prune_limit=prune_limit,
+            ignore_head_size=prev_key_length
         )
         keys = np.fromfile(keys_path, dtype=np.int64)
         qvals = np.fromfile(qvals_path, dtype=np.float32)
         hits.fill(np.int16(0))
+        hits = hits[:key_length]
 
         extra_space = max(key_length - prev_key_length, key_length * 0.2)
         M = np.ceil((key_length + extra_space) * 1.2).astype(np.int64)
