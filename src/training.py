@@ -128,6 +128,7 @@ if __name__ == '__main__':
     zeta = float(params['zeta'])
     n_threads = int(args.n_threads)
     max_epsilon = float(params['max_epsilon'])
+    prune_limit = int(params['prune_limit'])
     if params['selection_policy'] == 'epsilon_greedy':
         selection_policy = chooser.EPSILON_GREEDY
     if params['selection_policy'] == 'mixture':
@@ -262,7 +263,7 @@ if __name__ == '__main__':
             keys=keys,
             qval=qvals,
             hits=hits,
-            prune_limit=-1
+            prune_limit=prune_limit
         )
         keys = np.fromfile(keys_path, dtype=np.int64)
         qvals = np.fromfile(qvals_path, dtype=np.float32)

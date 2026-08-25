@@ -9,3 +9,4 @@ selection_policy: 'mixture'
 max_time_eval: 20000
 warmup_eval: 7500
 trials_per_stage_eval: 150
+prune_limit: 0

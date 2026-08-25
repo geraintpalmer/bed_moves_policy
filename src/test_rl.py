@@ -502,7 +502,8 @@ def test_prune_and_save():
         keys=keys,
         qval=qval,
         hits=hits,
-        prune_limit=0
+        prune_limit=0,
+        ignore_head_size=0
     )
     saved_keys = np.fromfile(keys_fname, dtype=np.int64)
     saved_qval = np.fromfile(qval_fname, dtype=np.float32)
@@ -522,7 +523,8 @@ def test_prune_and_save():
         keys=keys,
         qval=qval,
         hits=hits,
-        prune_limit=9
+        prune_limit=9,
+        ignore_head_size=0
     )
     saved_keys = np.fromfile(keys_fname, dtype=np.int64)
     saved_qval = np.fromfile(qval_fname, dtype=np.float32)
@@ -534,6 +536,27 @@ def test_prune_and_save():
     assert np.array_equal(saved_keys, expected_keys)
     assert np.array_equal(saved_qval, expected_qval)
     assert n == 3
+    os.remove(keys_fname)
+    os.remove(qval_fname)
+
+    n = rl.prune_and_save(
+        keys_fname=keys_fname,
+        qval_fname=qval_fname,
+        keys=keys,
+        qval=qval,
+        hits=hits,
+        prune_limit=6,
+        ignore_head_size=3
+    )
+    saved_keys = np.fromfile(keys_fname, dtype=np.int64)
+    saved_qval = np.fromfile(qval_fname, dtype=np.float32)
+    expected_keys = np.array([11111111, 22222222, 11111122, 44444433, 44433344], dtype=np.int64)
+    expected_qval = np.array([-11.1178, -11.8981, -31.2121, -12.1234, -10.4312], dtype=np.float32)
+    assert os.path.isfile(keys_fname)
+    assert os.path.isfile(qval_fname)
+    assert np.array_equal(saved_keys, expected_keys)
+    assert np.array_equal(saved_qval, expected_qval)
+    assert n == 5
     os.remove(keys_fname)
     os.remove(qval_fname)
 
