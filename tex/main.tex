@@ -935,12 +935,12 @@ unexplored state-action pairs.
 In these cases the baseline $Q$-value for unexplored states will have an effect.
 Assuming $Q$-values follow a Normal distribution, we use their $\zeta$-th
 percentile as a default value, where $\zeta$ is a hyper-parameter to choose,
-$Q_{\zeta}$, using Equation~\ref{eqn:averageQ}, which can be obtained by keeping
+$Q_{\zeta}$, using Equation~\ref{eqn:defaultQ}, which can be obtained by keeping
 track of the running mean and variance of the rewards, $\bar{R}$ and $s_R^2$,
 using updates such as Welford's update \cite{welford62}, and the $\zeta$-th
 percentile of the standard Normal distribution, $z_{\zeta}$.
 
-\begin{equation}\label{eqn:averageQ}
+\begin{equation}\label{eqn:defaultQ}
 Q_{\zeta} = \frac{\bar{R} - z_{\zeta} s_R^2}{1 - \gamma}
 \end{equation}
 
@@ -1175,11 +1175,11 @@ This would be a good candidate to prune and so not pass to stage $n+1$.
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
 we run an hierarchical grid search.
 Keeping all other parameters equal, in round 1 we first search 
-$(\alpha, \gamma) \in (0.2, 0.4, 0.6, 0.8) \times (0.6, 0.7, 0.8, 0.9)$, and
-find the optimal combination to be $\alpha = 0.2$ and $\gamma = 0.8$.
-Then in round 2 we search $(\alpha, \gamma) \in (0.1, 0.15, 0.2, 0.25, 0.3)
-\times (0.75, 0.775, 0.8, 0.825, 0.85)$, and refine our optimal combination to
-$\alpha = 0.1$ and $\gamma = 0.85$, which are the values used throughout the
+$(\alpha, \gamma) \in (0.1, 0.2, 0.3, 0.4) \times (0.8, 0.9, 0.95, 0.99)$, and
+find the optimal combination to be $\alpha = 0.1$ and $\gamma = 0.9$.
+Then in round 2 we search $(\alpha, \gamma) \in (0.04, 0.08, 0.12, 0.16)
+\times (0.85, 0.89, 0.8, 0.92, 0.94)$, and refine our optimal combination to
+$\alpha = 0.16$ and $\gamma = 0.94$, which are the values used throughout the
 remainder of the paper.
 The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
 
@@ -1192,11 +1192,10 @@ The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
 \end{figure}
 
 \subsection{Training a Base Policy}
-The model is trained across 21 stages, each consisting of 50 trials, each
-training over 300,000 time units, with a pessimistic default $Q$-value using
-$\zeta = 0.2$. 
+The model is trained across 21 stages, each consisting of 60 trials, each
+training over 400,000 time units, with a default $Q$-value using$\zeta = 0.5$. 
 For a particular run, each stage' incumbent policy is evaluated by running the
-simulation for 100 trials, each for a 20,000 time units, and a warm-up time of
+simulation for 150 trials, each for a 20,000 time units, and a warm-up time of
 7,500 time units, and recording the overall cost running the ICU for the
 remaining 12,500 time units when exploiting that incumbent policy.
 An initial `random' policy is evaluated for comparison.
@@ -1210,28 +1209,74 @@ Figure~\ref{fig:base_run} shows these results.
 \label{fig:base_run}
 \end{figure}
 
-This plot shows an interesting shape S-shaped curve which can be described in four stages:
+This plot shows an interesting shape wave-like curve which can be described in
+four stages:
 \begin{itemize}
   \item Random - Stage 1: after the first stage the policy improves, discovering
   some quick `low hanging fruit' gains.
-  \item Stage 1 - Stage 5: the policy worsens with training, which may seem
-  unintuitive, but can however be explained by the pessimistic $\zeta = 0.2$:
-  not only is exploration of unexplored state-actions discouraged, but long-term
-  sequences of actions are penalised if they contain any unexplored
-  state-actions. Hence in these partially explored and partially trained
-  regions, fully explored sequences look more optimal than partially explored
-  sequences, even if in reality they are less optimal.
-  \item Stage 5 - Stage 15: Here enough of the state-action space is explored
+  \item Stage 1 - Stage 4: the policy worsens with training, which may seem
+  unintuitive, but can however be explained by the the choice of default value
+  of unexplored states, using $\zeta = 0.5$:
+  not only is exploration of unexplored state-actions discouraged (only
+  assuming the running median reward), but long-term sequences of actions are
+  penalised if they contain any unexplored state-actions. Hence in these
+  partially explored and partially trained regions, fully explored sequences
+  look more optimal than partially explored sequences, even if in reality they
+  are less optimal.
+  \item Stage 4 - Stage 12: Here enough of the state-action space is explored
   sufficiently that further training improves the policy.
-  \item Stage 15 onward: Here the policy gradually worsens with training again,
+  \item Stage 12 onward: Here the policy gradually worsens with training again,
   due to over-fitting when training with such high exploitation, as expected
   and discussed in Section~\ref{sec:training_framework}. Therefore the
-  early-stopping scheme would choose the incumbent policy at Stage 15 as the
+  early-stopping scheme would choose the incumbent policy at Stage 12 as the
   optimal. 
 \end{itemize}
 
-Overall, this optimal policy produces a median overall cost of 173,887.695,
-improving on a random  (median overall cost of 196,911.85), by 11.7\%.
+Overall, this optimal policy produces a median overall cost of 177,663.085,
+improving on a random  (median overall cost of 203,164.96), by 12.6\%.
+
+
+\subsection{Effect of Default $Q$-value}
+The wave-like training curve seen in Figure~\ref{fig:base_run} can be partially
+explained by the choice of $\zeta$.
+Recall that $\zeta$ represents the quantile of the rewards found so far in the
+training run used as the default reward for unexplored states, and therefore the
+default $Q$-value associated with those states is given in
+Equation~\ref{eqn:defaultQ}.
+In Figure~\ref{fig:base_run}, $\zeta = 0.5$ was used, that is we take the median
+reward seed so far as the default.
+Other values may exhibit different training behaviour.
+
+Figure~\ref{fig:vary_zeta} shows the training curves of three runs using
+$\zeta \in (0.15, 0.5, 0.85)$, representing pessimistic (assuming unexplored
+states have worse reward than 85\% of what has been observed so far), neutral,
+and optimistic (assuming unexplored states have better reward than 85\% of what
+has been observed so far).
+We see with the pessimistic and neutral values that the policies worsen between
+stages 1 and 4 as exploration is discouraged, pulling the agent into poor local
+choices.
+This is avoided completely with the optimistic choice where exploration is
+encouraged; however it fails to reach the peak performance of the others as
+over-fitting begins early, that is sequences of best actions do not propagate as
+they are interrupted by attractive unexplored states.
+Future work might work to dynamically vary the value of $\zeta$ as the training
+progresses, to capture the best of both pessimistic and optimistic defaults
+where needed.
+Note also that although we call $\zeta = 0.5$ neutral, this depends entirely on
+the distribution of observed rewards, and Figure~\ref{fig:vary_zeta} suggests
+this may be more pessimistic than originally thought due to its similar
+behaviour to the pessimistic choice $\zeta = 0.15$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../plt/vary_zeta}
+\end{center}
+\caption{Comparing the training curve using pessimistic, neutral, and optimistic
+default values for unexplored states. Solid lines denote the median evaluation,
+while shaded regions show the inter-quartile range.}
+\label{fig:vary_zeta}
+\end{figure}
+
 
 
 \subsection{Robustness Tests}
@@ -1257,135 +1302,12 @@ performance up to a 10\% error rate, and larger deterioration thereafter.
 \begin{center}
 \includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/robust_evaluation}
 \end{center}
-\caption{Evaluation of the best policy (incumbent at Stage 15) when using
+\caption{Evaluation of the best policy (incumbent at Stage 12) when using
 different exploitation probabilities $\epsilon$.}
 \label{fig:base_run_robustness}
 \end{figure}
 
-% As there is such a huge amount of state-action pairs, it is practically
-% impossible to estimate whether the policy has converged or not, though we see
-% any improvements in cost slowing down as the stages increase.
-% We can also count the number of unique state-action pairs visited per stage
-% during the training process, shown in Figure~\ref{fig:base_run_visited}.
-% We see some tapering-off of the number of new states-action pairs visited,
-% indicating both a decreasing tendency to explore (from the increasing
-% $\epsilon$), and a gradual saturation of states from previous explorations.
 
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=0.95\textwidth]{../src/experiments/test_run/results/unique_visits_per_stage}
-% \end{center}
-% \caption{Number of state-action pairs visited in each stage of the training
-% process.}
-% \label{fig:base_run_visited}
-% \end{figure}
-
-
-% \subsection{Effect of the learning rate $\alpha$}
-% Using this setup then, we can also look at the effect of the learning rate
-% $\alpha$.
-% Figure~\ref{fig:vary_alpha} shows the percentage improvement in using the
-% incumbent policy per stage for different values of $\alpha$ (left), and the
-% percentage improvement after all 21 stages for different values of $\alpha$
-% (right).
-
-% \begin{figure}
-% \includegraphics[width=\textwidth]{../src/experiments/vary_alpha/vary_alpha}
-% \caption{The effect of varying the learning rate $\alpha$.}
-% \label{fig:vary_alpha}
-% \end{figure}
-
-% We immediately see from the left plot that the improvement peaks when
-% $\alpha=0.6$, indicating that this is the ideal learning rate for this problem,
-% when running under the current setup.
-% However the right plot shows the agent's behaviour as the training progresses:
-% a smaller learning rate results in slower learning (a less steep curve); a high
-% learning rate has faster learning, but cannot smooth out stochasticity of
-% rewards as effectively; while a moderate learning rate can learn quickly and smooth
-% out variability.
-% The speed of learning is important in our case is important: as it would be
-% impractical to run the algorithm until convergence we have to choose some
-% temporal cut-off, and so we want as much learning to occur in the time allotted
-% as possible.
-
-
-% \subsection{Effect of the discount factor $\gamma$}
-% We can also look at the effect of the discount factor $\gamma$.
-% Figure~\ref{fig:vary_gamma} shows the percentage improvement in using the
-% incumbent policy per stage for different values of $\gamma$ (left), and the
-% percentage improvement after all 21 stages for different values of $\gamma$
-% (right).
-
-% \begin{figure}
-% \includegraphics[width=\textwidth]{../src/experiments/vary_gamma/vary_gamma}
-% \caption{The effect of varying the discount factor $\gamma$.}
-% \label{fig:vary_gamma}
-% \end{figure}
-
-% Again we can immediately see from the plot on the left that the improvement
-% peaks when $\gamma$ is around 0.5-0.6.
-% Considering the right plot which shows the agent's behaviour as the training
-% progresses: a high discount factor results in slower learning (a less steep
-% curve), this is due to each update requiring a larger input from future rewards,
-% which themselves need to be well-learned; a small discount factor has faster
-% learning, but account for steady-state or average long-run rewards as
-% effectively.
-% Again, the speed of learning due to the need to choose some arbitrary
-% temporal cut-off.
-
-% \subsection{Effect of the traffic intensity}
-% Bed moves policies might have a greater impact on some ICU wards over other, or
-% there might be some situation where finding optimal bed moves policies can have
-% greater impact.
-% One feature that is likely to have an effect is the ward's business, or the
-% traffic intensity of the ward.
-% To test this, introduce some factor $m$, and multiply all arrival rates by $m$,
-% while keeping the service rates fixed.
-% In this way increasing $m$ increases the traffic intensity $\rho$ of the ward
-% linearly, due to summation of traffic intensities across customer classes:
-
-% \begin{equation}
-% \rho = \rho_{\text{green}} + \rho_{\text{amber}} + \rho_{\text{red}} =
-% \frac{m}{17}\left(
-% \frac{\lambda_{\text{green}}}{\mu_{\text{green}}} +
-% \frac{\lambda_{\text{amber}}}{\mu_{\text{amber}}} +
-% \frac{\lambda_{\text{red}}}{\mu_{\text{red}}}
-% \right)
-% \end{equation}
-
-% To keep costs and training epochs relatively comparable, we reduce the maximum
-% training and evaluation times by a factor $m$ also.
-% Figure~\ref{fig:vary_rho} shows the overall evaluation cost, ad $\rho$ varies,
-% for each stage of training.
-
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=0.6\textwidth]{../src/experiments/vary_arrivals/vary_arrivals}
-% \end{center}
-% \caption{The effect of varying the traffic intensity, $\rho$.}
-% \label{fig:vary_rho}
-% \end{figure}
-
-% When $\rho$ is small, we see that there are huge gains to be made, and that most
-% of these gains happen in the early stages, that is after not much training.
-% This implies that these are easy or obvious changes that can be made using human
-% instinct, and a reinforcement learning algorithm may not be needed in practise.
-% The large gains may also show that in such an empty ward, it is easy to reach an
-% `ideal` scenario, where no penalties or extra staffing is required, as the near
-% empty system is not very complex.
-
-% When $\rho$ is very large, there is hardly any gains to be made.
-% This may be because ward is so busy that any bed move actions are not helpful,
-% and penalties and extra staffing are unavoidable whatever moves are taken.
-% Here there is not enough `wiggle room` to influence much.
-
-% This implies that the ideal times to invest in a bed moves policy is for
-% moderate traffic intensities, where $0.3 < \rho < 0.6$. Here large to moderate
-% gains are still possible, however these gains occur in the later stages of
-% training, implying they are less obvious and hence the power of the
-% reinforcement learning algorithm is useful. This is a sweet spot where there is
-% sufficient complexity in the system to require a policy, and enough `wiggle
-% room` to make substantial gains.
 
 
 \section{Human-Readable Policies}
