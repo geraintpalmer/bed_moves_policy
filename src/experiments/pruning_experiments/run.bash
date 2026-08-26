@@ -55,36 +55,36 @@
 # python robust_evaluation.py experiments/pruning_experiments/h010/ $1 18
 
 echo "h = 3"
-mkdir experiments/pruning_experiments/h003/results
-mkdir experiments/pruning_experiments/h003/results/tmp
-python training.py experiments/pruning_experiments/h003/ $1
-python evaluation.py experiments/pruning_experiments/h003/ $1
-# python robust_evaluation.py experiments/pruning_experiments/h003/ $1 15
+# mkdir experiments/pruning_experiments/h003/results
+# mkdir experiments/pruning_experiments/h003/results/tmp
+# python training.py experiments/pruning_experiments/h003/ $1
+# python evaluation.py experiments/pruning_experiments/h003/ $1
+python robust_evaluation.py experiments/pruning_experiments/h003/ $1 21
 
 echo "h = 15"
-mkdir experiments/pruning_experiments/h015/results
-mkdir experiments/pruning_experiments/h015/results/tmp
-python training.py experiments/pruning_experiments/h015/ $1
-python evaluation.py experiments/pruning_experiments/h015/ $1
-# python robust_evaluation.py experiments/pruning_experiments/h015/ $1 15
+# mkdir experiments/pruning_experiments/h015/results
+# mkdir experiments/pruning_experiments/h015/results/tmp
+# python training.py experiments/pruning_experiments/h015/ $1
+# python evaluation.py experiments/pruning_experiments/h015/ $1
+python robust_evaluation.py experiments/pruning_experiments/h015/ $1 21
 
 echo "h = 35"
-mkdir experiments/pruning_experiments/h015/results
-mkdir experiments/pruning_experiments/h015/results/tmp
-python training.py experiments/pruning_experiments/h015/ $1
-python evaluation.py experiments/pruning_experiments/h015/ $1
-# python robust_evaluation.py experiments/pruning_experiments/h015/ $1 15
+# mkdir experiments/pruning_experiments/h035/results
+# mkdir experiments/pruning_experiments/h035/results/tmp
+# python training.py experiments/pruning_experiments/h035/ $1
+# python evaluation.py experiments/pruning_experiments/h035/ $1
+python robust_evaluation.py experiments/pruning_experiments/h035/ $1 21
 
 echo "h = 75"
-mkdir experiments/pruning_experiments/h075/results
-mkdir experiments/pruning_experiments/h075/results/tmp
-python training.py experiments/pruning_experiments/h075/ $1
-python evaluation.py experiments/pruning_experiments/h075/ $1
-# python robust_evaluation.py experiments/pruning_experiments/h075/ $1 15
+# mkdir experiments/pruning_experiments/h075/results
+# mkdir experiments/pruning_experiments/h075/results/tmp
+# python training.py experiments/pruning_experiments/h075/ $1
+# python evaluation.py experiments/pruning_experiments/h075/ $1
+python robust_evaluation.py experiments/pruning_experiments/h075/ $1 21
 
 echo "h = 150"
-mkdir experiments/pruning_experiments/h150/results
-mkdir experiments/pruning_experiments/h150/results/tmp
-python training.py experiments/pruning_experiments/h150/ $1
-python evaluation.py experiments/pruning_experiments/h150/ $1
-# python robust_evaluation.py experiments/pruning_experiments/h150/ $1 15
+# mkdir experiments/pruning_experiments/h150/results
+# mkdir experiments/pruning_experiments/h150/results/tmp
+# python training.py experiments/pruning_experiments/h150/ $1
+# python evaluation.py experiments/pruning_experiments/h150/ $1
+python robust_evaluation.py experiments/pruning_experiments/h150/ $1 21
