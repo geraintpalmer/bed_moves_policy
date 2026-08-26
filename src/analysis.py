@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # Plot evaluation
     fig, ax = plt.subplots(1, figsize=(7, 5))
     viols = ax.violinplot(
-        [data[f'Stage {i}'][data[f'Stage {i}'] > 165000] for i in range(params['n_stages'] + 1)],
+        [data[f'Stage {i}'] for i in range(params['n_stages'] + 1)],
         showextrema=False,
         vert=False
     )
