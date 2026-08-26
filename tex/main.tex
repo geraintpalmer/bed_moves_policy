@@ -1156,19 +1156,19 @@ After the end of each stage, these states are identified as those who have not
 been visited frequently, if at all, and so can be pruned.
 We prune all state-action pairs whose number of hits $h_n(s, a)$ is less than
 some chosen limit $\tilde{h}$.
+All state-action pairs left unpruned after a particular stage are immune from
+pruning in later stages.
+
 This not only helps save memory, but also cleans the data: the simulation is
 highly stochastic, and for states with $h_n(s, a) < \tilde{h}$, its $Q$-value
 will have been based on $h_n(s, a)$ observations only, meaning that for very
 small $\tilde{h}$ this is just stochastic noise and so cannot meaningfully
 estimate the expected rewards.
-
-Note that due to the way in which $Q$-values are passed from stage to stage, it
-is possible to reach the end of a stage and for a particular state-action pair
-to be present in the table but have been visited zero times: for example if a
-pair was visited in stage $n-1$, it was passed to stage $n$ and its number of
-hits reset to zero, but then not visited at all in stage $n$.
-This would be a good candidate to prune and so not pass to stage $n+1$.
-
+In addition, it has been shown theoretically that the presence of noise can lead
+it over-estimation, or over-fitting, of $Q$-values \cite{thrunschwartz93} due to
+propagation of errors through the recursive $Q$-value update.
+Therefore the pruning of lesser explored state-action pairs may lead to better
+estimation and so better so policies.
 
 
 
@@ -1271,14 +1271,14 @@ described in four stages:
   \item Stage 4 - Stage 12: Here enough of the state-action space is explored
   sufficiently that further training improves the policy.
   \item Stage 12 onward: Here the policy gradually worsens with training again,
-  due to over-fitting when training with such high exploitation, as expected
-  and discussed in Section~\ref{sec:training_framework}. Therefore the
-  early-stopping scheme would choose the incumbent policy at Stage 12 as the
+  due to over-fitting when training with such high exploitation and no pruning,
+  as expected and discussed in Section~\ref{sec:training_framework}. Therefore
+  the early-stopping scheme would choose the incumbent policy at Stage 12 as the
   optimal. 
 \end{itemize}
 
 Overall, this optimal policy produces a median overall cost of 177,663.085,
-improving on a random  (median overall cost of 203,164.96), by 12.6\%.
+improving on a random (median overall cost of 203,164.96), by 12.6\%.
 This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
 We can see that for very small errors, up to around 2\%, there is hardly any
 degradation in performance, however there is then a linear decline in
@@ -1403,6 +1403,41 @@ $\tilde{h} = 25$ the policy may not yet have reached it optimal by the end of
 the training epoch, we extend the training from 21 to 31 stages to ensure a
 better trained policy.
 
+Figures~\ref{fig:final_run} and~\ref{fig:final_run_robustness} show the training
+and robustness curves for this run.
+The best incumbent policy is that from Stage 31, yielding an optimal policy that
+produces a median overall cost of 158,806.14, improving on a random (median
+overall cost of 203,164.96), by 21.8\%.
+
+It is interesting to note here that even when using 10 more training stages (and
+thus increasing the overall training epoch by 50\%), this policy settles on the
+same valued policy as when training over 21 stages, and that the optimal policy
+is again found at the final training stage.
+This indicates that the policy had indeed reached its optimal, and the learning
+is influenced more by the annealing schedule that the training epoch itself.
+This is further corroborated by the plot in Appendix~\ref{apx:final_41stages}
+which shows the training curve when 41 training stages are used and still
+settled on the same valued policy at the 41st stage.
+Further work therefore may explore better annealing policies to further refine
+the policy.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/cost_by_stage}
+\end{center}
+\caption{Final training curve with tuned hyper-parameters.}
+\label{fig:final_run}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/robust_evaluation}
+\end{center}
+\caption{Evaluation of the final  best policy (incumbent at Stage 31) when using
+different exploitation probabilities $\epsilon$.}
+\label{fig:final_run_robustness}
+\end{figure}
+
 
 \section{Human-Readable Policies}
 \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
@@ -1413,6 +1448,25 @@ this into general human-readable `guidelines` rather than a full detailed
 policy. This simplified policy would of course be less effective than the full
 policy, but this is something that can be measured and analysed.
 \end{tcolorbox}
+
+\section{Coverage Ratios}
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Idea: we can calculate the coverage ratio of the algorithm by dividing the
+training footprint (number of state-action pairs in the final training stage)
+with the theoretical number of state-action pairs (found combinatorially).
+
+If we can then work out the same theoretical number of state-action pairs for a
+larger ICU (add one more bed), then we can show that the estimated coverage
+ratio will be too small to effectively solve using this RL algorithm.
+\end{tcolorbox}
+
+\appendix
+
+\section{Final Training Curve with 41 Stages}\label{apx:final_41stages}
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../src/experiments/final_run41/results/cost_by_stage}
+\end{center}
 
 \bibliographystyle{plain}
 \bibliography{refs}
