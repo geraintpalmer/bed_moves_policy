@@ -926,23 +926,6 @@ at \url{https://github.com/geraintpalmer/bed_moves_policy}.
 The $Q$-values are stored in a Numba typed dictionary, an implementation of a
 hash table, that maps state-action pairs to Q-values, which are generally kept
 in memory.
-At the beginning of a run, all state-action pairs are unexplored, and the
-$Q$-value dictionary is empty.
-When state-action pairs are visited for the first time, the state-action pair is
-added to the dictionary, mapping it to the $Q$-value calculated using
-Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other
-unexplored state-action pairs.
-In these cases the baseline $Q$-value for unexplored states will have an effect.
-Assuming $Q$-values follow a Normal distribution, we use their $\zeta$-th
-percentile as a default value, where $\zeta$ is a hyper-parameter to choose,
-$Q_{\zeta}$, using Equation~\ref{eqn:defaultQ}, which can be obtained by keeping
-track of the running mean and variance of the rewards, $\bar{R}$ and $s_R^2$,
-using updates such as Welford's update \cite{welford62}, and the $\zeta$-th
-percentile of the standard Normal distribution, $z_{\zeta}$.
-
-\begin{equation}\label{eqn:defaultQ}
-Q_{\zeta} = \frac{\bar{R} - z_{\zeta} s_R^2}{1 - \gamma}
-\end{equation}
 
 
 \subsection{State Hashing}\label{sec:hashing}
@@ -1052,7 +1035,7 @@ three ranked actions, proportional to their exponential $Q$-values, similar to
 softmax.
 For an action $a$ with rank $r_a$, in an action space of size $|A_s|$,
 Equation~\ref{eqn:epsilon_mixed} gives the selection probability for this
-scheme, where the exploitaion weights $(0.4368, 0.3236, 0.2370)$ are generated
+scheme, where the exploitation weights $(0.4368, 0.3236, 0.2370)$ are generated
 by applying a rank-based softmax, that is proportional to $e^{-0.3 r_a}$ for
 $r_a \in \{1, 2, 3\}$.
 
@@ -1138,7 +1121,27 @@ states.
 This is vital when restarting each stage, but also for policy evaluation.
 
 
-\subsection{Pruning}
+\subsection{Default Unexplored $Q$-values}\label{sec:default_unexplored}
+At the beginning of a run, all state-action pairs are unexplored, and the
+$Q$-value dictionary is empty.
+When state-action pairs are visited for the first time, the state-action pair is
+added to the dictionary, mapping it to the $Q$-value calculated using
+Equation~\ref{eqn:q_update}, however this may require the $Q$-value of other
+unexplored state-action pairs.
+In these cases the baseline $Q$-value for unexplored states will have an effect.
+Assuming $Q$-values follow a Normal distribution, we use their $\zeta$-th
+percentile as a default value, where $\zeta$ is a hyper-parameter to choose,
+$Q_{\zeta}$, using Equation~\ref{eqn:defaultQ}, which can be obtained by keeping
+track of the running mean and variance of the rewards, $\bar{R}$ and $s_R^2$,
+using updates such as Welford's update \cite{welford62}, and the $\zeta$-th
+percentile of the standard Normal distribution, $z_{\zeta}$.
+
+\begin{equation}\label{eqn:defaultQ}
+Q_{\zeta} = \frac{\bar{R} - z_{\zeta} s_R^2}{1 - \gamma}
+\end{equation}
+
+
+\subsection{Pruning}\label{sec:pruning}
 As the number of theoretically possible state-action pairs is so large, the
 memory constraints of a computer makes running the algorithm difficult in
 practice, as the $Q$-value table grows with exploration.
@@ -1171,10 +1174,49 @@ This would be a good candidate to prune and so not pass to stage $n+1$.
 
 \section{Experiments}
 
-\subsection{Parameter Tuning}
+\subsection{Evaluation Methodology}
+For a particular set of hyper-parameters, models are trained across 21 stages,
+each consisting of 60 trials, each training over 400,000 time units.
+For a particular run, each stage' incumbent policy is evaluated by running the
+simulation for 150 trials, each for a 20,000 time units, and a warm-up time of
+7,500 time units, and recording the overall cost running the ICU for the
+remaining 12,500 time units when exploiting that incumbent policy.
+An initial `random' policy is evaluated for comparison.
+We will call the evaluation of the incumbent policy as the training stages
+progress the ``training curve'', which will be a key metric for analysing
+learning behaviour.
+From this training curve, the incumbent policy at the stage that produces the
+lowest median overall cost during evaluation is chosen as the final policy.
+
+In practice due to human error or unexpected disruptions it may not be possible
+to adhere to a given policy 100\% of the time.
+A robust policy would be able to self-correct when a sub-optimal action is
+chosen, through its following sequence of optimal actions.
+For MDPs and reinforcement learning problems a fully converged optimal policy is
+robust by definition, however when training a policy through
+simulation-optimisation heuristics such as reinforcement learning, especially in
+a highly stochastic environment such as this, convergence is not guaranteed, and
+therefore the robustness of the learned policy isn't guaranteed.
+In order to test the robustness of the policy, we evaluate the policy using an
+$\epsilon$-greedy policy, where $\epsilon$ is the probability of exploiting,
+for different values of $\epsilon$.
+We call this is ``robustness curve'', which will be another metric for analysing
+policy behaviour.
+
+Other metrics used to evaluate a policy are related to the policy size.
+Let the ``training footprint'' be the number of state-actions pairs recorded in
+the $Q$-table by the end of the training run, that is after stage 21; this is an
+indication of the maximum storage and memory requirement during the training
+run.
+Let the ``deployment footprint'' be the number of states recorded in the chosen
+final policy; this is an indication of the storage and memory requirement
+required during policy deployment.
+
+\subsection{Standard Hyper-parameter Tuning}\label{sec:shpt}
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
 we run an hierarchical grid search.
-Keeping all other parameters equal, in round 1 we first search 
+Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 0$),
+in round 1 we first search 
 $(\alpha, \gamma) \in (0.1, 0.2, 0.3, 0.4) \times (0.8, 0.9, 0.95, 0.99)$, and
 find the optimal combination to be $\alpha = 0.1$ and $\gamma = 0.9$.
 Then in round 2 we search $(\alpha, \gamma) \in (0.04, 0.08, 0.12, 0.16)
@@ -1191,26 +1233,29 @@ The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
 \label{fig:param_sweep}
 \end{figure}
 
-\subsection{Training a Base Policy}
-The model is trained across 21 stages, each consisting of 60 trials, each
-training over 400,000 time units, with a default $Q$-value using$\zeta = 0.5$. 
-For a particular run, each stage' incumbent policy is evaluated by running the
-simulation for 150 trials, each for a 20,000 time units, and a warm-up time of
-7,500 time units, and recording the overall cost running the ICU for the
-remaining 12,500 time units when exploiting that incumbent policy.
-An initial `random' policy is evaluated for comparison.
-Figure~\ref{fig:base_run} shows these results.
+Figures~\ref{fig:base_run} and~\ref{fig:base_run_robustness} show the training
+curve and robustness curve when using the found hyper-parameters
+$\alpha = 0.16$ and $\gamma = 0.94$.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/cost_by_stage}
 \end{center}
-\caption{Evaluation of the incumbent policies across the stages.}
+\caption{Training curve with tuned hyper-parameters.}
 \label{fig:base_run}
 \end{figure}
 
-This plot shows an interesting shape wave-like curve which can be described in
-four stages:
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/robust_evaluation}
+\end{center}
+\caption{Evaluation of the best policy (incumbent at Stage 12) when using
+different exploitation probabilities $\epsilon$.}
+\label{fig:base_run_robustness}
+\end{figure}
+
+The training curve has and interesting shape wave-like shape which can be
+described in four stages:
 \begin{itemize}
   \item Random - Stage 1: after the first stage the policy improves, discovering
   some quick `low hanging fruit' gains.
@@ -1234,18 +1279,29 @@ four stages:
 
 Overall, this optimal policy produces a median overall cost of 177,663.085,
 improving on a random  (median overall cost of 203,164.96), by 12.6\%.
+This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
+We can see that for very small errors, up to around 2\%, there is hardly any
+degradation in performance, however there is then a linear decline in
+performance up to a 10\% error rate, and larger deterioration thereafter.
 
 
-\subsection{Effect of Default $Q$-value}
-The wave-like training curve seen in Figure~\ref{fig:base_run} can be partially
-explained by the choice of $\zeta$.
-Recall that $\zeta$ represents the quantile of the rewards found so far in the
-training run used as the default reward for unexplored states, and therefore the
-default $Q$-value associated with those states is given in
-Equation~\ref{eqn:defaultQ}.
-In Figure~\ref{fig:base_run}, $\zeta = 0.5$ was used, that is we take the median
+\subsection{Algorithm-specific Hyper-parameter Tuning}\label{sec:ashpt}
+There are two features built into our reinforcement learning framework that
+require investigation to their effects: the default reward used for the
+unexplored states, parametrised by $\zeta$, and the pruning limit $\tilde{h}$.
+Here we analyse their effects on the training and robustness curves, and their
+memory and storage footprints.
+
+\subsubsection{Effect of Default $Q$-value}
+Recall from Section~\ref{sec:default_unexplored} that $\zeta$ represents the
+quantile of the rewards found so far in the training run used as the default
+reward for unexplored states, and therefore the default $Q$-value associated
+with those states is given in Equation~\ref{eqn:defaultQ}.
+In the previous section $\zeta = 0.5$ was used, that is we took the median
 reward seed so far as the default.
-Other values may exhibit different training behaviour.
+We saw the the wave-like training curve seen in Figure~\ref{fig:base_run} may be
+partially explained by the choice of $\zeta$, and therefore other values may
+exhibit different training behaviour.
 
 Figure~\ref{fig:vary_zeta} shows the training curves of three runs using
 $\zeta \in (0.15, 0.5, 0.85)$, representing pessimistic (assuming unexplored
@@ -1277,37 +1333,75 @@ while shaded regions show the inter-quartile range.}
 \label{fig:vary_zeta}
 \end{figure}
 
-
-
-\subsection{Robustness Tests}
-In practice due to human error or unexpected disruptions it may not be possible
-to adhere to a given policy 100\% of the time.
-A robust policy would be able to self-correct when a sub-optimal action is
-chosen, through its following sequence of optimal actions.
-For MDPs and reinforcement learning problems a fully converged optimal policy is
-robust by definition, however when training a policy through
-simulation-optimisation heuristics such as reinforcement learning, especially in
-a highly stochastic environment such as this, convergence is not guaranteed, and
-therefore the robustness of the learned policy isn't guaranteed.
-
-In order to test the robustness of the policy, we evaluate the policy using an
-$\epsilon$-greedy policy, where $\epsilon$ is the probability of exploiting,
-for different values of $\epsilon$.
-This is shown in Figure~\ref{fig:base_run_robustness}.
-We can see that for very small errors, up to around 2\%, there is hardly any
-degradation in performance, however there is then a linear decline in
-performance up to a 10\% error rate, and larger deterioration thereafter.
+\subsubsection{Effect of Pruning}
+In Section~\ref{sec:pruning} pruning states was introduced through a pruning
+limit $\tilde{h}$, where after each stage any state-action pairs visited less
+than $\tilde{h}$ times are discarded.
+Beyond slimming down the transient training $Q$-tables and final policies,
+pruning can also speed up training as memory allocation and lookups become
+easier and faster.
+Additionally, Figure~\ref{fig:base_run} indicated that over-fitting due to
+propagation of poorly-trained edge-cases worsens the policy.
+Therefore pruning can eliminate these edge cases improve overall policy
+performance.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/robust_evaluation}
+\includegraphics[width=\textwidth]{../plt/pruning_experiment}
 \end{center}
-\caption{Evaluation of the best policy (incumbent at Stage 12) when using
-different exploitation probabilities $\epsilon$.}
-\label{fig:base_run_robustness}
+\caption{Comparing policies trained with various pruning limits $\tilde{h}$.
+Left: comparing policy performance under difference adherence rates $\epsilon$.
+Right: Comparing training and deployment footprints.}
+\label{fig:pruning_experiment}
 \end{figure}
 
+Figure~\ref{fig:pruning_experiment} compares policies trained using various
+prune limits $\tilde{h}$.
+The plot on the right hand side confirms that a larger pruning limit reduces
+the training and deployment footprints according to a inverse power law.
+The plot on the left hand side shows that increasing $\tilde{h}$ does improve on
+the quality of the final policy substantially, to a point, and then the policy
+worsens if too many state-action pairs are pruned.
+Of the values tested, $\tilde{h} = 25$ gives the best performing policy.
+However there is a trade-off between policy performance and policy robustness:
+when the policy improves due to pruning, there is a larger decay in performance
+if the adherence rate drops.
+For example consider the drop in performance between a 100\% adherence rate and
+a 90\% adherence rate: when $\tilde{h} = 0$, there is a 2.44\% drop in
+performance, and when $\tilde{h} = 25$, the limit that produces the best quality
+policy, there is a 7.15\% drop in performance.
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../plt/pruning_experiment_training_curves}
+\end{center}
+\caption{Comparing training curves when using various pruning limits
+$\tilde{h}$.}
+\label{fig:pruning_experiment_training}
+\end{figure}
+
+Looking at the training curves for various values of $\tilde{h}$ might provide
+some insight.
+This is given in Figure~\ref{fig:pruning_experiment_training}.
+We see that initially as $\tilde{h}$ increases, the wave-like pattern amplifies:
+initially over-fitting worse than before, but then recovering more
+spectacularly.
+Then, as $\tilde{h}$ increases further, the initial over-fitting completely
+disappears, however the learning curve thereafter is much slower.
+
+
+\subsection{Final Trained Policy}
+In Sections~\ref{sec:shpt} and~\ref{sec:ashpt} we established the effect of
+standard and algorithm-specific hyper-parameters.
+We now amalgamate our findings into a final training run to obtain an optimal
+policy.
+We select the tuned learning rate $\alpha = 0.16$, discount factor
+$\gamma = 0.94$, default $Q$-=value quantile $\zeta = 0.5$, and a pruning
+limit $\tilde{h} = 25$.
+Figure~\ref{fig:pruning_experiment_training} indicated that when using
+$\tilde{h} = 25$ the policy may not yet have reached it optimal by the end of
+the training epoch, we extend the training from 21 to 31 stages to ensure a
+better trained policy.
 
 
 \section{Human-Readable Policies}
