@@ -423,3 +423,9 @@ def get_param_schedule(n_stages, max_value, annealing_schedule='linear'):
         return linear ** 2
     if annealing_schedule == 'concave':
         return linear ** (1 / 2)
+    if annealing_schedule == 'wave':
+        third = int(n_stages / 3) + 1
+        middle = int(n_stages / 3)
+        end_segment = np.linspace(0.0, max_value, third)
+        middle_segment = np.linspace(max_value, 0.0, middle)
+        return np.concatenate([end_segment[:-1], middle_segment, end_segment[1:]])
