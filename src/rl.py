@@ -405,14 +405,21 @@ def prune_and_save(keys_fname, qval_fname, keys, qval, hits, prune_limit, ignore
     return unpruned
 
 
-def get_param_schedule(n_stages, max_value):
+def get_param_schedule(n_stages, max_value, annealing_schedule='linear'):
     """
     Linearly scales params from 0.0 to max_value across stages.
 
     Arguments:
       - `n_stages`: the integer number of stages
       - `max_value`: the maximum epsilon value to produce
+      - `annealing_schedule`: convex / linear / concave
 
     Returns: an array schedule of epsilons.
     """
-    return np.linspace(0.0, max_value, n_stages)
+    linear = np.linspace(0.0, max_value, n_stages)
+    if annealing_schedule == 'linear':
+        return linear
+    if annealing_schedule == 'convex':
+        return linear ** 2
+    if annealing_schedule == 'concave':
+        return linear ** (1 / 2)

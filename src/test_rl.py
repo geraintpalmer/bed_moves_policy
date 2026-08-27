@@ -596,3 +596,18 @@ def test_get_param_schedule():
     expected_epsilons = np.array([0.0, 0.1111, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1.0])
     for i in range(10):
         assert round(epsilons[i], 4) == expected_epsilons[i]
+
+
+    epsilons = rl.get_param_schedule(n_stages=5, max_value=1.0, annealing_schedule='linear')
+    expected_epsilons = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
+    for i in range(5):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+    epsilons = rl.get_param_schedule(n_stages=5, max_value=1.0, annealing_schedule='concave')
+    expected_epsilons = np.array([0.0, 0.5, 0.7071, 0.8660, 1.0])
+    for i in range(5):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+    epsilons = rl.get_param_schedule(n_stages=5, max_value=1.0, annealing_schedule='convex')
+    expected_epsilons = np.array([0.0, 0.0625, 0.25, 0.5625, 1.0])
+    for i in range(5):
+        assert round(epsilons[i], 4) == expected_epsilons[i]
+

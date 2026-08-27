@@ -108,10 +108,14 @@ if __name__ == '__main__':
         selection_policy = chooser.EPSILON_GREEDY
     if params['selection_policy'] == 'mixture':
         selection_policy = chooser.MIXTURE
+    if 'annealing_schedule' in params:
+        annealing_schedule = params['annealing_schedule']
+    else:
+        annealing_schedule = 'linear'
 
     occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
 
-    training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon)
+    training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon, annealing_schedule=annealing_schedule)
     eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
     seed = 0
     costs = {}
