@@ -1,7 +1,5 @@
 *__pycache__*
-*.ipynb_checkpoints/*
-*src/.ipynb_checkpoints/*
-*/.ipynb_checkpoints/*
+**/.ipynb_checkpoints/*
 *.DS_Store
 *.log
 *.aux
@@ -10,9 +8,8 @@
 *.fdb_latexmk
 *.bbl
 *.blg
-*bedmoves/*
 *env/*
 *.npz*
 *.npy*
-*.bin*
+**/experiments/**/*.bin*
 *TODO.md*
