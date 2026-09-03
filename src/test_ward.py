@@ -295,56 +295,102 @@ def test_get_state_action_from_hashstate():
     assert a == 3565
 
 
-def test_inverse_action():
+def test_inverse_and_permute_action():
     # First consider transform T_1 and T_3 together. That is (1, 0, 1, 0, 0, 0) = 2^5 + 2^3 = 40
     a = ward.inverse_action(a=0, equivalence_idx=40)
     assert a == 303
+    pa = ward.permute_action(a=303, equivalence_idx=40)
+    assert pa == 0
     a = ward.inverse_action(a=100, equivalence_idx=40)
     assert a == 203
+    pa = ward.permute_action(a=203, equivalence_idx=40)
+    assert pa == 100
     a = ward.inverse_action(a=200, equivalence_idx=40)
     assert a == 103
+    pa = ward.permute_action(a=103, equivalence_idx=40)
+    assert pa == 200
     a = ward.inverse_action(a=300, equivalence_idx=40)
     assert a == 3
+    pa = ward.permute_action(a=3, equivalence_idx=40)
+    assert pa == 300
     a = ward.inverse_action(a=205, equivalence_idx=40)
     assert a == 105
+    pa = ward.permute_action(a=105, equivalence_idx=40)
+    assert pa == 205
     a = ward.inverse_action(a=306, equivalence_idx=40)
     assert a == 6
+    pa = ward.permute_action(a=6, equivalence_idx=40)
+    assert pa == 306
     a = ward.inverse_action(a=8, equivalence_idx=40)
     assert a == 309
+    pa = ward.permute_action(a=309, equivalence_idx=40)
+    assert pa == 8
     a = ward.inverse_action(a=509, equivalence_idx=40)
     assert a == 508
+    pa = ward.permute_action(a=508, equivalence_idx=40)
+    assert pa == 509
     a = ward.inverse_action(a=316, equivalence_idx=40)
     assert a == 16
+    pa = ward.permute_action(a=16, equivalence_idx=40)
+    assert pa == 316
     a = ward.inverse_action(a=616, equivalence_idx=40)
     assert a == 616
+    pa = ward.permute_action(a=616, equivalence_idx=40)
+    assert pa == 616
     # Now consider transform T_5, T_4 and T_2 together. That is (0, 1, 0, 1, 1, 0) = 2^4 + 2^2 + 2^1 = 22
     a = ward.inverse_action(a=2, equivalence_idx=22)
     assert a == 709
+    pa = ward.permute_action(a=709, equivalence_idx=22)
+    assert pa == 2
     a = ward.inverse_action(a=615, equivalence_idx=22)
     assert a == 415
+    pa = ward.permute_action(a=415, equivalence_idx=22)
+    assert pa == 615
     a = ward.inverse_action(a=310, equivalence_idx=22)
     assert a == 1003
+    pa = ward.permute_action(a=1003, equivalence_idx=22)
+    assert pa == 310
     a = ward.inverse_action(a=1406, equivalence_idx=22)
     assert a == 1404
+    pa = ward.permute_action(a=1404, equivalence_idx=22)
+    assert pa == 1406
     a = ward.inverse_action(a=1302, equivalence_idx=22)
     assert a == 1109
+    pa = ward.permute_action(a=1109, equivalence_idx=22)
+    assert pa == 1302
     # Now consider transform T_5 and T_4 together: That is (0, 0, 0, 1, 1, 0) = 2^2 + 2^1 = 6
     a = ward.inverse_action(a=2, equivalence_idx=6)
     assert a == 709
+    pa = ward.permute_action(a=709, equivalence_idx=6)
+    assert pa == 2
     a = ward.inverse_action(a=1113, equivalence_idx=6)
     assert a == 1311
+    pa = ward.permute_action(a=1311, equivalence_idx=6)
+    assert pa == 1113
     a = ward.inverse_action(a=1112, equivalence_idx=6)
     assert a == 1312
+    pa = ward.permute_action(a=1312, equivalence_idx=6)
+    assert pa == 1112
     a = ward.inverse_action(a=400, equivalence_idx=6)
     assert a == 407
+    pa = ward.permute_action(a=407, equivalence_idx=6)
+    assert pa == 400
     a = ward.inverse_action(a=107, equivalence_idx=6)
     assert a == 800
+    pa = ward.permute_action(a=800, equivalence_idx=6)
+    assert pa == 107
     a = ward.inverse_action(a=915, equivalence_idx=6)
     assert a == 215
+    pa = ward.permute_action(a=215, equivalence_idx=6)
+    assert pa == 915
     a = ward.inverse_action(a=1106, equivalence_idx=6)
     assert a == 1306
+    pa = ward.permute_action(a=1306, equivalence_idx=6)
+    assert pa == 1106
     a = ward.inverse_action(a=1008, equivalence_idx=6)
     assert a == 301
+    pa = ward.permute_action(a=301, equivalence_idx=6)
+    assert pa == 1008
 
 
 def test_get_resource_use_per_time_unit():

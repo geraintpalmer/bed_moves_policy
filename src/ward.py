@@ -269,9 +269,9 @@ def get_state_action_from_hashstate(hash_state):
 @njit(cache=True)
 def inverse_action(a, equivalence_idx):
     """
-    Transforms the representative actions a1 and a2 into their
-    original actions, if the permutation used to get the
-    representative actions was `equivalence_idx`.
+    Transforms the actions a1 and a2 into their
+    representative actions, if the permutation used to get the
+    representative state was `equivalence_idx`.
 
     Arguments:
       - `a`: the 4 digit action hash
@@ -284,6 +284,26 @@ def inverse_action(a, equivalence_idx):
     a1 = equivalence_inverse_permutations[equivalence_idx, a1]
     if a2 < 15:
         a2 = equivalence_inverse_permutations[equivalence_idx, a2]
+    return (a1 * 100) + a2
+
+@njit(cache=True)
+def permute_action(a, equivalence_idx):
+    """
+    Transforms the representative actions a1 and a2 into their
+    original actions, if the permutation used to get the
+    representative state was `equivalence_idx`.
+
+    Arguments:
+      - `a`: the 4 digit action hash
+      - `equivalence_idx`: the permutation used to go from the
+      current state to the representative state.
+
+    Returns: the transformed a1 and a2.
+    """
+    a1, a2 = dehash_action(a)
+    a1 = equivalence_permutations[equivalence_idx, a1]
+    if a2 < 15:
+        a2 = equivalence_permutations[equivalence_idx, a2]
     return (a1 * 100) + a2
 
 

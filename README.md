@@ -98,7 +98,7 @@ Policies only contain the representative states. To generate _all_ states (note 
 >>> for idx, permutation in enumerate(ward.equivalence_permutations):
 >>>     s = state[permutation]
 >>>     hashed_s = ward.get_hash_state_only(s, patient_type)
->>>     a = ward.inverse_action(hbestaction, idx)
+>>>     a = ward.permute_action(hbestaction, idx)
 ```
 
 To read the __training policy__:
