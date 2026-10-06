@@ -1,0 +1,1485 @@
+Primary Specialty Treated Prior to Unit Admission,Length of Unit Stay (Days),Unit Discharge Status,Level 3 Days,Level 2 Days,Level 1 Days,Level 0 Days,Invasive Ventilation,Bed movements
+Accident & emergency,22.38,Alive,10,6,1,6,True,2.0
+Unknown Specialty,1.68,Alive,0,2,0,1,,0.0
+General surgery,0.73,Alive,0,2,0,0,,0.0
+General surgery,1.6,Alive,0,2,0,0,,1.0
+General surgery,0.58,Alive,0,1,0,0,,0.0
+General medicine,16.58,Alive,12,4,1,1,,1.0
+Accident & emergency,16.93,Alive,11,6,0,0,True,2.0
+Unknown Specialty,7.29,Dead,9,0,0,0,True,0.0
+Cardiology,0.39,Dead,1,1,0,0,False,0.0
+General medicine,20.57,Alive,16,5,0,0,,2.0
+General surgery,6.92,Alive,0,8,0,0,,0.0
+General surgery,6.17,Alive,0,6,0,1,,1.0
+General surgery,4.96,Alive,0,5,1,0,False,1.0
+Respiratory medicine,6.85,Dead,7,1,0,0,False,0.0
+Neurosurgery,13.21,Alive,11,0,1,2,True,0.0
+Transplantation surgery,3.0,Alive,0,4,0,0,,0.0
+General surgery,16.38,Alive,0,11,3,3,False,1.0
+Urology,3.19,Alive,0,4,0,0,,0.0
+General medicine,20.6,Alive,11,7,2,1,True,2.0
+General surgery,0.99,Alive,0,2,0,0,,0.0
+General surgery,15.06,Alive,11,4,0,1,True,1.0
+Cardiac surgery,1.73,Alive,3,0,0,0,True,0.0
+General surgery,2.71,Alive,0,2,1,0,,0.0
+General surgery,4.67,Alive,2,1,1,2,True,1.0
+Accident & emergency,10.58,Alive,2,6,2,1,True,1.0
+General medicine,7.68,Dead,0,5,0,4,,1.0
+General surgery,9.49,Alive,6,2,0,2,,0.0
+Orthopaedics and trauma,2.94,Alive,0,1,1,1,,3.0
+General surgery,-0.65,Dead,1,0,0,0,True,0.0
+General medicine,22.42,Dead,24,0,0,0,True,1.0
+General surgery,12.59,Alive,5,5,1,2,,1.0
+General medicine,20.82,Alive,19,1,2,0,True,1.0
+Upper gastrointestinal surgery,2.8,Alive,0,3,0,1,,0.0
+General medicine,13.65,Alive,0,11,3,0,False,1.0
+Respiratory medicine,20.5,Alive,12,5,2,2,True,1.0
+General surgery,49.26,Alive,43,1,5,1,,2.0
+General surgery,17.3,Alive,9,6,3,0,,0.0
+General medicine,7.85,Alive,0,7,1,0,False,2.0
+Gastroenterology,5.54,Alive,0,2,0,5,,1.0
+Orthopaedics and trauma,28.88,Alive,25,0,4,0,True,0.0
+Nephrology,0.41,Dead,3,0,0,0,True,0.0
+General medicine,3.35,Alive,0,4,0,0,,0.0
+Respiratory medicine,3.16,Alive,0,3,1,0,False,0.0
+General surgery,2.67,Alive,0,1,1,1,,1.0
+General surgery,1.98,Alive,0,2,0,1,,0.0
+General medicine,2.79,Dead,4,0,0,0,True,0.0
+General surgery,6.14,Dead,2,5,0,1,True,1.0
+Accident & emergency,16.24,Alive,8,8,1,0,True,2.0
+General surgery,4.01,Alive,1,4,0,0,,0.0
+General surgery,7.79,Alive,5,3,0,1,True,0.0
+Accident & emergency,0.68,Alive,0,1,0,0,,0.0
+Cardiology,5.04,Alive,2,3,0,1,,1.0
+General surgery,3.75,Alive,0,3,0,2,,1.0
+General medicine,8.19,Alive,0,7,0,2,False,3.0
+General medicine,2.47,Alive,0,3,0,0,False,0.0
+General surgery,1.42,Alive,0,1,0,1,,0.0
+Thoracic surgery,38.46,Dead,27,7,6,0,False,2.0
+Orthopaedics and trauma,0.61,Alive,0,2,0,0,,0.0
+Unknown Specialty,3.15,Alive,0,4,0,0,False,0.0
+Cardiology,47.12,Alive,35,0,10,3,True,2.0
+General medicine,7.59,Alive,0,6,0,3,False,0.0
+General surgery,48.27,Alive,38,4,7,0,False,5.0
+Spinal injuries,50.15,Dead,52,0,0,0,True,1.0
+Accident & emergency,7.58,Alive,6,2,0,0,True,1.0
+Respiratory medicine,0.72,Alive,2,0,0,0,True,0.0
+Respiratory medicine,2.89,Alive,4,0,0,0,True,1.0
+Unknown Specialty,2.02,Alive,3,0,0,0,True,0.0
+General surgery,1.75,Alive,0,3,0,0,,0.0
+General medicine,4.48,Alive,4,0,0,1,True,0.0
+General medicine,4.77,Dead,0,6,0,0,False,0.0
+General surgery,4.81,Alive,2,1,1,2,True,0.0
+Accident & emergency,3.16,Alive,0,1,1,2,,2.0
+General medicine,3.49,Alive,0,1,1,2,False,0.0
+Accident & emergency,7.84,Alive,0,5,1,3,False,1.0
+Urology,0.9500000000000002,Alive,0,1,0,1,,0.0
+General surgery,7.79,Alive,4,3,1,1,True,0.0
+Orthopaedics and trauma,4.63,Alive,0,3,1,1,,0.0
+Cardiology,39.27,Alive,31,2,7,0,True,2.0
+General surgery,1.64,Alive,0,2,1,0,,0.0
+General surgery,9.25,Alive,0,3,1,6,,0.0
+Urology,3.56,Alive,1,2,1,0,True,0.0
+General surgery,32.25,Dead,33,1,0,0,False,3.0
+Unknown Specialty,22.9,Dead,24,0,0,0,True,0.0
+Orthopaedics and trauma,9.42,Dead,11,0,0,0,True,1.0
+General surgery,31.72,Alive,24,4,2,3,True,4.0
+General surgery,103.74,Alive,94,0,9,1,True,1.0
+Neurosurgery,15.77,Alive,10,6,0,0,True,1.0
+Accident & emergency,5.07,Alive,4,2,0,0,,1.0
+Accident & emergency,2.52,Dead,0,4,0,0,,0.0
+Orthopaedics and trauma,7.71,Alive,0,4,0,5,,0.0
+General surgery,7.13,Alive,0,6,1,1,,0.0
+General medicine,13.18,Alive,10,2,1,1,True,0.0
+Accident & emergency,22.07,Alive,15,4,3,1,True,1.0
+Orthopaedics and trauma,5.16,Alive,0,1,1,4,False,1.0
+Accident & emergency,1.23,Dead,3,0,0,0,True,0.0
+Haematology (clinical),6.4,Dead,5,3,0,0,,1.0
+General medicine,31.56,Dead,24,9,0,0,False,1.0
+Accident & emergency,0.7000000000000002,Dead,2,0,0,0,False,0.0
+General medicine,14.94,Alive,12,1,0,3,True,1.0
+Neurology,0.07,Dead,2,0,0,0,True,0.0
+Neurosurgery,19.74,Alive,17,3,0,0,True,0.0
+Accident & emergency,1.42,Dead,3,0,0,0,True,0.0
+Colorectal surgery,5.05,Alive,4,0,1,1,True,2.0
+Cardiology,6.48,Alive,3,2,1,1,True,1.0
+Accident & emergency,38.66,Alive,40,0,0,0,True,0.0
+Cardiology,46.02,Alive,32,0,14,1,True,2.0
+Accident & emergency,7.28,Dead,9,0,0,0,True,0.0
+General medicine,1.82,Dead,0,3,0,0,False,0.0
+General surgery,9.700000000000001,Alive,9,1,1,0,True,0.0
+General surgery,8.0,Dead,3,6,0,0,True,0.0
+Accident & emergency,4.1,Dead,6,0,0,0,True,0.0
+Accident & emergency,3.34,Alive,0,4,0,0,,0.0
+Vascular surgery,1.85,Dead,0,3,0,0,False,0.0
+General surgery,5.87,Alive,4,1,2,0,True,1.0
+General surgery,8.98,Alive,6,4,0,0,True,0.0
+Accident & emergency,4.58,Alive,2,4,0,0,False,1.0
+Transplantation surgery,0.67,Dead,2,0,0,0,True,1.0
+General medicine,5.17,Alive,0,1,0,5,,1.0
+Accident & emergency,8.82,Alive,7,1,0,2,True,0.0
+General medicine,3.13,Dead,0,5,0,0,False,0.0
+General medicine,8.64,Alive,4,2,1,2,False,1.0
+General medicine,4.23,Alive,0,3,0,2,False,0.0
+General medicine,2.01,Alive,2,0,0,1,False,0.0
+General surgery,1.23,Alive,0,2,0,0,,0.0
+Neurosurgery,2.95,Alive,2,2,0,0,True,0.0
+Urology,2.78,Alive,0,4,0,0,,1.0
+General medicine,9.48,Alive,2,7,0,1,False,1.0
+General surgery,2.73,Alive,0,1,2,0,,0.0
+Hepatobiliary and pancreatic surgery,4.66,Alive,0,4,1,1,,2.0
+Hepatobiliary and pancreatic surgery,2.25,Alive,0,3,0,0,,0.0
+General medicine,0.33,Dead,0,2,0,0,,0.0
+Accident & emergency,-0.26,Dead,1,0,0,0,True,0.0
+General medicine,-0.11,Dead,1,0,0,0,False,0.0
+Cardiology,7.54,Dead,9,0,0,0,True,0.0
+General surgery,12.47,Alive,2,8,2,1,True,0.0
+General surgery,4.02,Alive,1,3,0,1,True,0.0
+General medicine,14.81,Alive,4,1,4,6,,1.0
+Orthopaedics and trauma,2.73,Alive,0,3,0,0,False,1.0
+General medicine,23.57,Alive,23,0,1,0,True,3.0
+General medicine,1.69,Alive,0,3,0,0,,0.0
+Accident & emergency,3.85,Alive,0,2,0,3,,0.0
+Orthopaedics and trauma,15.93,Alive,12,4,0,1,True,0.0
+Haematology (clinical),5.28,Alive,0,5,1,0,False,1.0
+Ent,0.69,Alive,0,1,0,0,,0.0
+Cardiology,3.36,Alive,1,3,0,0,,0.0
+General medicine,5.47,Alive,0,5,1,0,,1.0
+General surgery,0.58,Alive,0,0,0,1,False,0.0
+General medicine,3.68,Alive,4,0,0,0,True,0.0
+General medicine,12.57,Alive,10,2,0,2,True,0.0
+Orthopaedics and trauma,10.72,Alive,7,5,0,0,,1.0
+Hepatobiliary and pancreatic surgery,14.99,Alive,2,7,7,0,True,2.0
+General surgery,1.43,Alive,0,2,0,0,,0.0
+General medicine,8.42,Alive,0,5,0,4,False,1.0
+Cardiology,0.6,Alive,0,1,0,0,,0.0
+General medicine,8.34,Alive,0,6,1,2,False,0.0
+General surgery,10.23,Alive,7,3,1,0,True,1.0
+Vascular surgery,12.07,Alive,4,6,1,2,True,1.0
+Accident & emergency,5.36,Alive,1,2,1,2,,0.0
+Gastroenterology,3.93,Dead,0,5,0,0,False,1.0
+Gastroenterology,4.97,Dead,6,0,0,0,True,0.0
+General medicine,5.41,Alive,0,4,2,0,,2.0
+Vascular surgery,2.65,Alive,0,2,0,2,,1.0
+Respiratory medicine,4.58,Alive,1,3,0,1,True,0.0
+Diabetic medicine,21.06,Dead,12,11,0,0,False,2.0
+Accident & emergency,5.55,Alive,3,0,0,3,,0.0
+Accident & emergency,52.65,Alive,37,3,9,4,True,1.0
+Accident & emergency,12.8,Alive,5,3,0,6,,1.0
+General surgery,1.76,Alive,0,1,1,0,,0.0
+Accident & emergency,11.42,Alive,0,8,3,1,False,1.0
+Neurosurgery,2.26,Dead,4,0,0,0,True,0.0
+Cardiology,15.03,Alive,13,1,1,1,True,0.0
+Accident & emergency,0.36,Dead,2,0,0,0,True,0.0
+Accident & emergency,9.120000000000001,Alive,0,5,0,5,False,1.0
+General medicine,7.36,Alive,3,5,0,1,True,2.0
+Cardiology,7.07,Dead,9,0,0,0,True,0.0
+General surgery,1.16,Alive,0,1,1,0,,1.0
+General medicine,6.23,Alive,0,5,2,0,,1.0
+Neurosurgery,6.75,Dead,6,1,1,0,True,1.0
+Unknown Specialty,1.03,Dead,3,0,0,0,True,0.0
+General medicine,4.99,Alive,0,3,0,3,False,1.0
+Thoracic surgery,59.6,Alive,27,3,19,11,True,2.0
+Respiratory medicine,24.1,Alive,22,2,0,1,True,1.0
+Neurology,4.32,Alive,0,2,2,1,,0.0
+Neurosurgery,3.39,Alive,2,1,2,0,True,0.0
+Accident & emergency,35.22,Alive,24,2,10,0,True,6.0
+Accident & emergency,1.76,Dead,0,1,1,1,,1.0
+Neurosurgery,12.44,Alive,12,1,0,0,True,2.0
+Urology,6.6,Alive,0,3,1,3,,1.0
+General surgery,4.47,Alive,1,3,0,1,False,0.0
+Accident & emergency,11.99,Alive,11,1,0,1,True,2.0
+Urology,8.91,Alive,4,3,0,3,True,1.0
+General surgery,8.41,Alive,9,0,0,0,True,1.0
+General surgery,3.57,Alive,0,3,1,0,False,1.0
+Haematology (clinical),3.9,Dead,5,0,0,0,,1.0
+Accident & emergency,14.88,Alive,6,4,0,6,False,2.0
+Neurosurgery,17.72,Alive,14,4,0,0,,0.0
+Thoracic surgery,20.39,Alive,17,3,0,1,True,2.0
+Cardiology,20.17,Dead,20,2,0,0,False,1.0
+General surgery,1.5,Alive,0,3,0,0,,0.0
+Neurosurgery,0.86,Dead,2,0,0,0,True,0.0
+Cardiology,12.53,Dead,14,0,0,0,True,0.0
+General surgery,11.68,Alive,2,4,5,1,False,0.0
+Gastroenterology,15.06,Alive,8,7,0,1,True,1.0
+Gastroenterology,9.66,Alive,3,2,1,4,True,0.0
+General surgery,7.63,Alive,6,1,1,1,True,0.0
+Orthopaedics and trauma,6.12,Alive,0,3,1,3,False,1.0
+Orthopaedics and trauma,14.25,Alive,3,11,0,1,True,0.0
+General surgery,1.92,Alive,0,1,0,1,,0.0
+Accident & emergency,2.9,Alive,0,4,0,0,,1.0
+Thoracic surgery,6.07,Alive,0,7,0,0,False,0.0
+Accident & emergency,12.72,Alive,0,13,0,1,False,0.0
+Haematology (clinical),4.92,Alive,0,5,0,1,False,0.0
+General medicine,4.52,Alive,2,0,1,3,True,0.0
+General surgery,5.86,Alive,0,3,1,3,,0.0
+General surgery,12.03,Alive,2,10,1,0,True,1.0
+General medicine,4.71,Alive,1,3,1,0,False,1.0
+Vascular surgery,1.53,Alive,1,1,0,0,True,1.0
+Cardiology,0.5700000000000001,Dead,2,0,0,0,True,0.0
+General surgery,1.43,Alive,0,2,0,0,False,1.0
+Urology,15.53,Alive,0,8,3,5,,3.0
+Neurosurgery,3.5,Dead,5,0,0,0,True,0.0
+Maxillo-facial surgery,1.66,Alive,1,1,0,0,True,0.0
+General surgery,5.44,Alive,0,4,1,1,,0.0
+General medicine,16.83,Alive,10,6,1,0,,1.0
+General medicine,10.99,Alive,9,0,0,3,True,1.0
+Hepatology,11.19,Alive,8,1,2,1,True,0.0
+Accident & emergency,2.71,Alive,0,3,0,1,,0.0
+Cardiology,0.9,Dead,2,0,0,0,True,0.0
+Haematology (clinical),4.26,Alive,0,5,0,0,False,0.0
+Urology,3.61,Alive,0,3,0,1,,0.0
+Accident & emergency,-0.19,Dead,1,0,0,0,True,0.0
+Accident & emergency,7.78,Alive,0,7,1,0,False,0.0
+Ent,0.87,Alive,1,1,0,0,True,0.0
+Urology,10.41,Alive,0,4,1,6,,3.0
+Cardiology,29.08,Alive,20,0,10,0,True,0.0
+Nephrology,14.76,Dead,8,8,0,0,True,1.0
+Maxillo-facial surgery,0.84,Alive,0,0,1,1,False,0.0
+Gastroenterology,10.69,Alive,9,1,0,1,True,0.0
+General medicine,4.2,Alive,0,3,1,1,,0.0
+Accident & emergency,12.19,Alive,10,0,1,2,True,0.0
+General medicine,0.08,Dead,2,0,0,0,True,0.0
+General medicine,36.34,Alive,19,15,3,0,False,3.0
+General surgery,12.87,Alive,11,3,0,0,True,1.0
+General medicine,2.51,Alive,0,2,0,2,,1.0
+Orthopaedics and trauma,14.7,Alive,0,7,0,8,,5.0
+General medicine,5.98,Alive,0,5,1,1,False,0.0
+General surgery,5.05,Alive,3,1,2,0,True,0.0
+General medicine,1.01,Alive,0,2,0,0,,0.0
+Hepatobiliary and pancreatic surgery,12.81,Alive,8,2,3,1,,0.0
+Hepatology,6.94,Alive,0,7,0,1,,0.0
+Orthopaedics and trauma,44.17,Alive,37,0,1,7,True,1.0
+Neurosurgery,1.86,Dead,3,0,0,0,True,0.0
+Stroke medicine,2.43,Alive,0,1,1,1,,1.0
+Respiratory medicine,3.51,Alive,2,1,2,0,False,0.0
+Accident & emergency,0.43,Dead,0,2,0,0,False,0.0
+General surgery,3.85,Alive,0,1,1,2,,0.0
+Neurosurgery,12.68,Alive,12,0,0,1,True,1.0
+General surgery,3.82,Alive,2,1,1,0,True,0.0
+Neurosurgery,18.63,Dead,18,0,2,0,True,1.0
+General medicine,3.12,Alive,2,2,0,0,False,0.0
+Thoracic surgery,6.05,Alive,3,2,0,2,True,1.0
+General surgery,3.59,Alive,0,1,0,3,,0.0
+Unknown Specialty,2.04,Alive,2,1,0,0,,0.0
+General medicine,3.82,Alive,0,2,0,2,,1.0
+Accident & emergency,9.870000000000001,Alive,6,4,0,1,True,0.0
+Accident & emergency,9.4,Alive,7,1,0,2,True,1.0
+Neurosurgery,5.78,Alive,5,1,0,0,True,0.0
+Neurosurgery,1.15,Dead,3,0,0,0,True,0.0
+Accident & emergency,9.51,Alive,0,9,0,1,False,0.0
+General surgery,4.86,Alive,0,4,0,2,,1.0
+Cardiology,8.99,Alive,0,0,1,9,False,1.0
+Cardiology,2.33,Dead,4,0,0,0,True,0.0
+Gastroenterology,24.74,Alive,16,9,1,0,True,1.0
+Accident & emergency,2.28,Alive,0,3,0,0,False,0.0
+General medicine,6.58,Alive,4,3,1,0,False,0.0
+Neurosurgery,22.2,Alive,20,0,3,0,,2.0
+Ent,4.18,Alive,0,1,0,4,False,0.0
+General surgery,1.7,Alive,0,2,0,0,,0.0
+General surgery,9.35,Alive,4,6,0,0,True,0.0
+Haematology,0.79,Dead,1,1,0,0,False,0.0
+General surgery,41.78,Alive,26,11,1,5,,5.0
+General surgery,3.31,Dead,0,5,0,0,False,0.0
+Accident & emergency,7.67,Alive,0,6,1,2,False,2.0
+Haematology (clinical),3.91,Dead,5,0,0,0,True,0.0
+Orthopaedics and trauma,37.36,Alive,26,1,11,0,True,1.0
+General surgery,0.79,Dead,2,0,0,0,True,0.0
+Haematology (clinical),31.31,Dead,33,0,0,0,True,2.0
+Cardiology,6.03,Alive,0,4,2,1,,0.0
+General medicine,16.09,Alive,0,13,0,4,False,3.0
+General surgery,9.15,Alive,0,5,4,1,False,1.0
+Accident & emergency,7.78,Alive,0,2,0,6,,0.0
+General surgery,10.57,Alive,0,1,1,9,,1.0
+Accident & emergency,-0.74,Dead,1,0,0,0,True,0.0
+General medicine,3.12,Alive,0,2,0,2,,1.0
+Unknown Specialty,6.04,Alive,5,2,0,0,True,1.0
+General surgery,7.29,Alive,0,7,0,1,False,2.0
+General medicine,13.95,Alive,7,6,1,1,,0.0
+General surgery,3.93,Alive,0,5,0,0,,0.0
+Neurosurgery,0.17,Alive,0,1,0,0,,0.0
+Neurosurgery,2.6,Alive,2,1,0,0,True,0.0
+General surgery,3.16,Alive,0,3,1,0,False,0.0
+General surgery,2.36,Alive,0,1,1,1,False,0.0
+Urology,1.74,Alive,0,0,3,0,False,0.0
+Cardiology,24.16,Alive,21,4,0,0,True,0.0
+Haematology,9.15,Dead,11,0,0,0,True,0.0
+Interventional radiology,2.76,Alive,0,3,0,1,False,0.0
+Respiratory medicine,5.79,Alive,0,5,1,1,,1.0
+Unknown Specialty,7.83,Alive,7,2,0,0,True,0.0
+Accident & emergency,11.35,Alive,5,4,1,2,False,0.0
+Neurosurgery,12.6,Alive,13,0,0,1,True,2.0
+General surgery,11.45,Alive,12,0,0,0,True,0.0
+General medicine,4.22,Alive,2,2,1,0,True,1.0
+Hepatobiliary and pancreatic surgery,13.09,Dead,15,0,0,0,True,0.0
+Orthopaedics and trauma,7.81,Alive,7,1,1,0,True,1.0
+Accident & emergency,9.53,Alive,4,3,0,4,,0.0
+Cardiology,0.13,Dead,2,0,0,0,True,0.0
+Cardiology,1.22,Dead,3,0,0,0,True,0.0
+Cardiology,1.23,Alive,0,2,0,0,,0.0
+General medicine,4.83,Alive,0,6,0,0,False,0.0
+General surgery,11.0,Alive,7,3,2,0,False,3.0
+General surgery,8.2,Alive,1,7,0,1,False,0.0
+General surgery,-0.21,Dead,1,0,0,0,True,0.0
+Vascular surgery,4.88,Dead,6,0,0,0,True,0.0
+Cardiology,3.49,Dead,1,4,0,0,True,0.0
+Accident & emergency,17.96,Alive,7,11,1,0,False,1.0
+Accident & emergency,12.73,Alive,9,3,1,1,True,0.0
+Orthopaedics and trauma,7.69,Alive,2,4,1,2,False,2.0
+General surgery,5.27,Alive,2,2,0,2,True,0.0
+Cardiology,0.15,Dead,2,0,0,0,True,0.0
+Cardiology,6.15,Alive,5,1,0,1,False,0.0
+Unknown Specialty,2.99,Alive,0,3,1,0,,0.0
+Cardiology,13.4,Dead,15,0,0,0,True,0.0
+Accident & emergency,5.83,Dead,7,0,0,0,True,2.0
+Orthopaedics and trauma,4.03,Alive,2,1,0,2,True,2.0
+Accident & emergency,7.07,Alive,4,2,0,2,False,1.0
+Accident & emergency,1.8,Dead,0,3,0,0,False,0.0
+General medicine,5.42,Alive,3,0,1,2,True,1.0
+General surgery,4.2,Alive,0,1,1,3,,0.0
+General surgery,2.04,Alive,0,3,0,0,False,0.0
+Accident & emergency,3.9,Alive,3,0,1,1,True,1.0
+General surgery,1.74,Alive,0,0,2,1,False,0.0
+General surgery,1.0,Dead,2,0,0,0,True,0.0
+Respiratory physiology,5.72,Alive,0,5,0,1,,0.0
+Neurosurgery,18.69,Alive,19,0,0,0,True,0.0
+General surgery,10.42,Alive,1,3,1,6,,3.0
+General surgery,2.56,Alive,0,3,0,1,,0.0
+Urology,10.11,Alive,0,7,0,5,,0.0
+Nephrology,2.78,Alive,0,3,0,1,,0.0
+Nephrology,6.76,Alive,4,3,0,1,True,2.0
+General surgery,28.67,Alive,23,7,0,0,False,3.0
+Neurosurgery,13.67,Alive,15,0,0,0,True,2.0
+General medicine,8.18,Alive,0,6,0,3,False,1.0
+Thoracic surgery,1.31,Dead,3,0,0,0,True,0.0
+General surgery,5.28,Alive,3,1,1,1,True,0.0
+Neurosurgery,6.85,Alive,4,0,1,3,True,2.0
+General medicine,10.28,Dead,0,12,0,0,False,0.0
+General medicine,13.03,Alive,11,3,0,0,,0.0
+General surgery,3.02,Alive,1,2,1,0,,0.0
+Unknown Specialty,6.25,Dead,8,0,0,0,True,0.0
+Accident & emergency,3.97,Dead,2,0,1,2,True,0.0
+Neurosurgery,1.55,Dead,3,0,0,0,True,0.0
+General surgery,0.19,Dead,2,0,0,0,True,0.0
+Accident & emergency,2.97,Dead,4,0,0,0,True,0.0
+Accident & emergency,4.33,Alive,0,5,0,0,,0.0
+General surgery,5.74,Alive,0,6,0,0,,1.0
+General surgery,4.2,Alive,0,2,0,3,,1.0
+Thoracic surgery,3.23,Alive,0,4,0,0,False,1.0
+Gynaecology,1.67,Alive,0,1,0,1,,0.0
+General surgery,14.24,Alive,0,14,1,0,,0.0
+Gastroenterology,7.28,Dead,9,0,0,0,True,0.0
+General medicine,44.81,Alive,34,2,7,3,False,1.0
+General medicine,5.99,Alive,0,3,1,3,,0.0
+Orthopaedics and trauma,15.41,Alive,12,0,1,3,True,0.0
+General medicine,7.58,Alive,0,5,0,4,False,0.0
+Accident & emergency,7.7,Alive,0,7,1,1,False,0.0
+Haematology (clinical),3.86,Alive,0,4,1,0,,1.0
+Accident & emergency,5.3,Alive,0,3,0,3,,1.0
+General surgery,0.8,Alive,0,1,0,0,,0.0
+General medicine,1.9,Alive,0,0,2,1,False,1.0
+Unknown Specialty,5.03,Alive,0,0,3,3,,1.0
+General medicine,1.14,Dead,0,3,0,0,False,0.0
+Neurosurgery,17.33,Alive,15,3,0,0,True,0.0
+Orthopaedics and trauma,4.49,Alive,0,4,0,1,,0.0
+General surgery,13.4,Alive,3,9,2,0,False,0.0
+Cardiology,0.59,Alive,1,0,0,0,True,0.0
+Unknown Specialty,4.96,Alive,0,6,0,0,,0.0
+Accident & emergency,6.7,Alive,0,6,0,1,False,0.0
+Accident & emergency,11.69,Alive,8,4,0,0,True,0.0
+General surgery,1.99,Alive,0,2,1,0,,0.0
+General surgery,7.79,Alive,0,4,4,1,,0.0
+Neurosurgery,3.89,Alive,2,1,1,1,True,2.0
+Accident & emergency,36.81,Alive,22,6,11,0,,1.0
+General surgery,2.0,Alive,0,2,0,1,False,0.0
+General surgery,0.97,Alive,0,2,0,0,,0.0
+Accident & emergency,1.51,Alive,1,1,0,0,True,0.0
+Transplantation surgery,0.75,Alive,0,2,0,0,False,0.0
+General surgery,4.93,Alive,0,4,1,1,,0.0
+Cardiology,3.85,Dead,5,0,0,0,True,0.0
+Vascular surgery,0.78,Alive,0,2,0,0,,0.0
+Hepatobiliary and pancreatic surgery,60.47,Alive,47,14,1,0,True,5.0
+Hepatobiliary and pancreatic surgery,48.8,Alive,4,45,0,1,,1.0
+General surgery,3.56,Alive,0,4,0,0,False,1.0
+Accident & emergency,3.26,Alive,2,2,1,0,True,1.0
+General surgery,10.3,Dead,6,6,0,0,False,0.0
+General medicine,7.7,Alive,0,6,2,0,,0.0
+Vascular surgery,0.92,Dead,2,0,0,0,True,0.0
+General medicine,11.4,Alive,6,3,2,1,False,0.0
+Accident & emergency,6.55,Alive,2,1,4,0,,2.0
+Cardiology,1.67,Dead,3,0,0,0,True,0.0
+Thoracic surgery,11.71,Alive,5,4,3,1,False,0.0
+General medicine,2.36,Alive,0,3,0,0,False,0.0
+Respiratory medicine,8.48,Alive,0,9,0,0,False,0.0
+Ent,6.21,Alive,6,1,0,0,True,0.0
+General medicine,1.36,Dead,3,0,0,0,False,0.0
+General medicine,2.8,Alive,0,0,1,3,False,1.0
+Neurosurgery,1.99,Dead,3,0,0,0,True,0.0
+Orthopaedics and trauma,1.94,Alive,0,2,1,0,,0.0
+General surgery,23.25,Alive,13,9,1,1,True,1.0
+General surgery,6.76,Alive,4,0,1,2,,1.0
+General surgery,2.8,Alive,0,2,1,1,False,0.0
+General surgery,5.46,Alive,1,0,5,0,True,0.0
+Accident & emergency,4.05,Alive,3,2,0,0,True,0.0
+Accident & emergency,1.7,Alive,1,0,1,0,True,0.0
+General medicine,5.11,Alive,2,2,0,2,,2.0
+Unknown Specialty,4.14,Alive,0,5,0,0,,0.0
+Accident & emergency,0.94,Alive,2,0,0,0,True,0.0
+General medicine,1.19,Dead,3,0,0,0,True,0.0
+Ent,6.71,Alive,6,2,0,0,True,0.0
+Accident & emergency,1.76,Alive,0,2,0,1,False,0.0
+Unknown Specialty,23.76,Alive,23,0,1,1,True,0.0
+General medicine,0.9,Alive,0,1,0,1,,1.0
+Vascular surgery,3.78,Alive,3,0,1,1,True,2.0
+General surgery,2.11,Alive,0,3,0,0,,0.0
+Accident & emergency,203.4,Dead,205,0,0,0,True,2.0
+Respiratory medicine,8.4,Alive,0,6,1,2,False,1.0
+Accident & emergency,10.82,Alive,5,3,0,4,True,1.0
+Neurosurgery,3.29,Dead,5,0,0,0,True,0.0
+Cardiology,10.42,Dead,12,0,0,0,True,0.0
+General surgery,3.98,Alive,0,1,1,3,False,2.0
+Accident & emergency,4.81,Alive,0,5,1,0,,1.0
+Interventional radiology,1.08,Alive,0,2,0,0,,0.0
+Unknown Specialty,9.21,Alive,6,2,1,1,False,1.0
+General medicine,4.08,Alive,0,5,0,0,False,0.0
+General medicine,6.32,Dead,5,3,0,0,False,0.0
+Vascular surgery,2.21,Alive,3,0,0,0,True,0.0
+Accident & emergency,3.21,Alive,2,1,0,1,True,0.0
+General medicine,3.48,Alive,0,2,0,2,False,0.0
+Respiratory medicine,1.67,Dead,0,3,0,0,False,0.0
+General surgery,3.77,Alive,0,4,0,1,,0.0
+Cardiology,5.83,Alive,0,7,0,0,,0.0
+General medicine,11.78,Alive,9,2,1,1,False,1.0
+Accident & emergency,-0.18,Dead,0,1,0,0,,0.0
+Neurosurgery,0.97,Dead,2,0,0,0,True,0.0
+Orthopaedics and trauma,2.89,Alive,0,2,1,1,,0.0
+Accident & emergency,1.28,Dead,4,0,0,0,True,0.0
+Accident & emergency,30.51,Alive,25,5,0,1,,0.0
+General surgery,7.54,Alive,3,3,2,0,True,0.0
+General medicine,26.38,Alive,18,0,9,0,True,3.0
+Unknown Specialty,3.13,Alive,2,1,1,0,True,0.0
+Urology,6.12,Alive,3,2,2,0,True,3.0
+Accident & emergency,1.85,Alive,2,0,0,1,True,2.0
+General surgery,2.69,Alive,0,2,0,1,False,1.0
+Neurosurgery,1.19,Dead,3,0,0,0,True,0.0
+Cardiology,18.52,Alive,16,3,0,0,True,0.0
+General medicine,12.66,Alive,4,6,1,2,False,0.0
+Interventional radiology,6.1,Alive,4,1,1,1,True,0.0
+Accident & emergency,9.790000000000001,Alive,5,2,4,0,True,2.0
+Neurosurgery,12.8,Alive,11,0,1,2,True,0.0
+Accident & emergency,19.98,Dead,3,13,0,5,,6.0
+Neurosurgery,2.85,Dead,4,0,0,0,True,0.0
+General surgery,3.19,Alive,1,2,0,2,True,0.0
+Neurosurgery,0.14,Dead,2,0,0,0,True,0.0
+Unknown Specialty,8.22,Alive,0,6,0,3,,1.0
+Cardiology,4.46,Alive,0,5,0,0,False,1.0
+Transplantation surgery,3.25,Dead,5,0,0,0,True,0.0
+Obstetrics,4.62,Alive,3,1,0,1,True,1.0
+General medicine,15.5,Alive,2,3,1,10,,2.0
+General medicine,10.26,Alive,2,7,0,2,,1.0
+Unknown Specialty,1.25,Alive,0,2,0,0,,0.0
+Cardiology,3.93,Alive,2,1,2,0,True,0.0
+Orthopaedics and trauma,20.68,Dead,22,0,0,0,True,1.0
+Neurosurgery,4.42,Alive,0,3,0,2,,1.0
+General medicine,5.48,Alive,4,2,0,0,,0.0
+Orthopaedics and trauma,16.34,Alive,10,6,1,0,True,1.0
+Accident & emergency,2.79,Alive,1,2,0,1,True,1.0
+Cardiology,8.58,Alive,0,0,1,8,False,0.0
+Neurosurgery,8.75,Alive,7,2,0,1,True,1.0
+Accident & emergency,6.35,Alive,0,5,1,1,False,1.0
+Accident & emergency,3.17,Dead,5,0,0,0,True,0.0
+General medicine,11.42,Alive,9,2,0,1,True,0.0
+General surgery,2.0,Alive,2,1,0,0,True,1.0
+General surgery,2.13,Alive,0,3,0,0,,0.0
+Haematology (clinical),4.0,Alive,0,3,1,1,False,0.0
+Accident & emergency,9.78,Alive,4,4,1,1,True,0.0
+Neurology,20.67,Alive,16,2,1,2,True,2.0
+General surgery,9.49,Alive,0,4,2,4,False,0.0
+General surgery,2.51,Alive,0,3,0,0,,0.0
+Vascular surgery,0.52,Dead,2,0,0,0,False,0.0
+General surgery,4.68,Alive,0,4,1,0,,0.0
+General surgery,7.65,Alive,0,6,2,0,,0.0
+General surgery,7.01,Alive,3,5,0,0,False,1.0
+General medicine,0.41,Alive,0,1,0,0,False,0.0
+Accident & emergency,8.93,Alive,3,1,2,4,True,1.0
+General surgery,52.13,Alive,47,0,6,0,True,3.0
+General medicine,4.72,Alive,2,1,1,1,True,0.0
+Haematology (clinical),3.74,Dead,5,0,0,0,True,1.0
+General surgery,4.97,Alive,0,3,1,2,,2.0
+Neurosurgery,4.36,Alive,0,2,1,2,,0.0
+Cardiology,2.17,Alive,1,0,1,1,True,0.0
+Neurosurgery,1.91,Alive,2,1,0,0,True,0.0
+Unknown Specialty,6.15,Dead,0,2,3,3,,0.0
+General surgery,1.03,Alive,0,2,0,1,,0.0
+Cardiology,0.8300000000000002,Dead,2,0,0,0,True,0.0
+General medicine,2.54,Alive,1,1,0,1,False,0.0
+General surgery,3.56,Alive,0,1,1,3,False,0.0
+Nephrology,3.23,Alive,3,1,0,0,True,0.0
+General surgery,3.03,Alive,0,2,0,2,,0.0
+Neurosurgery,36.46,Alive,35,2,0,0,True,0.0
+Neurosurgery,4.350000000000001,Alive,4,0,1,0,False,0.0
+General medicine,9.71,Alive,0,5,1,5,,1.0
+Urology,5.25,Alive,0,4,0,2,,1.0
+General surgery,15.97,Alive,9,8,0,0,False,1.0
+Accident & emergency,1.74,Alive,2,0,0,1,True,0.0
+General medicine,6.84,Alive,0,3,1,4,False,0.0
+Urology,7.23,Alive,4,4,0,0,True,0.0
+Unknown Specialty,27.84,Alive,17,2,10,0,True,0.0
+General medicine,4.54,Alive,3,0,2,0,True,0.0
+Cardiology,6.56,Alive,6,1,0,0,True,1.0
+Thoracic surgery,3.0,Alive,0,3,1,0,False,0.0
+General surgery,1.8,Alive,0,1,1,1,,0.0
+General surgery,3.42,Dead,0,5,0,0,False,0.0
+Haematology (clinical),1.08,Alive,0,2,0,1,,0.0
+Haematology (clinical),3.3,Dead,0,5,0,0,,0.0
+General surgery,0.7000000000000002,Alive,0,1,0,0,,2.0
+Unknown Specialty,1.02,Alive,0,2,0,0,,0.0
+Urology,4.56,Alive,0,3,0,2,False,0.0
+Cardiology,4.48,Alive,0,5,0,0,False,1.0
+Colorectal surgery,1.42,Alive,0,2,0,0,,2.0
+Accident & emergency,6.12,Alive,0,2,1,4,,0.0
+Accident & emergency,4.91,Alive,2,4,0,0,True,1.0
+General surgery,5.34,Alive,0,5,0,1,False,0.0
+General surgery,3.87,Alive,0,3,1,1,,2.0
+Accident & emergency,9.44,Alive,0,7,0,3,,4.0
+Accident & emergency,7.98,Dead,9,0,0,0,True,0.0
+Cardiology,0.02,Dead,2,0,0,0,True,0.0
+Accident & emergency,16.39,Alive,10,2,1,4,True,2.0
+General medicine,13.39,Alive,10,5,0,0,False,1.0
+Cardiology,25.29,Alive,20,0,6,0,True,2.0
+General surgery,9.96,Alive,7,0,1,3,True,2.0
+General surgery,4.93,Alive,0,3,3,0,,0.0
+Accident & emergency,5.0,Dead,1,5,0,0,,0.0
+Transplantation surgery,38.86,Alive,37,2,0,1,True,3.0
+General surgery,2.74,Alive,0,4,0,0,,0.0
+Orthopaedics and trauma,26.49,Alive,21,6,0,1,True,0.0
+General surgery,2.7,Alive,1,2,0,1,True,0.0
+Adult mental illness,5.96,Alive,3,3,1,0,True,0.0
+General surgery,6.85,Alive,0,4,2,2,,3.0
+Orthopaedics and trauma,6.93,Alive,0,7,1,0,,1.0
+Cardiology,-0.67,Dead,0,0,1,0,False,0.0
+Neurosurgery,7.99,Alive,3,0,1,5,True,2.0
+General surgery,5.95,Alive,2,4,0,1,,0.0
+Respiratory medicine,1.99,Alive,0,2,0,1,False,0.0
+Orthopaedics and trauma,27.33,Alive,25,0,2,1,True,0.0
+Interventional radiology,2.52,Alive,0,2,0,2,,0.0
+Accident & emergency,9.5,Alive,6,0,3,1,True,0.0
+Neurosurgery,1.4,Dead,3,0,0,0,True,0.0
+General surgery,2.85,Alive,0,3,1,0,,1.0
+General surgery,9.61,Alive,4,4,0,3,False,0.0
+General medicine,6.52,Alive,5,0,2,0,True,0.0
+Adult mental illness,5.75,Alive,5,0,1,0,True,1.0
+General surgery,23.62,Alive,10,13,1,1,,0.0
+Accident & emergency,24.47,Alive,20,2,2,1,True,1.0
+General medicine,1.19,Alive,1,0,0,1,True,0.0
+Interventional radiology,0.96,Alive,2,0,0,0,,0.0
+General medicine,-0.01,Dead,1,0,0,0,True,0.0
+Gynaecological oncology,65.53,Dead,65,2,0,0,False,2.0
+General surgery,5.76,Alive,0,4,0,2,,2.0
+Accident & emergency,8.65,Alive,0,5,0,5,,2.0
+General surgery,2.67,Alive,3,0,0,1,True,0.0
+General medicine,7.58,Alive,1,0,1,6,True,2.0
+General medicine,8.5,Alive,0,6,0,3,False,0.0
+General medicine,12.39,Alive,0,8,1,4,False,0.0
+General medicine,38.73,Alive,37,1,1,0,True,0.0
+Respiratory medicine,2.63,Alive,0,2,0,1,,0.0
+Respiratory medicine,5.69,Alive,0,4,1,1,False,1.0
+Neurosurgery,16.6,Alive,9,2,4,2,True,0.0
+Gastroenterology,8.11,Alive,6,3,0,0,False,2.0
+Nephrology,3.01,Alive,3,1,0,0,False,0.0
+Vascular surgery,1.1,Dead,3,0,0,0,True,0.0
+General surgery,2.51,Alive,0,1,0,2,False,0.0
+Accident & emergency,2.05,Alive,1,1,0,1,True,3.0
+General medicine,8.82,Alive,2,6,1,1,False,1.0
+Ent,4.83,Alive,5,0,1,0,True,0.0
+Thoracic surgery,10.26,Alive,0,9,0,2,False,3.0
+Vascular surgery,4.7,Alive,1,3,1,0,True,0.0
+General surgery,0.67,Dead,2,0,0,0,True,0.0
+Accident & emergency,7.66,Alive,6,1,0,1,True,0.0
+General surgery,7.12,Alive,5,3,0,0,True,0.0
+Cardiac surgery,6.96,Alive,0,2,1,5,,0.0
+Accident & emergency,2.28,Alive,0,1,1,1,False,1.0
+General medicine,1.76,Alive,3,0,0,0,,0.0
+Neurosurgery,22.93,Alive,20,2,2,0,False,2.0
+Accident & emergency,1.51,Dead,3,0,0,0,True,0.0
+General medicine,5.02,Alive,0,5,0,1,,1.0
+Accident & emergency,6.52,Alive,0,5,2,0,,0.0
+Cardiology,4.7,Dead,3,3,0,0,,1.0
+Accident & emergency,14.5,Dead,16,0,0,0,True,0.0
+Accident & emergency,3.65,Alive,0,1,1,2,False,0.0
+General medicine,6.48,Alive,0,4,0,3,False,1.0
+General medicine,6.81,Alive,0,1,1,5,,1.0
+Orthopaedics and trauma,2.39,Alive,0,3,0,0,False,0.0
+Cardiology,20.77,Alive,10,0,7,4,True,0.0
+General surgery,5.82,Alive,0,6,0,1,,1.0
+Vascular surgery,1.52,Alive,0,1,0,1,,0.0
+Accident & emergency,13.92,Dead,15,0,0,0,True,1.0
+Accident & emergency,10.88,Alive,0,12,0,0,False,1.0
+General medicine,8.370000000000001,Alive,0,4,1,4,,1.0
+General surgery,3.07,Alive,3,0,1,0,True,0.0
+Maxillo-facial surgery,6.4,Alive,6,1,0,1,True,0.0
+Accident & emergency,8.25,Dead,10,0,0,0,True,2.0
+General surgery,4.96,Alive,0,5,0,1,,1.0
+Neurosurgery,0.43,Dead,2,0,0,0,True,0.0
+Cardiology,5.5,Dead,7,0,0,0,True,0.0
+Diabetic medicine,5.76,Alive,2,2,1,1,,1.0
+Accident & emergency,3.27,Alive,2,0,1,1,True,0.0
+General surgery,3.56,Alive,0,4,0,0,,0.0
+Accident & emergency,7.69,Alive,0,3,0,5,,0.0
+Hepatobiliary and pancreatic surgery,1.67,Alive,1,2,0,0,True,1.0
+General surgery,0.17,Dead,2,0,0,0,True,0.0
+Gynaecology,7.58,Alive,1,4,2,1,False,0.0
+Neurosurgery,19.35,Alive,6,14,0,0,True,1.0
+Cardiology,3.74,Alive,3,2,0,0,False,0.0
+Neurosurgery,2.23,Alive,1,2,0,0,True,2.0
+General medicine,11.71,Alive,9,2,1,0,True,1.0
+Cardiology,6.04,Alive,2,3,0,2,True,1.0
+Haematology (clinical),15.08,Dead,17,0,0,0,True,0.0
+General medicine,1.92,Alive,0,0,1,2,False,0.0
+Cardiology,8.65,Alive,0,9,1,0,,2.0
+General medicine,3.95,Alive,1,0,0,4,True,0.0
+Neurosurgery,17.29,Alive,18,0,0,0,True,0.0
+Neurosurgery,5.83,Alive,4,0,1,2,True,0.0
+General medicine,0.8,Alive,0,1,0,0,,0.0
+Neurosurgery,3.13,Dead,5,0,0,0,True,0.0
+General surgery,3.67,Alive,2,0,1,1,,0.0
+Accident & emergency,3.63,Alive,0,3,1,0,,1.0
+Cardiology,0.25,Dead,2,0,0,0,True,0.0
+General medicine,10.08,Alive,6,4,0,1,False,1.0
+General medicine,15.36,Alive,10,3,1,2,True,1.0
+Cardiology,32.84,Alive,34,0,0,0,True,0.0
+Accident & emergency,2.39,Alive,0,2,0,1,False,1.0
+Cardiology,31.28,Alive,23,3,6,0,True,1.0
+General surgery,1.01,Dead,2,1,0,0,False,0.0
+Accident & emergency,15.16,Alive,8,3,0,5,True,3.0
+Accident & emergency,3.04,Alive,0,2,2,0,,0.0
+General medicine,0.65,Dead,2,0,0,0,True,1.0
+Nephrology,4.48,Alive,5,0,0,0,True,0.0
+Unknown Specialty,0.84,Alive,0,2,0,0,,0.0
+Neurosurgery,4.43,Alive,2,0,1,2,True,1.0
+Neurosurgery,6.81,Dead,7,1,0,0,True,0.0
+Neurosurgery,7.83,Dead,9,0,0,0,True,0.0
+Cardiology,4.47,Alive,0,6,0,0,,0.0
+General medicine,2.92,Alive,0,3,0,1,,0.0
+Transplantation surgery,1.77,Alive,2,1,0,0,,0.0
+General medicine,55.82,Alive,47,4,5,0,True,2.0
+Cardiology,7.08,Dead,9,0,0,0,True,0.0
+Orthopaedics and trauma,7.99,Alive,0,3,1,5,,1.0
+Accident & emergency,7.73,Alive,0,8,0,1,False,0.0
+General medicine,12.27,Dead,10,4,0,0,,0.0
+Cardiology,4.81,Alive,2,1,1,2,,1.0
+Neurosurgery,10.52,Alive,9,2,0,0,True,0.0
+Accident & emergency,3.08,Alive,1,3,0,0,True,0.0
+Cardiology,7.0,Alive,0,5,3,0,False,0.0
+Accident & emergency,12.6,Alive,14,0,0,0,True,0.0
+Neurosurgery,4.39,Alive,2,0,0,3,True,1.0
+Unknown Specialty,4.07,Alive,0,3,1,1,,0.0
+Cardiology,33.73,Alive,31,4,0,0,True,0.0
+Vascular surgery,0.59,Alive,0,1,0,0,,0.0
+Spinal injuries,4.03,Alive,0,4,0,1,,0.0
+Transplantation surgery,2.97,Alive,0,3,0,1,,0.0
+Transplantation surgery,1.82,Alive,0,3,0,0,,0.0
+Nephrology,6.68,Alive,5,2,0,0,True,3.0
+Transplantation surgery,31.15,Alive,12,11,4,5,True,4.0
+Transplantation surgery,1.64,Alive,2,0,1,0,True,0.0
+Transplantation surgery,2.17,Alive,2,0,0,1,,1.0
+Transplantation surgery,5.26,Alive,4,2,0,0,True,1.0
+Transplantation surgery,0.4,Alive,0,0,0,1,False,0.0
+General surgery,2.82,Alive,0,1,0,2,,1.0
+General medicine,5.96,Alive,3,1,3,0,True,2.0
+Obstetrics,11.48,Alive,8,4,0,0,,0.0
+Unknown Specialty,0.8300000000000002,Alive,2,0,0,0,True,0.0
+General surgery,0.96,Alive,0,2,0,0,,0.0
+Orthopaedics and trauma,4.9,Alive,0,3,1,2,False,1.0
+Accident & emergency,32.92,Dead,34,0,0,0,True,1.0
+Accident & emergency,3.99,Alive,0,4,0,1,,0.0
+General surgery,-0.08,Dead,1,0,0,0,True,0.0
+Accident & emergency,5.94,Dead,7,0,0,0,True,0.0
+Neurosurgery,4.33,Dead,6,0,0,0,True,0.0
+Neurosurgery,5.41,Alive,3,2,1,0,True,0.0
+Accident & emergency,3.59,Alive,1,0,2,1,True,2.0
+Orthopaedics and trauma,1.43,Alive,1,0,1,0,True,0.0
+Neurosurgery,2.4,Dead,1,1,1,1,True,0.0
+Accident & emergency,7.3,Alive,0,2,2,4,,0.0
+Vascular surgery,0.19,Dead,2,0,0,0,True,0.0
+Accident & emergency,16.97,Alive,11,7,0,0,True,0.0
+Orthopaedics and trauma,5.49,Alive,4,2,0,0,True,0.0
+Neurosurgery,3.46,Alive,1,1,2,0,True,0.0
+Accident & emergency,0.08,Dead,2,0,0,0,True,0.0
+General surgery,1.84,Dead,3,0,0,0,True,0.0
+Respiratory medicine,14.77,Alive,0,11,1,4,False,2.0
+General medicine,11.9,Alive,6,1,4,1,True,1.0
+Thoracic surgery,16.74,Alive,16,1,0,0,True,0.0
+General medicine,0.43,Dead,2,0,0,0,True,0.0
+General medicine,9.78,Alive,6,3,1,1,True,1.0
+Ent,16.15,Alive,8,1,0,8,True,2.0
+Neurosurgery,0.33,Dead,2,0,0,0,False,0.0
+General medicine,7.24,Alive,3,0,1,4,,1.0
+Cardiology,0.17,Dead,2,0,0,0,True,0.0
+General surgery,4.78,Alive,0,1,2,3,,2.0
+Accident & emergency,5.58,Alive,0,6,0,1,False,1.0
+General medicine,1.03,Dead,3,0,0,0,False,0.0
+Neurosurgery,11.06,Alive,10,1,1,0,True,1.0
+General medicine,11.05,Alive,2,8,1,1,,1.0
+Accident & emergency,6.9,Alive,2,0,1,5,,3.0
+Anaesthetics,-0.71,Dead,1,0,0,0,True,0.0
+Vascular surgery,2.13,Alive,0,0,1,2,False,0.0
+Accident & emergency,4.61,Alive,0,3,0,2,,0.0
+Haematology (clinical),2.18,Alive,0,3,0,0,False,1.0
+Haematology (clinical),4.5,Alive,0,2,0,4,False,0.0
+General medicine,5.02,Dead,6,0,1,0,False,1.0
+Orthopaedics and trauma,19.72,Alive,9,10,0,1,False,0.0
+General surgery,3.91,Alive,2,3,0,0,True,2.0
+Accident & emergency,3.16,Alive,2,2,0,0,True,2.0
+Accident & emergency,0.8300000000000002,Alive,0,0,1,1,False,0.0
+Accident & emergency,22.63,Alive,19,4,0,0,True,0.0
+Accident & emergency,7.99,Alive,5,0,1,3,True,2.0
+Accident & emergency,45.87,Alive,26,6,15,0,,5.0
+General medicine,0.04,Dead,2,0,0,0,True,0.0
+Maxillo-facial surgery,19.17,Alive,7,3,10,0,True,1.0
+Neurosurgery,10.51,Alive,9,2,0,1,True,1.0
+General medicine,3.66,Alive,2,1,1,0,True,0.0
+Accident & emergency,11.01,Alive,8,4,0,0,True,0.0
+Accident & emergency,2.58,Alive,1,1,0,1,True,0.0
+Nephrology,6.99,Dead,8,0,0,0,True,0.0
+General surgery,11.72,Alive,8,3,1,1,True,1.0
+Neurosurgery,9.35,Alive,0,7,1,2,,1.0
+General surgery,1.59,Alive,0,1,1,0,,0.0
+General surgery,1.01,Alive,0,1,0,1,,0.0
+General surgery,2.6,Alive,2,1,0,0,True,1.0
+General surgery,4.19,Alive,0,4,0,1,,0.0
+Neurosurgery,1.91,Alive,2,0,0,1,True,0.0
+Orthopaedics and trauma,5.71,Alive,0,6,0,0,False,0.0
+Accident & emergency,0.86,Dead,2,0,0,0,True,0.0
+Accident & emergency,3.11,Dead,5,0,0,0,True,0.0
+General medicine,6.05,Alive,0,3,1,3,False,0.0
+General medicine,4.3,Alive,2,3,0,0,False,0.0
+Respiratory physiology,0.8,Alive,2,0,0,0,True,0.0
+Gastroenterology,5.0,Alive,3,1,0,2,True,1.0
+Neurosurgery,3.56,Alive,4,0,0,0,True,0.0
+Neurosurgery,7.56,Dead,9,0,0,0,True,0.0
+Unknown Specialty,4.92,Alive,6,0,0,0,True,0.0
+General medicine,2.37,Alive,0,3,0,0,False,0.0
+General surgery,5.05,Alive,0,3,0,4,False,1.0
+Colorectal surgery,5.89,Alive,0,4,1,2,,2.0
+General medicine,8.71,Alive,0,7,2,0,False,1.0
+Accident & emergency,5.88,Alive,3,2,0,2,True,0.0
+Haematology (clinical),12.49,Dead,11,3,0,0,False,0.0
+Accident & emergency,39.71,Dead,40,0,1,0,True,2.0
+Cardiology,0.24,Dead,2,0,0,0,True,0.0
+Neurosurgery,5.4,Alive,1,3,0,2,True,0.0
+General surgery,1.97,Alive,0,2,0,1,,1.0
+Accident & emergency,6.85,Alive,0,8,0,0,False,1.0
+General surgery,19.91,Alive,12,8,1,0,True,2.0
+General medicine,6.15,Alive,3,2,1,1,False,2.0
+General medicine,4.86,Alive,0,1,2,3,,1.0
+General medicine,2.43,Alive,1,0,1,1,True,0.0
+General surgery,0.21,Dead,2,0,0,0,True,0.0
+Neurosurgery,6.01,Dead,8,0,0,0,True,0.0
+Accident & emergency,2.1,Alive,0,2,1,0,False,0.0
+Cardiology,61.31,Alive,43,6,13,0,True,3.0
+Accident & emergency,6.03,Alive,4,0,0,3,True,1.0
+Vascular surgery,4.850000000000001,Alive,4,2,0,0,False,0.0
+Haematology (clinical),4.36,Alive,0,4,0,1,False,1.0
+General surgery,10.23,Dead,0,12,0,0,,0.0
+Unknown Specialty,9.870000000000001,Alive,10,1,0,0,True,0.0
+Neurosurgery,2.41,Alive,2,1,0,0,False,0.0
+Cardiology,0.33,Dead,2,0,0,0,True,0.0
+Cardiology,2.13,Dead,4,0,0,0,True,0.0
+General medicine,7.7,Alive,0,8,0,0,,1.0
+Unknown Specialty,6.26,Alive,5,0,1,1,True,0.0
+Orthopaedics and trauma,5.51,Alive,3,2,0,1,True,0.0
+Cardiology,5.08,Alive,2,0,1,3,True,1.0
+General surgery,3.79,Alive,0,0,1,4,False,1.0
+Urology,1.4,Alive,1,0,1,0,True,1.0
+Accident & emergency,9.5,Alive,7,2,1,1,True,2.0
+Cardiology,8.11,Alive,5,3,1,0,True,0.0
+Accident & emergency,3.18,Alive,0,3,0,1,,0.0
+Cardiology,6.19,Alive,0,6,1,0,,0.0
+General medicine,1.2,Alive,1,1,0,0,True,0.0
+Accident & emergency,20.57,Alive,19,1,1,0,True,0.0
+Transplantation surgery,2.07,Alive,0,2,0,1,False,0.0
+Cardiology,0.96,Dead,0,2,0,0,,0.0
+Unknown Specialty,2.14,Alive,0,1,2,0,,0.0
+Colorectal surgery,5.2,Alive,0,3,1,2,,0.0
+Cardiology,1.02,Alive,0,2,0,0,,0.0
+Respiratory medicine,2.71,Alive,0,2,0,1,False,1.0
+General medicine,1.17,Dead,2,1,0,0,False,0.0
+General surgery,5.58,Alive,1,3,1,1,True,0.0
+General medicine,2.76,Alive,0,2,0,1,,0.0
+Cardiology,7.08,Dead,9,0,0,0,True,0.0
+Unknown Specialty,8.2,Alive,0,3,1,6,,1.0
+Neurosurgery,7.28,Alive,3,1,1,3,True,2.0
+Neurosurgery,89.48,Alive,68,9,13,0,,4.0
+General surgery,3.81,Alive,0,3,1,1,,1.0
+Accident & emergency,0.28,Dead,2,0,0,0,True,0.0
+Cardiology,8.41,Dead,10,0,0,0,True,0.0
+Gynaecological oncology,4.69,Alive,0,5,0,0,,0.0
+General surgery,0.87,Alive,0,2,0,0,,0.0
+Cardiac surgery,27.07,Alive,22,0,6,0,True,1.0
+General surgery,4.48,Alive,0,4,0,1,,0.0
+Accident & emergency,10.57,Alive,0,9,1,1,False,1.0
+Accident & emergency,0.29,Dead,2,0,0,0,True,0.0
+Cardiology,16.78,Alive,6,11,1,0,False,2.0
+Cardiology,16.83,Dead,6,12,0,0,False,1.0
+General surgery,7.85,Alive,4,3,2,0,True,0.0
+General surgery,16.41,Alive,5,11,0,1,False,1.0
+Neurosurgery,0.97,Alive,0,1,0,1,False,0.0
+Cardiology,3.64,Dead,5,0,0,0,True,2.0
+Haematology (clinical),10.42,Dead,11,1,0,0,False,1.0
+Transplantation surgery,4.06,Alive,2,2,1,0,,0.0
+Accident & emergency,15.67,Alive,12,4,1,0,,2.0
+Gastroenterology,44.67,Alive,0,1,45,0,,1.0
+Thoracic surgery,3.63,Alive,2,2,0,0,True,1.0
+Haematology (clinical),5.28,Alive,3,2,0,1,True,1.0
+General medicine,7.07,Alive,2,1,1,4,True,1.0
+Neurosurgery,0.64,Alive,2,0,0,0,True,0.0
+Neurosurgery,13.0,Alive,13,0,1,0,True,0.0
+Haematology (clinical),1.51,Dead,3,0,0,0,True,0.0
+Obstetrics,1.78,Alive,0,3,0,0,,0.0
+Cardiology,2.34,Dead,4,0,0,0,True,0.0
+Cardiology,0.91,Alive,2,0,0,0,True,0.0
+Unknown Specialty,3.33,Alive,0,3,1,0,False,1.0
+Neurosurgery,14.67,Alive,13,1,2,0,True,1.0
+Unknown Specialty,4.44,Alive,4,1,0,0,True,1.0
+Cardiology,1.12,Alive,0,2,0,0,,0.0
+Thoracic surgery,18.14,Alive,12,3,1,3,True,1.0
+Respiratory medicine,13.52,Alive,10,3,2,0,False,0.0
+General medicine,19.02,Alive,15,2,1,2,True,2.0
+Haematology (clinical),12.53,Alive,9,4,0,0,,0.0
+Respiratory medicine,0.11,Alive,0,0,1,0,False,0.0
+Unknown Specialty,18.51,Dead,11,9,0,0,,2.0
+Critical care medicine,2.11,Alive,0,1,0,2,False,0.0
+Respiratory physiology,12.98,Alive,1,5,7,1,False,2.0
+Unknown Specialty,6.95,Alive,6,1,0,1,True,1.0
+General surgery,0.66,Alive,0,1,0,0,,0.0
+Interventional radiology,1.73,Alive,0,3,0,0,,0.0
+Hepatobiliary and pancreatic surgery,6.04,Alive,4,1,0,2,,1.0
+Cardiology,3.78,Alive,3,1,0,1,True,0.0
+General medicine,7.58,Alive,0,5,1,2,False,0.0
+Neurosurgery,18.28,Alive,16,0,3,1,True,2.0
+Unknown Specialty,6.31,Alive,7,0,0,0,True,1.0
+Unknown Specialty,5.52,Alive,2,3,0,1,,0.0
+Hepatobiliary and pancreatic surgery,14.73,Alive,10,5,0,1,True,2.0
+Accident & emergency,4.52,Alive,1,2,2,1,,0.0
+Gynaecological oncology,2.91,Alive,0,4,0,0,False,0.0
+Cardiology,2.67,Dead,4,0,0,0,True,0.0
+Neurosurgery,4.79,Alive,2,3,0,0,True,0.0
+General medicine,4.89,Alive,0,5,0,1,False,0.0
+General surgery,23.88,Alive,18,2,4,1,True,2.0
+General medicine,4.33,Alive,4,1,0,0,True,0.0
+Neurosurgery,14.17,Alive,15,0,0,0,,1.0
+Accident & emergency,4.3,Alive,0,1,1,3,,1.0
+General medicine,6.23,Alive,5,2,0,0,True,1.0
+Unknown Specialty,49.21,Alive,16,31,3,0,True,1.0
+Transplantation surgery,2.58,Alive,3,1,0,0,,1.0
+Neurosurgery,1.7,Alive,0,1,1,0,,0.0
+Accident & emergency,2.88,Dead,4,0,0,0,True,0.0
+General surgery,0.59,Alive,0,1,0,1,,0.0
+Neurosurgery,1.04,Alive,1,1,0,0,True,0.0
+Adult mental illness,4.15,Alive,2,2,0,1,True,2.0
+General surgery,0.36,Alive,0,1,0,0,,0.0
+General medicine,10.67,Dead,12,0,0,0,True,0.0
+General surgery,3.27,Alive,0,4,0,0,False,1.0
+Maxillo-facial surgery,14.52,Alive,8,7,1,0,True,0.0
+General surgery,1.9,Alive,0,3,0,0,,1.0
+Accident & emergency,8.76,Alive,5,4,0,0,True,0.0
+General medicine,2.27,Alive,0,0,0,3,False,0.0
+General medicine,3.79,Alive,3,1,0,1,True,1.0
+Neurosurgery,17.73,Alive,8,11,0,0,True,1.0
+General surgery,3.68,Alive,2,2,0,1,True,0.0
+Neurosurgery,3.29,Alive,3,1,0,0,True,0.0
+Neurosurgery,8.620000000000001,Alive,8,1,0,0,True,0.0
+Neurosurgery,4.78,Alive,3,1,1,1,True,0.0
+Neurosurgery,2.91,Alive,3,1,0,0,True,1.0
+Cardiology,2.06,Alive,3,0,0,0,True,0.0
+General surgery,10.24,Alive,2,2,3,4,True,0.0
+Spinal injuries,0.48,Alive,0,1,0,0,False,0.0
+General surgery,0.92,Alive,0,2,0,0,,0.0
+Accident & emergency,4.72,Dead,6,0,0,0,True,0.0
+General surgery,11.62,Alive,11,0,0,1,True,0.0
+General surgery,9.91,Alive,11,0,0,0,True,1.0
+Neurosurgery,28.16,Alive,21,2,6,0,True,3.0
+Cardiology,-0.02,Dead,1,0,0,0,True,0.0
+Haematology (clinical),0.36,Alive,0,1,0,0,,0.0
+General surgery,1.97,Alive,0,2,0,1,False,0.0
+General surgery,12.72,Alive,3,11,0,0,,2.0
+Orthopaedics and trauma,8.6,Alive,0,4,5,0,False,2.0
+Cardiology,4.88,Alive,2,3,0,1,True,1.0
+Unknown Specialty,5.33,Alive,1,1,1,3,,0.0
+Cardiology,4.350000000000001,Alive,0,5,0,0,,1.0
+Accident & emergency,2.17,Alive,1,1,0,1,True,1.0
+Accident & emergency,2.31,Alive,1,0,0,2,True,0.0
+Transplantation surgery,0.45,Alive,0,1,0,0,,0.0
+Transplantation surgery,1.02,Alive,1,1,0,0,True,0.0
+General surgery,3.35,Alive,0,3,1,0,False,1.0
+Cardiology,11.51,Dead,13,0,0,0,True,2.0
+Unknown Specialty,7.72,Alive,6,3,0,0,True,2.0
+General medicine,3.32,Alive,0,4,0,0,,0.0
+Nephrology,12.37,Alive,5,6,0,3,False,0.0
+Obstetrics,3.16,Alive,2,1,0,1,True,1.0
+General medicine,2.06,Alive,2,0,0,1,True,1.0
+Spinal injuries,1.57,Alive,0,2,0,0,,0.0
+Accident & emergency,48.69,Alive,28,9,12,0,True,3.0
+Cardiology,1.46,Dead,0,3,0,0,False,0.0
+General medicine,0.67,Dead,2,0,0,0,True,0.0
+Unknown Specialty,12.95,Alive,11,0,2,1,True,1.0
+Transplantation surgery,3.72,Alive,4,1,0,0,True,0.0
+Respiratory physiology,4.5,Alive,0,4,1,0,False,1.0
+Vascular surgery,4.08,Alive,0,3,0,2,False,1.0
+General medicine,5.84,Alive,5,1,0,0,True,0.0
+Neurosurgery,11.12,Alive,8,1,3,0,True,3.0
+Accident & emergency,19.76,Alive,7,10,1,2,True,2.0
+Gastroenterology,5.18,Alive,2,3,1,0,True,0.0
+Unknown Specialty,9.01,Alive,2,7,0,1,True,1.0
+Neurosurgery,5.46,Alive,5,0,0,1,True,0.0
+Neurology,6.41,Alive,6,1,0,0,False,1.0
+Nephrology,2.63,Alive,0,2,1,1,,0.0
+Neurosurgery,6.81,Alive,0,7,0,1,,0.0
+Unknown Specialty,8.040000000000001,Alive,9,0,0,0,True,0.0
+Cardiothoracic surgery,17.2,Alive,11,5,1,1,False,0.0
+Orthopaedics and trauma,1.19,Alive,0,1,0,1,,0.0
+General surgery,2.66,Alive,0,1,0,2,,2.0
+Transplantation surgery,7.63,Alive,5,1,0,2,False,0.0
+General surgery,10.4,Alive,1,3,1,6,True,0.0
+Vascular surgery,4.73,Alive,0,2,1,2,,1.0
+Transplantation surgery,3.46,Alive,4,0,0,0,,0.0
+Transplantation surgery,3.5,Alive,2,2,0,0,False,0.0
+Unknown Specialty,15.2,Alive,1,0,1,14,True,0.0
+Accident & emergency,4.96,Dead,6,0,0,0,True,0.0
+Neurosurgery,12.88,Alive,10,3,1,0,True,0.0
+Neurosurgery,23.56,Alive,22,0,2,0,True,2.0
+General surgery,1.33,Alive,0,1,1,0,,1.0
+General surgery,2.82,Alive,0,4,0,0,False,0.0
+Accident & emergency,9.63,Dead,11,0,0,0,True,0.0
+General medicine,3.97,Alive,1,3,0,1,,1.0
+General medicine,7.85,Alive,3,2,1,3,True,0.0
+Spinal injuries,0.9500000000000002,Alive,0,2,0,0,,0.0
+Neurosurgery,2.4,Alive,0,2,1,0,,1.0
+Neurosurgery,4.79,Alive,3,2,0,0,True,0.0
+Unknown Specialty,99.88,Alive,19,70,11,1,False,1.0
+Accident & emergency,32.76,Alive,25,5,1,2,True,1.0
+Gastroenterology,3.21,Alive,0,2,0,2,,1.0
+Vascular surgery,6.1,Alive,4,2,0,1,,0.0
+Cardiology,4.01,Alive,0,5,0,0,False,1.0
+Neurosurgery,11.47,Alive,0,11,1,0,False,1.0
+Neurosurgery,4.4,Alive,5,0,0,0,True,1.0
+Haematology (clinical),2.96,Alive,1,3,0,0,False,1.0
+Unknown Specialty,1.86,Alive,0,2,1,0,,0.0
+Vascular surgery,0.81,Dead,0,2,0,0,,0.0
+Transplantation surgery,3.01,Alive,0,2,0,2,,0.0
+Accident & emergency,5.76,Dead,6,0,0,1,True,0.0
+Nephrology,4.1,Alive,4,0,0,1,,0.0
+Accident & emergency,5.05,Alive,4,0,0,2,True,1.0
+General surgery,15.49,Alive,12,3,0,1,True,0.0
+Accident & emergency,1.31,Dead,3,0,0,0,True,0.0
+General medicine,5.83,Alive,3,3,0,1,False,1.0
+Gynaecology,2.54,Alive,0,3,0,0,False,1.0
+General surgery,2.97,Dead,4,0,0,0,True,0.0
+Haematology (clinical),3.51,Alive,0,5,0,0,False,1.0
+Respiratory medicine,13.96,Alive,15,0,0,0,True,1.0
+Neurosurgery,0.85,Alive,0,2,0,0,False,0.0
+Cardiology,1.36,Dead,3,0,0,0,False,0.0
+Cardiology,8.77,Alive,8,1,0,1,True,0.0
+Unknown Specialty,7.87,Alive,5,4,0,0,False,0.0
+Orthopaedics and trauma,8.92,Alive,7,2,0,1,True,0.0
+Neurosurgery,4.39,Alive,0,1,3,1,,0.0
+Accident & emergency,8.18,Alive,4,3,1,1,True,0.0
+Transplantation surgery,2.99,Alive,0,3,0,1,,0.0
+Haematology,2.53,Dead,2,2,0,0,,0.0
+Haematology (clinical),2.33,Dead,0,3,0,0,False,0.0
+Thoracic surgery,4.350000000000001,Alive,0,4,1,0,False,0.0
+Unknown Specialty,0.19,Alive,0,0,0,1,False,0.0
+Accident & emergency,1.68,Alive,2,0,0,0,False,0.0
+Cardiac surgery,25.25,Alive,14,0,12,0,True,0.0
+Neurosurgery,1.91,Alive,1,1,0,1,True,0.0
+Obstetrics,1.41,Alive,1,1,0,0,True,0.0
+Nephrology,14.31,Alive,12,2,1,0,True,0.0
+Respiratory medicine,15.93,Alive,7,7,0,3,False,2.0
+Respiratory medicine,5.82,Alive,1,5,0,0,True,0.0
+Cardiology,7.27,Dead,6,1,1,1,True,0.0
+General medicine,1.06,Dead,0,3,0,0,False,0.0
+Haematology (clinical),8.76,Alive,0,8,1,0,False,1.0
+Haematology (clinical),15.19,Dead,16,1,0,0,False,0.0
+Neurosurgery,2.98,Alive,3,0,0,1,,1.0
+Neurosurgery,0.04,Dead,2,0,0,0,True,0.0
+Haematology (clinical),4.42,Alive,4,0,1,0,,0.0
+General surgery,1.6,Alive,0,2,0,0,False,0.0
+General surgery,3.68,Alive,2,1,0,2,True,1.0
+Neurosurgery,3.15,Alive,0,2,0,2,,0.0
+Cardiology,4.52,Dead,6,0,0,0,True,0.0
+General surgery,10.48,Alive,6,1,4,0,True,0.0
+Cardiology,0.47,Dead,2,0,0,0,True,0.0
+Cardiology,1.72,Alive,0,2,0,0,,0.0
+Cardiology,16.48,Dead,18,0,0,0,True,0.0
+Cardiology,-0.76,Dead,1,0,0,0,True,0.0
+Neurosurgery,1.78,Alive,2,0,0,0,True,0.0
+Unknown Specialty,4.17,Alive,0,2,2,1,False,0.0
+General surgery,15.04,Alive,13,3,0,0,True,0.0
+Neurosurgery,0.3,Alive,0,1,0,0,False,0.0
+Cardiology,6.45,Alive,1,1,1,4,True,2.0
+Accident & emergency,1.38,Dead,3,0,0,0,True,0.0
+Cardiology,7.1,Dead,9,0,0,0,True,2.0
+Neurosurgery,12.4,Dead,14,0,0,0,,1.0
+General medicine,7.75,Alive,5,3,0,1,False,0.0
+General surgery,5.67,Alive,4,1,1,0,True,0.0
+General surgery,15.57,Alive,11,2,1,2,True,0.0
+Neurosurgery,18.86,Alive,18,1,0,0,True,0.0
+Unknown Specialty,33.07,Alive,22,9,3,0,False,1.0
+Unknown Specialty,6.99,Alive,6,2,0,0,True,0.0
+Unknown Specialty,17.76,Alive,18,1,0,0,True,0.0
+Neurosurgery,45.15,Alive,43,0,2,1,True,3.0
+Neurosurgery,3.62,Alive,2,2,0,0,True,0.0
+Unknown Specialty,5.08,Alive,5,1,0,0,True,0.0
+Neurosurgery,10.05,Alive,5,1,3,2,True,1.0
+Nephrology,4.31,Alive,3,1,0,2,True,1.0
+Cardiology,7.1,Alive,0,5,0,3,,1.0
+Cardiology,4.4,Dead,6,0,0,0,True,0.0
+Cardiology,5.02,Alive,0,3,3,0,,0.0
+Cardiology,1.4,Dead,3,0,0,0,True,0.0
+Cardiology,51.22,Alive,48,2,1,1,False,1.0
+Cardiology,14.01,Alive,15,0,0,0,True,0.0
+Transplantation surgery,0.78,Alive,0,1,0,1,,0.0
+Unknown Specialty,6.16,Alive,0,5,0,2,,0.0
+General surgery,1.61,Alive,2,0,0,0,True,0.0
+General medicine,3.79,Alive,0,3,1,1,,1.0
+Unknown Specialty,2.0,Alive,0,3,0,0,,0.0
+Interventional radiology,9.14,Alive,3,0,2,5,True,2.0
+Neurosurgery,20.98,Alive,20,2,0,0,True,2.0
+Neurosurgery,5.68,Alive,0,4,2,0,,1.0
+Neurosurgery,7.05,Alive,0,8,0,0,False,0.0
+Neurosurgery,25.01,Alive,21,0,5,0,True,3.0
+Neurosurgery,19.86,Alive,21,0,0,0,True,0.0
+Neurosurgery,0.98,Alive,2,0,0,0,,0.0
+Neurosurgery,7.84,Alive,5,4,0,0,True,1.0
+Haematology (clinical),5.75,Alive,4,2,0,1,True,0.0
+Haematology (clinical),0.37,Dead,2,0,0,0,True,0.0
+Unknown Specialty,2.84,Alive,0,2,1,1,,1.0
+Accident & emergency,4.5,Alive,2,2,1,0,True,0.0
+Orthopaedics and trauma,4.87,Alive,0,5,1,0,False,0.0
+Orthopaedics and trauma,11.35,Alive,12,0,0,0,True,0.0
+Cardiology,2.23,Dead,3,1,0,0,False,0.0
+General surgery,9.8,Alive,1,8,2,0,True,3.0
+Unknown Specialty,0.99,Alive,0,2,0,0,,0.0
+Unknown Specialty,26.52,Dead,14,7,5,2,True,0.0
+Unknown Specialty,6.26,Alive,5,0,1,1,True,0.0
+Accident & emergency,12.79,Alive,9,3,2,0,True,1.0
+Unknown Specialty,2.19,Dead,4,0,0,0,True,0.0
+Gastroenterology,8.98,Alive,4,1,1,4,True,1.0
+Unknown Specialty,27.16,Alive,24,0,1,3,True,1.0
+General surgery,23.24,Alive,12,12,0,0,True,0.0
+Thoracic surgery,22.99,Alive,17,4,3,0,False,2.0
+General surgery,6.96,Alive,0,8,0,0,,2.0
+Neurosurgery,17.02,Alive,17,0,1,0,True,0.0
+Spinal injuries,5.18,Alive,0,0,0,6,False,1.0
+Spinal injuries,33.61,Alive,32,2,0,0,True,1.0
+Accident & emergency,23.92,Alive,25,0,0,0,True,1.0
+Orthopaedics and trauma,1.44,Alive,0,2,0,0,False,0.0
+Unknown Specialty,3.35,Alive,0,1,2,1,,1.0
+Neurosurgery,10.05,Alive,3,6,1,1,False,0.0
+Neurosurgery,30.76,Alive,30,1,1,0,True,0.0
+General medicine,0.9500000000000002,Alive,0,1,1,0,,0.0
+General surgery,4.63,Alive,0,4,1,0,,0.0
+Neurosurgery,2.19,Alive,2,1,0,0,True,0.0
+Neurosurgery,5.65,Alive,3,3,0,1,True,0.0
+Neurosurgery,22.14,Alive,21,2,0,0,True,1.0
+Cardiology,7.86,Alive,9,0,0,0,True,0.0
+Cardiology,7.5,Alive,9,0,0,0,True,0.0
+Cardiology,7.8,Alive,6,3,0,0,False,0.0
+Cardiology,6.84,Alive,4,3,0,0,False,0.0
+Cardiology,6.3,Dead,8,0,0,0,True,0.0
+Cardiology,-0.81,Dead,1,0,0,0,True,0.0
+Cardiology,3.73,Alive,4,0,0,1,True,0.0
+Cardiology,4.99,Alive,3,1,2,0,True,1.0
+General surgery,14.94,Alive,0,14,0,2,,3.0
+Haematology (clinical),1.46,Dead,0,3,0,0,False,0.0
+Neurosurgery,2.01,Alive,0,3,0,0,,0.0
+Neurosurgery,4.19,Alive,1,0,1,3,False,1.0
+Unknown Specialty,1.38,Dead,3,0,0,0,True,0.0
+Neurosurgery,3.8,Alive,4,0,0,1,True,0.0
+Accident & emergency,32.83,Alive,20,0,13,0,True,0.0
+Accident & emergency,9.81,Alive,8,3,0,0,True,0.0
+Orthopaedics and trauma,-0.16,Dead,1,0,0,0,True,0.0
+Neurosurgery,7.83,Alive,6,1,2,0,True,3.0
+Urology,3.96,Alive,0,3,0,2,False,0.0
+Accident & emergency,1.4,Dead,3,0,0,0,True,0.0
+Vascular surgery,1.44,Alive,0,2,0,0,,0.0
+Orthopaedics and trauma,2.46,Alive,0,2,0,1,,0.0
+Accident & emergency,3.99,Alive,4,0,0,1,True,1.0
+Orthopaedics and trauma,1.58,Alive,0,2,0,0,False,0.0
+General medicine,3.3,Alive,0,3,0,1,False,0.0
+Neurosurgery,17.74,Alive,16,3,0,0,True,2.0
+Nephrology,4.32,Alive,0,3,1,1,False,0.0
+Haematology (clinical),1.71,Alive,0,3,0,0,,0.0
+Vascular surgery,5.51,Alive,5,0,0,1,,0.0
+Vascular surgery,21.27,Alive,17,5,0,0,False,0.0
+Vascular surgery,5.69,Alive,2,4,0,1,False,0.0
+Unknown Specialty,6.32,Alive,0,6,0,1,False,0.0
+Neurosurgery,6.67,Alive,6,0,0,1,True,0.0
+Neurosurgery,39.75,Alive,34,6,0,1,True,3.0
+Accident & emergency,3.74,Alive,3,1,0,1,True,0.0
+General medicine,7.34,Alive,3,5,0,1,False,0.0
+General medicine,5.57,Alive,1,3,1,2,True,1.0
+Accident & emergency,0.7000000000000002,Alive,1,0,0,0,True,0.0
+General surgery,8.64,Alive,1,6,1,1,True,1.0
+Accident & emergency,1.85,Alive,2,1,0,0,True,0.0
+Orthopaedics and trauma,30.59,Alive,28,3,0,0,True,2.0
+Neurosurgery,23.68,Alive,21,3,0,0,True,1.0
+Unknown Specialty,4.34,Alive,2,0,2,1,True,0.0
+Cardiology,7.17,Alive,5,2,0,1,False,2.0
+Ent,10.68,Alive,6,5,0,0,True,1.0
+Neurosurgery,34.14,Alive,27,5,1,2,True,3.0
+General surgery,8.64,Alive,1,3,4,1,True,1.0
+General medicine,6.31,Alive,3,3,0,1,True,0.0
+Accident & emergency,3.71,Dead,8,0,0,0,True,0.0
+Cardiology,1.99,Alive,0,3,0,0,,0.0
+Haematology (clinical),14.88,Alive,13,2,1,0,False,0.0
+Cardiology,5.51,Dead,7,0,0,0,True,0.0
+Accident & emergency,10.49,Dead,12,0,0,0,True,0.0
+Cardiology,15.14,Alive,14,0,1,1,True,2.0
+Cardiology,6.87,Alive,4,3,0,1,False,0.0
+Neurosurgery,6.13,Alive,7,0,0,0,True,0.0
+Gastroenterology,82.58,Alive,56,5,18,4,True,4.0
+General surgery,4.86,Alive,0,6,0,0,,0.0
+Respiratory medicine,8.19,Alive,0,7,1,1,False,0.0
+Accident & emergency,-0.24,Dead,1,0,0,0,True,0.0
+General surgery,2.81,Alive,0,4,0,0,,0.0
+General medicine,7.42,Alive,1,5,0,2,True,2.0
+Accident & emergency,1.58,Alive,0,2,0,0,False,0.0
+Neurosurgery,55.56,Alive,45,5,5,1,True,4.0
+Transplantation surgery,2.02,Alive,1,2,0,0,,0.0
+Neurosurgery,6.71,Alive,7,1,0,0,True,0.0
+Accident & emergency,1.89,Alive,3,0,0,0,True,0.0
+General surgery,2.0,Alive,0,1,1,1,,0.0
+Orthopaedics and trauma,4.4,Alive,0,2,0,3,,1.0
+Neurosurgery,12.07,Alive,10,1,1,1,True,0.0
+General surgery,21.75,Alive,20,2,1,0,True,0.0
+Respiratory medicine,25.53,Alive,0,20,6,0,,3.0
+Anaesthetics,3.47,Alive,1,2,0,1,True,0.0
+Urology,-0.1,Dead,0,1,0,0,,0.0
+Orthopaedics and trauma,5.63,Alive,0,6,0,0,,0.0
+Accident & emergency,7.65,Alive,0,5,0,4,False,1.0
+Unknown Specialty,8.950000000000001,Alive,2,7,1,0,False,0.0
+Vascular surgery,11.3,Alive,6,3,1,2,True,0.0
+Accident & emergency,6.05,Alive,7,0,0,0,True,0.0
+Neurosurgery,3.63,Alive,2,2,1,0,True,0.0
+Neurosurgery,2.26,Dead,2,0,0,2,True,0.0
+General medicine,1.69,Alive,0,2,0,0,,0.0
+Unknown Specialty,42.24,Alive,43,0,0,0,True,3.0
+Unknown Specialty,2.04,Dead,4,0,0,0,True,0.0
+Accident & emergency,0.98,Dead,2,0,0,0,True,0.0
+Neurosurgery,4.45,Dead,6,0,0,0,True,0.0
+Vascular surgery,4.02,Alive,4,1,0,0,False,0.0
+Accident & emergency,0.29,Dead,2,0,0,0,True,0.0
+Accident & emergency,1.9,Dead,3,0,0,0,True,0.0
+Neurosurgery,14.19,Alive,0,15,0,0,,4.0
+Neurosurgery,2.99,Dead,4,0,0,0,True,0.0
+Neurosurgery,18.91,Dead,17,2,0,1,True,0.0
+Accident & emergency,4.34,Alive,0,2,0,3,,1.0
+Neurosurgery,3.36,Alive,3,0,1,0,True,1.0
+Spinal injuries,1.91,Alive,0,3,0,0,,0.0
+Unknown Specialty,10.26,Alive,5,0,1,5,True,0.0
+Orthopaedics and trauma,10.56,Dead,10,2,0,0,False,3.0
+General medicine,0.67,Alive,0,2,0,0,,0.0
+Unknown Specialty,1.29,Alive,0,2,0,0,,0.0
+Paediatric trauma and orthopaedics,7.85,Alive,4,3,1,1,True,0.0
+Accident & emergency,0.36,Dead,2,0,0,0,True,0.0
+Cardiology,3.63,Alive,2,0,1,2,True,1.0
+Cardiothoracic surgery,7.08,Alive,1,2,3,2,True,1.0
+Accident & emergency,1.08,Dead,3,0,0,0,True,0.0
+General medicine,5.81,Alive,0,1,1,4,,1.0
+Accident & emergency,4.82,Alive,4,1,0,0,True,0.0
+General surgery,1.96,Alive,2,0,1,0,,0.0
+Cardiology,2.81,Dead,1,3,0,0,False,0.0
+General medicine,1.03,Alive,0,2,0,0,False,0.0
+Neurosurgery,12.29,Alive,0,12,1,0,,2.0
+Cardiology,10.44,Alive,3,3,1,4,True,0.0
+Unknown Specialty,7.09,Alive,6,0,1,1,True,1.0
+Accident & emergency,1.93,Alive,1,2,0,0,True,0.0
+Accident & emergency,14.63,Alive,5,10,0,0,True,1.0
+Neurosurgery,3.08,Alive,2,1,0,1,True,0.0
+Spinal injuries,10.62,Alive,5,4,1,1,True,2.0
+Neurosurgery,11.68,Alive,7,0,4,1,True,0.0
+Accident & emergency,0.51,Dead,0,2,0,0,False,0.0
+Accident & emergency,2.3,Alive,3,0,0,0,True,0.0
+Cardiology,8.57,Alive,6,2,2,0,True,0.0
+Cardiology,14.66,Alive,16,0,0,0,True,0.0
+Orthopaedics and trauma,3.17,Dead,5,0,0,0,True,1.0
+Neurosurgery,1.31,Dead,3,0,0,0,True,0.0
+Accident & emergency,0.63,Alive,0,0,1,1,False,0.0
+Neurosurgery,3.98,Alive,4,1,0,0,True,1.0
+Accident & emergency,9.91,Alive,0,7,1,3,False,1.0
+Neurosurgery,3.12,Alive,0,3,0,1,,0.0
+Vascular surgery,2.82,Alive,0,4,0,0,,0.0
+General surgery,3.01,Alive,0,4,0,0,,0.0
+Cardiology,-0.63,Dead,1,0,0,0,True,0.0
+Spinal injuries,10.81,Alive,3,9,0,0,True,0.0
+Accident & emergency,23.95,Alive,18,0,7,0,True,2.0
+Neurosurgery,1.42,Dead,3,0,0,0,True,0.0
+Ent,5.91,Alive,4,3,0,0,True,1.0
+Accident & emergency,1.01,Dead,3,0,0,0,True,0.0
+Accident & emergency,17.97,Alive,12,1,6,0,True,1.0
+Cardiology,11.71,Alive,7,2,1,3,True,0.0
+General surgery,15.41,Alive,4,11,1,0,True,0.0
+Orthopaedics and trauma,2.96,Alive,1,2,0,1,True,0.0
+Accident & emergency,3.49,Alive,1,2,0,1,True,1.0
+Neurosurgery,4.77,Alive,2,3,0,0,True,0.0
+Orthopaedics and trauma,4.3,Alive,0,4,1,0,False,0.0
+Vascular surgery,7.32,Dead,7,2,0,0,True,0.0
+Accident & emergency,2.51,Alive,1,1,0,1,True,0.0
+General surgery,5.25,Dead,5,2,0,0,,1.0
+Neurosurgery,0.89,Alive,0,1,0,1,,0.0
+Cardiology,5.16,Dead,7,0,0,0,True,0.0
+Accident & emergency,4.05,Alive,2,0,0,3,True,0.0
+Neurosurgery,7.36,Alive,5,3,0,0,True,1.0
+Neurosurgery,17.85,Alive,19,0,0,0,True,0.0
+Neurosurgery,16.73,Alive,18,0,0,0,True,0.0
+Cardiology,4.84,Dead,6,0,0,0,True,0.0
+Accident & emergency,4.42,Alive,1,1,0,3,True,0.0
+Orthopaedics and trauma,28.36,Alive,21,3,1,4,True,0.0
+Accident & emergency,4.64,Alive,0,5,0,1,False,1.0
+Accident & emergency,0.81,Alive,2,0,0,0,True,0.0
+Cardiology,10.91,Alive,10,1,0,1,True,0.0
+Unknown Specialty,2.17,Alive,3,0,0,1,True,0.0
+Accident & emergency,10.03,Alive,9,2,0,0,True,1.0
+Accident & emergency,0.77,Alive,1,0,0,0,True,0.0
+Orthopaedics and trauma,3.68,Alive,0,3,1,1,False,0.0
+Neurosurgery,2.66,Alive,2,0,1,1,True,0.0
+Neurosurgery,5.12,Alive,3,0,2,1,True,0.0
+Neurosurgery,1.83,Alive,2,1,0,0,True,0.0
+Accident & emergency,1.52,Alive,2,0,0,0,True,0.0
+General medicine,4.38,Alive,0,3,1,1,False,0.0
+General medicine,1.31,Alive,2,0,0,0,True,0.0
+Cardiology,5.67,Alive,2,3,0,1,True,1.0
+Orthopaedics and trauma,6.0,Alive,4,3,0,0,True,0.0
+Neurosurgery,17.77,Alive,16,1,2,0,True,0.0
+General medicine,6.68,Alive,3,1,0,3,,0.0
+Accident & emergency,0.05,Dead,2,0,0,0,True,0.0
+Orthopaedics and trauma,6.8,Alive,0,7,0,0,,0.0
+Spinal injuries,6.81,Alive,0,1,6,0,False,0.0
+Accident & emergency,3.44,Dead,5,0,0,0,True,0.0
+Accident & emergency,5.5,Alive,4,0,1,1,True,0.0
+Neurosurgery,5.71,Alive,3,1,0,2,True,0.0
+Cardiology,12.14,Alive,11,2,0,0,,0.0
+Cardiology,3.76,Alive,3,1,0,1,True,0.0
+Orthopaedics and trauma,5.58,Alive,0,2,2,2,,1.0
+Accident & emergency,5.04,Alive,4,1,0,1,True,0.0
+Accident & emergency,11.83,Dead,9,2,2,0,True,0.0
+Cardiology,4.48,Dead,6,0,0,0,True,0.0
+Vascular surgery,4.01,Alive,0,3,1,1,,1.0
+Gastroenterology,16.35,Dead,13,5,0,0,True,5.0
+Neurosurgery,39.77,Alive,33,0,7,0,True,1.0
+Accident & emergency,25.5,Alive,14,1,1,11,True,1.0
+Interventional radiology,24.32,Dead,12,14,0,0,True,2.0
+Unknown Specialty,2.47,Alive,2,1,0,0,True,0.0
+Neurosurgery,11.16,Alive,11,0,1,0,True,0.0
+Ent,2.7,Alive,1,2,0,0,True,0.0
+Cardiology,8.13,Dead,10,0,0,0,True,0.0
+Cardiology,2.44,Alive,2,1,1,0,True,1.0
+Unknown Specialty,5.66,Alive,0,6,0,1,,0.0
+Maxillo-facial surgery,5.02,Alive,3,1,1,1,True,1.0
+General medicine,1.58,Alive,0,2,0,0,,2.0
+Cardiothoracic surgery,5.77,Alive,0,5,1,1,,0.0
+Unknown Specialty,8.56,Alive,10,0,0,0,True,0.0
+Accident & emergency,0.49,Dead,2,0,0,0,True,0.0
+Orthopaedics and trauma,2.51,Alive,2,1,0,0,True,0.0
+General medicine,6.99,Alive,5,1,1,1,True,0.0
+Neurosurgery,6.75,Alive,6,1,0,0,True,0.0
+Orthopaedics and trauma,18.07,Alive,14,1,4,0,,1.0
+Neurosurgery,5.02,Alive,4,0,0,2,True,0.0
+Cardiology,25.23,Dead,27,0,0,0,True,2.0
+General surgery,14.47,Alive,4,10,1,0,False,0.0
+Accident & emergency,8.620000000000001,Alive,8,0,2,0,True,2.0
+Neurosurgery,15.83,Alive,12,4,0,1,True,0.0
+Neurosurgery,17.13,Alive,16,2,0,0,True,1.0
+Unknown Specialty,50.82,Alive,45,0,7,0,True,1.0
+Accident & emergency,5.0,Dead,6,0,0,0,True,0.0
+Accident & emergency,6.61,Alive,6,1,0,1,True,0.0
+Vascular surgery,17.14,Alive,11,5,1,1,True,2.0
+Cardiology,2.49,Alive,4,0,0,0,True,0.0
+Orthopaedics and trauma,48.64,Alive,45,0,5,0,True,1.0
+Accident & emergency,11.24,Alive,12,0,0,0,True,1.0
+General medicine,4.23,Alive,4,1,0,0,True,0.0
+Accident & emergency,3.27,Alive,2,0,0,2,True,0.0
+Unknown Specialty,6.95,Alive,6,0,2,0,True,1.0
+Thoracic surgery,0.71,Alive,0,1,0,0,False,0.0
+General medicine,0.43,Alive,1,0,0,0,True,0.0
+Cardiology,3.72,Alive,5,0,0,0,True,0.0
+General medicine,0.6,Dead,2,0,0,0,True,1.0
+Unknown Specialty,31.36,Alive,31,1,0,0,,1.0
+Neurosurgery,7.39,Alive,5,0,3,0,True,4.0
+Neurosurgery,6.09,Dead,8,0,0,0,True,0.0
+General medicine,0.69,Alive,1,0,0,0,True,0.0
+Accident & emergency,14.85,Alive,14,2,0,0,True,1.0
+Cardiology,9.43,Alive,9,2,0,0,True,0.0
+Unknown Specialty,17.19,Alive,3,13,1,1,True,1.0
+Cardiology,8.77,Dead,10,0,0,0,True,1.0
+Accident & emergency,18.57,Alive,20,0,0,0,True,0.0
+Neurosurgery,5.83,Alive,3,4,0,0,True,0.0
+Neurosurgery,8.32,Alive,8,0,0,1,True,1.0
+Orthopaedics and trauma,33.07,Alive,30,0,3,1,True,3.0
+Neurosurgery,15.14,Alive,16,0,0,0,True,2.0
+Cardiology,3.74,Alive,4,0,0,0,True,0.0
+Orthopaedics and trauma,6.11,Dead,8,0,0,0,True,0.0
+Interventional radiology,1.96,Alive,0,3,0,0,,0.0
+Accident & emergency,2.51,Alive,3,0,0,0,True,0.0
+Accident & emergency,0.48,Dead,2,0,0,0,True,0.0
+Cardiology,3.71,Alive,3,1,0,0,True,0.0
+Accident & emergency,17.52,Alive,0,19,0,0,False,0.0
+General surgery,2.0,Alive,0,3,0,0,,0.0
+Cardiology,5.94,Dead,7,0,0,0,True,0.0
+Neurosurgery,7.16,Alive,7,0,0,1,,0.0
+Vascular surgery,3.7,Alive,0,5,0,0,False,1.0
+Neurosurgery,13.94,Alive,12,1,2,0,True,0.0
+Vascular surgery,2.73,Alive,0,3,0,0,False,0.0
+Neurosurgery,2.62,Alive,2,0,0,2,True,0.0
+General medicine,65.63,Alive,61,0,4,1,True,1.0
+General medicine,22.67,Alive,19,4,0,0,False,0.0
+Neurosurgery,5.52,Dead,7,0,0,0,True,0.0
+Cardiology,5.02,Dead,7,0,0,0,True,0.0
+General medicine,4.59,Alive,0,6,0,0,,1.0
+Accident & emergency,3.01,Dead,5,0,0,0,True,0.0
+General medicine,7.38,Alive,0,7,1,0,False,0.0
+Orthopaedics and trauma,5.04,Dead,7,0,0,0,True,0.0
+Neurosurgery,23.79,Alive,17,7,1,0,True,2.0
+Accident & emergency,3.83,Dead,5,0,0,0,True,0.0
+Unknown Specialty,5.33,Alive,0,0,1,5,False,2.0
+Unknown Specialty,13.56,Alive,1,11,1,2,False,0.0
+Neurosurgery,10.96,Alive,2,7,1,2,,2.0
+Accident & emergency,1.19,Alive,1,0,1,0,True,0.0
+Accident & emergency,12.77,Alive,14,0,0,0,True,2.0
+Unknown Specialty,0.81,Alive,0,2,0,0,False,0.0
+Cardiac surgery,21.83,Alive,0,0,23,0,,1.0
+Accident & emergency,2.15,Alive,1,1,1,0,True,0.0
+Neurosurgery,19.86,Alive,18,1,0,1,True,2.0
+Neurosurgery,5.55,Dead,7,0,0,0,True,1.0
+Unknown Specialty,4.31,Alive,0,5,0,0,,1.0
+Cardiology,1.21,Dead,3,0,0,0,,0.0
+Neurosurgery,12.33,Alive,13,0,0,0,True,1.0
+Vascular surgery,7.69,Alive,6,1,0,2,True,1.0
+Cardiology,11.65,Dead,13,0,0,0,True,0.0
+Accident & emergency,11.8,Alive,13,0,0,0,True,0.0
+Neurosurgery,13.91,Alive,12,1,0,1,True,1.0
+General medicine,3.1,Alive,0,1,2,1,False,0.0
+Accident & emergency,0.17,Dead,2,0,0,0,True,0.0
+General medicine,11.66,Alive,3,3,0,6,True,1.0
+General medicine,3.17,Alive,0,2,0,2,False,1.0
+Cardiology,6.73,Alive,3,3,0,1,True,1.0
+General medicine,1.0,Dead,2,0,0,0,True,0.0
+Orthopaedics and trauma,5.37,Alive,0,6,0,0,False,1.0
+Accident & emergency,37.03,Alive,31,0,2,5,True,2.0
+General surgery,13.95,Alive,8,7,0,0,True,0.0
+Orthopaedics and trauma,8.01,Alive,4,2,0,3,True,0.0
+Cardiology,-0.5700000000000001,Dead,1,0,0,0,True,0.0
+Orthopaedics and trauma,4.55,Alive,0,4,0,1,False,0.0
+Accident & emergency,6.74,Alive,0,2,1,4,,2.0
+General surgery,7.43,Alive,0,4,0,4,,1.0
+Accident & emergency,6.99,Alive,5,1,2,0,True,1.0
+Spinal injuries,1.8,Alive,2,1,0,0,True,1.0
+General surgery,9.94,Alive,4,6,0,1,True,2.0
+Urology,4.4,Alive,2,2,1,0,True,0.0
+Accident & emergency,0.76,Dead,2,0,0,0,True,0.0
+General medicine,4.24,Alive,0,3,0,2,False,1.0
+General surgery,0.85,Alive,0,1,0,1,,0.0
+Accident & emergency,15.61,Alive,12,0,0,4,True,0.0
+General surgery,5.72,Alive,2,1,0,4,True,0.0
+Cardiology,6.53,Dead,8,0,0,0,True,0.0
+Accident & emergency,5.5,Alive,0,3,1,2,False,2.0
+Cardiology,3.34,Dead,5,0,0,0,True,0.0
+Accident & emergency,1.41,Alive,1,1,0,0,True,0.0
+Urology,3.9,Alive,0,3,0,1,False,1.0
+General medicine,4.13,Dead,6,0,0,0,True,0.0
+General surgery,2.68,Dead,4,0,0,0,True,0.0
+Neurosurgery,5.84,Alive,5,0,2,0,True,1.0
+Accident & emergency,8.24,Alive,3,2,1,3,True,1.0
+Haematology (clinical),3.06,Dead,5,0,0,0,True,1.0
+Accident & emergency,4.56,Alive,2,0,0,3,,0.0
+Vascular surgery,5.05,Alive,0,5,1,0,,1.0
+Unknown Specialty,0.98,Alive,0,1,1,0,,0.0
+Accident & emergency,8.19,Alive,0,3,1,5,,1.0
+General surgery,5.14,Alive,4,1,1,0,True,1.0
+General medicine,6.21,Alive,5,2,0,0,True,1.0
+Accident & emergency,1.39,Alive,1,0,0,1,True,0.0
+Accident & emergency,30.81,Alive,22,11,0,0,True,1.0
+General medicine,10.04,Alive,5,3,2,1,True,0.0
+General surgery,4.7,Alive,4,1,0,1,True,0.0
+Respiratory medicine,4.02,Alive,0,4,0,1,,1.0
+General medicine,4.9,Alive,0,2,1,3,,0.0
+General medicine,1.02,Dead,3,0,0,0,True,0.0
+General medicine,2.32,Alive,0,3,0,0,False,1.0
+General medicine,7.34,Alive,4,3,0,1,True,2.0
+Gastroenterology,6.49,Alive,0,4,0,3,False,0.0
+General surgery,5.17,Alive,0,3,3,0,,0.0
+Ent,6.08,Alive,2,1,1,3,True,3.0
+Neurosurgery,7.31,Alive,0,8,0,0,False,0.0
+Neurosurgery,12.24,Alive,12,1,0,0,True,1.0
+Cardiology,3.23,Dead,5,0,0,0,True,0.0
+Neurosurgery,5.88,Alive,7,0,0,0,True,1.0
+General medicine,3.05,Alive,0,4,0,0,False,0.0
+General medicine,0.63,Alive,0,2,0,0,,0.0
+Gastroenterology,3.0,Alive,0,2,0,2,,0.0
+Cardiology,3.82,Alive,4,1,0,0,True,0.0
+General surgery,3.13,Alive,0,3,1,0,False,0.0
+Urology,9.96,Alive,0,8,0,3,,0.0
+Urology,7.04,Alive,0,6,1,1,,0.0
+Accident & emergency,7.06,Alive,4,2,1,1,,1.0
+Neurosurgery,0.14,Dead,2,0,0,0,True,0.0
+Cardiology,1.79,Alive,0,2,0,1,False,0.0
+Neurosurgery,21.96,Alive,23,0,0,0,True,0.0
+Haematology (clinical),5.71,Dead,0,7,0,0,False,0.0
+Accident & emergency,5.14,Alive,0,6,0,0,,1.0
+Cardiology,1.91,Alive,2,0,1,0,True,0.0
+General surgery,2.91,Alive,2,1,0,1,True,0.0
+Accident & emergency,1.04,Dead,3,0,0,0,True,0.0
+Accident & emergency,6.18,Alive,2,0,0,5,True,0.0
+General surgery,5.38,Alive,0,3,1,2,,2.0
+Cardiology,4.76,Alive,3,2,1,0,True,0.0
+General medicine,-0.25,Dead,1,0,0,0,True,0.0
+Accident & emergency,3.86,Alive,2,1,1,1,True,1.0
+Accident & emergency,6.34,Dead,8,0,0,0,True,0.0
+Accident & emergency,5.89,Alive,2,0,1,4,True,1.0
+Nephrology,2.6,Alive,0,3,0,0,False,0.0
+Thoracic surgery,9.23,Alive,0,4,0,6,False,0.0
+General medicine,0.33,Dead,2,0,0,0,True,0.0
+Accident & emergency,13.32,Alive,0,13,1,0,False,1.0
+Neurosurgery,1.82,Dead,3,0,0,0,True,0.0
+Orthopaedics and trauma,7.51,Alive,8,0,0,0,True,0.0
+Accident & emergency,34.26,Alive,14,13,6,2,False,1.0
+General medicine,1.24,Dead,2,1,0,0,False,0.0
+Interventional radiology,1.17,Alive,0,0,0,2,False,0.0
+General surgery,21.44,Alive,16,5,1,0,True,0.0
+Accident & emergency,1.37,Alive,1,1,0,0,True,0.0
+Cardiology,12.5,Dead,11,0,0,3,True,0.0
+Endocrinology,11.02,Alive,0,7,1,4,,2.0
+General medicine,5.54,Alive,1,0,0,5,True,1.0
+Orthopaedics and trauma,4.09,Alive,0,5,0,0,False,0.0
+General medicine,4.82,Alive,0,5,0,0,,2.0
+Unknown Specialty,3.63,Alive,5,0,0,0,,0.0
+Accident & emergency,1.3,Alive,2,0,0,0,True,0.0
+Cardiology,3.25,Alive,2,1,1,0,,0.0
+Cardiology,1.59,Alive,1,2,0,0,False,
+Cardiac surgery,13.08,Alive,7,0,7,0,True,1.0
+Cardiac surgery,20.22,Alive,9,12,0,0,,1.0
+Gastroenterology,10.57,Alive,0,9,3,0,False,0.0
+Nephrology,1.49,Alive,1,1,0,0,True,0.0
+Haematology (clinical),5.91,Alive,0,5,2,0,False,0.0
+Cardiology,1.23,Dead,3,0,0,0,True,0.0
+Accident & emergency,0.6,Alive,0,1,0,0,False,0.0
+General medicine,3.71,Alive,2,2,0,0,True,1.0
+Accident & emergency,3.3,Dead,5,0,0,0,True,0.0
+Accident & emergency,8.02,Dead,10,0,0,0,True,0.0
+Cardiology,7.82,Dead,5,0,0,4,True,0.0
+Accident & emergency,7.78,Alive,8,0,0,1,True,0.0
+Respiratory medicine,4.68,Alive,0,4,1,0,False,1.0
+Respiratory medicine,2.6,Alive,1,2,0,0,True,0.0
+Respiratory physiology,3.83,Alive,2,2,0,1,False,0.0
+General medicine,1.4,Alive,0,2,0,0,False,0.0
+Neurosurgery,8.870000000000001,Alive,3,1,0,6,True,0.0
+Accident & emergency,17.33,Alive,17,0,0,1,True,0.0
+General surgery,0.79,Dead,1,1,0,0,,0.0
+Neurosurgery,6.01,Alive,5,2,0,0,True,0.0
+General medicine,6.67,Alive,0,7,0,0,False,0.0
+Unknown Specialty,6.91,Alive,0,6,0,2,,1.0
+Neurosurgery,5.03,Dead,7,0,0,0,True,1.0
+General medicine,2.32,Alive,0,0,2,1,False,0.0
+Anaesthetics,10.26,Alive,11,0,0,0,,0.0
