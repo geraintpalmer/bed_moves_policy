@@ -55,7 +55,7 @@ patients, etc.
 \end{tcolorbox}
 
 
-\section{ICU Description}\label{sec:description}
+\section{Problem Description}\label{sec:description}
 The ICU at UHW consists of 34 beds across 4 wards (named A3 North, A3 South, B3
 North, and B3 South), two single isolation units, and one double isolation unit.
 Two beds are generally ring-fenced, left unoccupied, for emergencies.
@@ -72,7 +72,8 @@ overflow, for general ICU patients when needed.
 \end{center}
 \caption{Representation of the four ICU wards.
 Solid blocks represent wards and isolation units, dotted lines represent
-partial walls within a ward, and the dotted boxes represent the ring-fenced beds.}
+partial walls within a ward, and the dotted boxes represent the ring-fenced
+beds.}
 \label{fig:icu_map}
 \end{figure}
 
@@ -115,31 +116,140 @@ and assumptions in the model:
   \item the ring-fenced beds are never used, they will not be modelled.
 \end{itemize}
 
-Data analysis shows that:
+Patient progression through the ICU can be described by a continuous-time
+stochastic process: patients arrive as one of the three specific categories.
+Stage 2, Stage 3, or Stage 3-I, and arrivals follow a Poisson process with
+arrival rates $\lambda_2$, $\lambda_3$ and $\lambda_{3\text{-I}}$ for each stage
+respectively.
+During their stay they can experience clinical deterioration or improvement over
+time, that is they can transition between the care stages during their stay,
+modelled similarly to \cite{palmer26}.
+The rates at which patients deteriorate from Stage 2 to Stage 3, and from Stage
+3 to Stage 3-I, are $r_{2,3}$ and $r_{3,3\text{-I}}$ respectively; while the
+rates at which patients improve from Stage 3 to Stage 2, and from Stage 3-I to
+Stage 3, are $r_{3,2}$ and $r_{3\text{-I},3}$ respectively. 
+Eventually patients are either discharged or they die, and so exit the unit:
+the rates at which patients exit the unit from each care category are $\mu_2$,
+$\mu_3$ and $\mu_{3\text{-I}}$.
+It is assumed that the holding times within each stint in each care category is
+Exponentially distributed, and so the overall lengths of stay of those patients
+with no bed moves will follow some phase-type distribution.
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-Parametrise these properly, referring back to Section~\ref{sec:background}.
-We can do some data analysis here.
-\end{tcolorbox}
+During their stay a patient can be subject to a bed move, and as we assume that
+bed moves only occur when a patient is admitted to the ward, then bed move
+events also form a Poisson process with some rate
+$\beta \leq \lambda_2 + \lambda_3 + \lambda_{3\text{-I}}$.
+Each bed move a patient is subject to will extend their length of stay by some
+additive factor $\kappa$.
 
-\begin{itemize}
-  \item Stage 2 patients arrive according to the Poisson process with rate $\lambda_0 = 3.0$,
-  \item Stage 3 patients arrive according to the Poisson process with rate $\lambda_1 = 2.0$,
-  \item Stage 3-I patients arrive according to the Poisson process with rate $\lambda_2 = 1.0$,
-  \item Stage 2 patients' lengths of stay are Exponentially distributed with rate $\mu_0 = 0.3$,
-  \item Stage 3 patients' lengths of stay are Exponentially distributed with rate $\mu_1 = 0.7$,
-  \item Stage 3-I patients' lengths of stay are Exponentially distributed with rate $\mu_2 = 0.4$,
-  \item Stage 2 patients deteriorate into Stage 3 patients with rate $\delta_{01}$,
-  \item Stage 3 patients deteriorate into Stage 3-I patients with rate $\delta_{12}$,
-  \item Stage 3 patients improve into Stage 2 patients with rate $\delta_{10}$,
-  \item Stage 3-I patients improve into Stage 3 patients with rate $\delta_{21}$,
-  \item Each time a patient is moved, their length of stay is extended by some fraction $\mathcal{E}$ of the mean of their length of stay distribution, and $\mathcal{E} = 0.05$.
-\end{itemize}
+In order to parametrise this stochastic model, we use administrative data
+provided by the ICU to fit these unknown rates and parameters.
+This data provides information on every patient that was admitted to the ICU in
+the year 2025, and gives details of their length of stay, the total cumulative
+time spent in each care stage, their ventilation status which indicates the care
+stage at which they entered the ICU, the number of bed moves, and their
+discharge status (alive or dead).
+
+First the ventilation status can heuristically indicate their care level on
+arrival: those needing a ventilator are likely to be Stage 3-I on arrival, those
+not needing a ventilator are likely to be Stage 3 on arrival, while any with
+`not applicable' values are likely to be Stage 2 on arrival.
+Hence patients can be classified by their stage upon arrival.
+Figure~\ref{fig:arrival_stage_by_origin} shows the number of patients in each
+care level who arrived to the ICU via various specialties within the hospital.
+While specialty alone is an imperfect predictor of care level, with each major
+specialty contributing patients across all three stages, trends do emerge that
+align with clinical reality: we see that patients requiring Stage 3-I care upon
+arrival generally arrived from A\&E, neurosurgery and cardiology, while patients
+requiring Stage 2 and 3 care arrived from general medicine and general surgery
+specialties.
+This alignment confirms that the heuristic care level labelling from ventilation
+status is sensible.
+Arrival rates can then be calculated directly, giving $\lambda_2 = 1.0658$
+people per day, $\lambda_3 = 0.8822$, and $\lambda_{3\text{-I}} = 2.1178$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../plt/admission_stage_by_origin}
+\caption{Left: the counts of patients by each stage by specialty in which they
+entered the ICU. Right: the top three specialties for each stage, and
+proportion from specialty given the stage.}
+\label{fig:arrival_stage_by_origin}
+\end{center}
+\end{figure}
+
+Now consider $\kappa$, the additional length of stay added to a patient's length
+of stay due to having a bed move.
+The data collected contains only the patients' overall length of stays, and the
+number of bed moves they were subjected to, Figure~\ref{fig:los_by_bedmoves}
+shows the relationship between these.
+There is a confounding effect happening here, akin to inspection bias, where a
+patient's length of stay is extended by each bed move that occurs, and similarly
+longer the patient's length of stay the more bed moves they are likely to be
+subjected to.
+In order to disentangle this effect and find $\kappa$, a Monte Carlo simulation
+model of bed moves extensions is built and parameters manually tunes to fit the
+data, with details of this given in Appendix~\ref{apx:monte_carlo_model}.
+A value of $\kappa = 2.5$ days is found.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../plt/los_by_bedmoves}
+\caption{Lengths of stay distribution by number of bed moves.
+Percentages show the share of the cohort experiencing that many bed moves.}
+\label{fig:los_by_bedmoves}
+\end{center}
+\end{figure}
+
+Finally to consider the deterioration, improvement, and exit rates, we have to
+consider the underlying continuous-time Markov chain (CTMC) that describes the
+system and fit parameters accordingly.
+The data collected contains the overall number of days spent in each care level,
+not the holding times spent in each stint; additionally the data does not
+distinguish between time spent in Stage 3 or Stage 3-I, reducing the number of
+degrees of freedom.
+To help discriminate, we can make assumptions about the exit probabilities, in
+particular we can assume that no patient is discharged from Stage 3-I care, and
+exits here must correspond to patient deaths.
+Therefore assume that the probability of exiting when in Stage 3-I is equal to
+the proportion of deaths, 19.3\%.
+Additionally we assume that the holding times in each care level are reasonable.
+Details of the full CTMC model and its calibration are given in
+Appendix~\ref{apx:ctmc_model}, yielding $r_{2,3} = 0.363$,
+$r_{3,3\text{-I}} = 0.01$, $r_{3\text{-I},3} = 0.189$, $r_{3,2} = 0.995$,
+$\mu_2 = 0.232$, $\mu_3 = 0.01$, and $\mu_{3\text{-I}} = 0.106$.
+
+Table~\ref{tbl:model_parameters} summarises the parameters found.
+
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Category} & \textbf{Parameter} & \textbf{Value} & \textbf{Units} \\
+\midrule
+Arrival rates & $\lambda_2$ & $1.0658$ & patients / day \\
+              & $\lambda_3$ & $0.8822$ & patients / day \\
+              & $\lambda_{3\text{-I}}$ & $2.1178$ & patients / day \\[2.5mm]
+Deterioration rates & $r_{2,3}$  & $0.363$ & 1 / day \\
+                    & $r_{3,3\text{-I}}$ & $0.01$ & 1 / day \\[2.5mm]
+Improvement rates & $r_{3,2}$   & $0.995$ & 1 / day \\
+                  & $r_{3\text{-I},3}$ & $0.189$ & 1 / day \\[2.5mm]
+Exit / Service rates & $\mu_2$     & $0.232$ & 1 / day \\
+                     & $\mu_3$     & $0.010$ & 1 / day \\
+                     & $\mu_{3\text{-I}}$ & $0.106$ & 1 / day \\[2.5mm]
+LoS Extension & $\kappa$ & $2.5$ & days \\
+\bottomrule
+\end{tabular}
+\caption{Model parameters.}
+\label{tbl:model_parameters}
+\end{table}
+
 
 \section{Problem Decomposition}
 The 34 bed ICU problem can be decomposed into two sub-problems by introducing
 another assumption.
-Ignoring the ring-fenced beds, we can groupi wards A3 North and B3 South, and
+Ignoring the ring-fenced beds, we can group wards A3 North and B3 South, and
 wards B3 North and A3 South, into two identical components each containing 16
 beds.
 We then introduce the assumption that newly arriving patients are sent to the
@@ -156,7 +266,8 @@ built using Ciw~\cite{palmer19}, and parametrised as above, and observing the
 proportion of arrivals that enter each component at each state.
 The resulting proportions are given in Figure~\ref{fig:sqa}.
 SQA now gives us that the arrival rate for each component, when the component's
-occupancy is $x$, is $\lambda_2 p(x)$, $\lambda_3 p(x)$, $\lambda_{3I} p(x)$.
+occupancy is $x$, is $\lambda_2 p(x)$, $\lambda_3 p(x)$, and
+$\lambda_{3\text{-I}} p(x)$.
 
 \begin{figure}
 \begin{center}
@@ -577,7 +688,7 @@ an empty bed without any bed moves; constraint~\ref{eqn:action_2} corresponds to
 placing the newly arriving patient into bed $b$, moving the current occupier to
 bed $d$; constraint~\ref{eqn:action_3} corresponds to only being able to move a
 Stage 2 patient to surge; constraint~\ref{eqn:action_4} corresponds to needing
-to place a newly arriving Stage 3-I patlient into a free isolation unit; and
+to place a newly arriving Stage 3-I patient into a free isolation unit; and
 constraint~\ref{eqn:action_5} corresponds to needing to move a less severe
 patient from an isolation unit to make room for an arriving Stage 3-I patient,
 and constraint~\ref{eqn:action_6} allows placing a Stage 3-I patient in another
@@ -863,13 +974,34 @@ P(s_1) &= \theta \sum_{j=0}^{15} M_{2,j} \label{eqn:penalty_cost} \\[4mm]
 where $s_1 = (M, p)$, $a = (b, d)$, and $G(M)$ represents a function that finds
 the minimum number of nurses required to cover the Stage 2 patients, when pairs
 of adjacent patients can be seen by the same nurse, as shown in
-Figure~\ref{fig:resource_use}.
+Figure~\ref{fig:resource_use}. Table~\ref{tbl:penalties} give the values used 
+for penalties in this work.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+& Stage 2 & Stage 3 & Stage 3-I \\
+\midrule
+Intra-ward move & $\sigma_2 = 1.0$ & $\sigma_3 = 1.5$ & $\sigma_{3\text{-I}} = 2.0$ \\
+Inter-ward move & $\phi_2 = 1.5$ & $\phi_3 = 2.0$ & $\phi_{3\text{-I}} = 2.5$ \\
+Surge penalty & \multicolumn{3}{c}{$\xi = 15$} \\
+Isolation penalty & \multicolumn{3}{c}{$\theta = 8$} \\
+\bottomrule
+\end{tabular}
+\caption{Values used for the penalties.}
+\label{tbl:penalties}
+\end{center}
+\end{table}
 
 
-\subsection{Simulation Model}
-The simulation model is parametrised as described in
+\subsection{Transitions}
+Deriving state transitions analytically is not needed as the policy will be
+found via discrete event simulation.
+Here transitions are generated procedurally as events such as arrivals, bed
+moves, deterioration, improvement, and exits take place, which are governed by
+sequences of competing Poisson processes; as described in
 Section~\ref{sec:description}.
-Additionally we parametrise the isolation penalty with $\theta=8$.
 
 
 \section{Reinforcement Learning Framework}\label{sec:rlframework}
@@ -1462,11 +1594,192 @@ ratio will be too small to effectively solve using this RL algorithm.
 
 \appendix
 
+\section{Monte Carlo Model for Parameter Estimation}\label{apx:monte_carlo_model}
+To separate intrinsic patient length of stay (LoS) from delays caused by bed
+moves, we formulate a stochastic model, and use manual parameter calibration
+alongside Monte Carlo simulation to compare to known statistics.
+First let $W$ be a random variable representing the overall length of stay of a
+patient in the ICU.
+
+We want of find values for:
+\begin{itemize}
+  \item $\tilde{\omega}$: the average `intrinsic' length of stay, that is the
+  average length of stay if bed moves did not cause delays;
+  \item $\kappa$: the fixed delay caused by each bed move.
+\end{itemize}
+
+We make the following assumptions:
+\begin{itemize}
+  \item Let $\widetilde{W}$ denote a random variable representing the intrinsic
+  length of stay, then we assume that
+  $\widetilde{W} \sim \text{Expon}(\tilde{\omega})$;
+  \item Let $N$ be a Poisson process with rate $\beta$, where $N(t)$ denotes the
+  number of bed moves that occur for a single customer in time $t$.
+\end{itemize}
+
+The following are known from the data:
+\begin{itemize}
+  \item $\beta = 0.06527$, found by dividing the total number of bed moves
+  across all patients in a year by the total length of stay across all patients
+  in a year;
+  \item $\mathbb{E}[W \; | \; n]$, the average length of stay of patients given
+  they had $n$ bed moves, given in Figure~\ref{fig:los_by_bedmoves};
+  \item $\mathbb{P}(N = n)$, probability of a patient having $n$ bed moves
+  during their stay, given in Figure~\ref{fig:los_by_bedmoves}.
+\end{itemize}
+
+The length of stay model is given by:
+
+\begin{equation}\label{eqn:los_extension_model}
+W = \widetilde{W} + \kappa N(W)
+\end{equation}
+
+As Equation~\ref{eqn:los_extension_model} defines $W$ recursively, then $W$ is
+estimated via Monte Carlo simulation.
+Manual parameter calibration, comparing with the known values of
+$\mathbb{E}[W \; | \; n]$ and $\mathbb{P}(N = n)$, yields $\widetilde{W} = 7$
+and $\kappa = 2.5$.
+
+Figure~\ref{fig:monte_carlo_fit} compares the empirical values of these with the
+observed values from the fitted model, showing a very good fit for $n \leq 3$,
+while $n \geq 4$ represents only around 1\% of the empirical cohort.
+For further verification of the model, consider $W_{\text{adj}}$, the adjusted
+observed length of stay, found by taking the observed length of stay minus
+$\kappa = 2.5$ times the observed number of bed moves.
+We find that $\bar{W}_{\text{adj}} = 7.01 \approx \widetilde{W}$, and that only
+5.19\% of all $W_{\text{adj}}$ are negative, implying that the model is
+internally consistent.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../plt/monte_carlo_fit}
+\caption{Comparison between the empirical values of $\mathbb{E}[W \; | \; n]$
+and $\mathbb{P}(N = n)$, with those observed from the fitted model with
+$\widetilde{W} = 7.0$ and $\kappa = 2.5$.}
+\label{fig:monte_carlo_fit}
+\end{center}
+\end{figure}
+
+
+\section{CTMC Model for Parameter Estimation}\label{apx:ctmc_model}
+Define a continuous-time absorbing Markov chain with four states: Stage 2,
+Stage 3, Stage 3-I, and Exit, which describes a patient's progression through
+care levels from entering the ICU until they leave.
+Patients deteriorate from Stage 2 to Stage 3 with rate $r_{2, 3}$, and from
+Stage 3 to Stage 3-I with rate $r_{3, 3\text{-I}}$.
+Patients improve from Stage 3 to Stage 2 with rate $r_{3, 2}$, and from Stage
+3-I to Stage 3 with rate $r_{3\text{-I}, 3}$.
+When in Stage 2 patients exit with rate $\mu_2$, when in Stage 3 patients exit
+with rate $\mu_3$, and when in Stage 3-I patients exit with rate
+$\mu_{3\text{-I}}$.
+This is visualised in Figure~\ref{fig:ctmc}, and ordering the states as Stage 2,
+Stage 3, stage 3-I, then Exit, its transition rate matrix is given by
+Equation~\ref{eqn:ctmc_transitionmatrix}.
+
+Note a deliberate distinction in modelling choice between our parameter
+estimation stages: in Appendix~\ref{apx:monte_carlo_model}: length of stay was
+assumed to be Exponentially distributed in order find $\kappa$, while here it is
+the holding times that are assumed to be Exponentially distributed, and hence
+lengths of stay would follow a phase-type distribution.
+This shift in assumptions was necessary due to the sequential nature of the
+parameter estimation methodology, where Appendix~\ref{apx:monte_carlo_model} was
+a simple first-order approximation feeding into this refined CTMC model.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{../images/CTMC}
+\caption{Visualisation of the CTMC that describes a patient's progression
+through the care levels during their stay at the ICU.}
+\label{fig:ctmc}
+\end{center}
+\end{figure}
+
+\begin{equation}\label{eqn:ctmc_transitionmatrix}
+Q = \begin{pmatrix}
+-(r_{2,3} + \mu_2) & r_{2,3} & 0 & \mu_2 \\
+r_{3,2} & -(r_{3,2} + r_{3,3\text{-I}} + \mu_3) & r_{3,3\text{-I}} & \mu_{3} \\
+0 & r_{3\text{-I},3} & -(r_{3\text{-I},3} + \mu_{3\text{-I}}) & \mu_{3\text{-I}} \\
+0 & 0 & 0 & 0 \\
+\end{pmatrix}
+\end{equation}
+
+We can fit the unknown parameters by comparing the expected behaviour of the
+Markov chain with observed empirical data.
+We consider three behaviours:
+
+\begin{itemize}
+  \item \textit{Total time spent in each care level:}
+  The transition rate matrix has the following block structure of an absorbing Markov chain \cite{stewart09}:
+  \begin{equation}
+  Q = \begin{bmatrix}
+  \mathbf{R} & \mathbf{T} \\
+  \mathbf{0} & \mathbf{0}
+  \end{bmatrix}
+  \end{equation}
+  and the entries of fundamental matrix $N_{ij} = (-\mathbf{R}^{-1})_{ij}$ give
+  the expected overall time spent in state $j$ given starting state $i$.
+
+  The empirical data collected gives the mean total number of days spent in each
+  stage, by their stage at admission, although does not distinguish between
+  Stages 3 and 3-I.
+  This is shown in Figure~\ref{fig:overall_care_days_by_admission_stage}.
+  Hence we can fit $N_{2, 2}$, $N_{2, 3} + N_{2, 3\text{-I}}$, $N_{3, 2}$,
+  $N_{3, 3} + N_{3, 3\text{-I}}$, $N_{3\text{-I}, 2}$, and
+  $N_{3\text{-I}, 3} + N_{3\text{-I}, 3\text{-I}}$ to this data, and define:
+
+  \item \textit{The exit probability from Stage 3-I:}
+  It is assumed that the only patients discharged from Stage 3-I care are those that died, and that patients do not die in the other care levels. Empirical data shows that the proportion of patients who exit the ICU due to death is 19.3\%, and so we can assume that the probability of exiting while in Stage 3-I care corresponds to this proportion. Hence:
+  \begin{equation}
+  \mathbb{P}(\text{Exit} \; | \; \text{Stage 3-I}) =
+  \mu_{3\text{-I}} \sum_{i \in \{2, 3, 3\text{-I}\}} p_i N_{i, 3\text{-I}} = 0.193,
+  \end{equation}
+  where $p_i$ is the probability of beginning in stage $i$, which can be found empirically in the data:
+  \begin{equation*}
+  p_2 = 0.2582, \qquad
+  p_3 = 0.2220, \qquad
+  p_{3\text{-I}} = 0.5199.
+  \end{equation*}
+
+  \item \textit{The holding time in Stage 3-I:}
+  Finally, it is not enough to know only the total days in each care level and
+  the exit probabilities, as the number of jumps between care levels, or the
+  holding time within a care level, is indiscriminate.
+  Therefore using clinical expertise we assume that the average holding time in
+  Stage 3-I, that is the average stint spent requiring isolation, is 3 days.
+  Holding times are the inverse diagonal entries in the Markov chain, hence:
+  \begin{equation}
+  H_{3\text{-I}} = (r_{3\text{-I}, 3} + \mu_{3\text{-I}})^{-1} = 3.0.
+  \end{equation}
+\end{itemize}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{../plt/overall_care_days_by_admission_stage}
+\caption{The mean total days spent in each stage, by the patient's stage at
+admission. Total lengths of stays were adjusted to ignore the effect of bed
+moves (by the same adjustment described in Appendix~\ref{apx:monte_carlo_model}),
+and total days in each care level were scaled proportionally. Bar labels show
+the corresponding entries in the fundamental matrix.}
+\label{fig:overall_care_days_by_admission_stage}
+\end{center}
+\end{figure}
+
+A loss function is constructed by taking the mean percentage squared error
+between the observed and expected values of $N_{2, 2}$,
+$N_{2, 3} + N_{2, 3\text{-I}}$, $N_{3, 2}$, $N_{3, 3} + N_{3, 3\text{-I}}$,
+$N_{3\text{-I}, 2}$, $N_{3\text{-I}, 3} + N_{3\text{-I}, 3\text{-I}}$,
+$\mathbb{P}(\text{Exit} \; | \; \text{Stage 3-I})$, and $H_{3\text{-I}}$.
+Minimising this loss function numerically using Scipy \cite{scipy} yielded a
+mean squared percentage error of 1.97 with fitted parameters: $r_{2,3} = 0.363$,
+$r_{3, 3\text{-I}} = 0.01$, $r_{3\text{-I}, 3} = 0.189$, $r_{3, 2} = 0.995$,
+$\mu_2 = 0.232$, $\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.106$.
+
 \section{Final Training Curve with 41 Stages}\label{apx:final_41stages}
 
 \begin{center}
 \includegraphics[width=0.6\textwidth]{../src/experiments/final_run41/results/cost_by_stage}
 \end{center}
+
 
 \bibliographystyle{plain}
 \bibliography{refs}
