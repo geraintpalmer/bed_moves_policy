@@ -258,12 +258,15 @@ This corresponds to a \textit{load-balancing} arrival discipline,
 a join-shortest-queue discipline that takes into consideration the number of
 occupied servers as well as queue length \cite{kingman61, gupta07}, which, due
 to Poisson thinning, can be modelled using single queue analysis (SQA) with a
-state-dependent arrival rate.
+monotonically decreasing state-dependent arrival rate.
 This is shown in Figure~\ref{fig:decomposition}.
 
 The state-dependent arrival rate can be found from a preliminary simulation,
 built using Ciw~\cite{palmer19}, and parametrised as above, and observing the
-proportion of arrivals that enter each component at each state.
+proportion of arrivals that enter each component at each state (note that the
+simulation seldom visited states $x=0, 1, 2$, and so bad estimates were
+obtained, therefore we set $p(0) = p(1) = p(2) = p(3)$ to preserve the expected
+monotonicity).
 The resulting proportions are given in Figure~\ref{fig:sqa}.
 SQA now gives us that the arrival rate for each component, when the component's
 occupancy is $x$, is $\lambda_2 p(x)$, $\lambda_3 p(x)$, and

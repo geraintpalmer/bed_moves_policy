@@ -1,0 +1,20 @@
+lambda_2: 1.0658
+lambda_3: 0.8822
+lambda_3I: 2.1178
+r23: 0.363
+r33I: 0.01
+r32: 0.995
+r3I3: 0.189
+mu_2 : 0.232
+mu_3 : 0.01
+mu_3I : 0.106
+kappa: 2.5
+intraward_2: 1.0
+intraward_3: 1.5
+intraward_3I: 2.0
+interward_2: 1.5
+interward_3: 2.0
+interward_3I: 2.5
+surge_penalty: 15.0
+isolation_penalty: 8.0
+eta: 0.7491
