@@ -425,9 +425,10 @@ $\kappa = 1.885$.}
 
 
 \subsection{Stage 2: Care level transitions}\label{sec:ctmc_model}
-To consider the deterioration, improvement, and exit rates, define a continuous-time absorbing Markov chain with four states: Stage 2,
-Stage 3, Stage 3-I, and Exit, which describes a patient's progression through
-care levels from entering the ICU until they leave.
+To consider the deterioration, improvement, and exit rates, define a continuous-time absorbing Markov chain, similar to that of \cite{kapadia2000},
+with four states: Stage 2, Stage 3, Stage 3-I, and Exit, which describes a
+patient's progression through care levels from entering the ICU until they
+leave.
 Patients deteriorate from Stage 2 to Stage 3 with rate $r_{2, 3}$, and from
 Stage 3 to Stage 3-I with rate $r_{3, 3\text{-I}}$.
 Patients improve from Stage 3 to Stage 2 with rate $r_{3, 2}$, and from Stage
@@ -435,6 +436,9 @@ Patients improve from Stage 3 to Stage 2 with rate $r_{3, 2}$, and from Stage
 When in Stage 2 patients exit with rate $\mu_2$, when in Stage 3 patients exit
 with rate $\mu_3$, and when in Stage 3-I patients exit with rate
 $\mu_{3\text{-I}}$.
+These exit rates represent all reasons for leaving the ICU that are not directly
+caused by bed moves: natural discharges, clinical transfers, repatriation, and
+deaths.
 This is visualised in Figure~\ref{fig:ctmc}, and ordering the states as Stage 2,
 Stage 3, stage 3-I, then Exit, its transition rate matrix is given by
 Equation~\ref{eqn:ctmc_transitionmatrix}.

@@ -18,7 +18,6 @@ r3I3 = float(params['r3I3'])
 mu_2 = float(params['mu_2'])
 mu_3 = float(params['mu_3'])
 mu_3I = float(params['mu_3I'])
-eta = float(params['eta'])
 
 small_model_scaling = 16 / 17
 
@@ -34,9 +33,9 @@ def get_state_probabilities(seed, max_time, warmup):
     ciw.seed(seed)
     N = ciw.create_network(
         arrival_distributions={
-            'Stage 2': [ciw.dists.Exponential(rate=lambda_2 * eta * small_model_scaling), None, None],
-            'Stage 3': [ciw.dists.Exponential(rate=lambda_3 * eta * small_model_scaling), None, None],
-            'Stage 3-I': [ciw.dists.Exponential(rate=lambda_3I * eta * small_model_scaling), None, None]
+            'Stage 2': [ciw.dists.Exponential(rate=lambda_2 * small_model_scaling), None, None],
+            'Stage 3': [ciw.dists.Exponential(rate=lambda_3 * small_model_scaling), None, None],
+            'Stage 3-I': [ciw.dists.Exponential(rate=lambda_3I * small_model_scaling), None, None]
         },
         service_distributions={
             'Stage 2': [
