@@ -45,11 +45,158 @@
 
 
 \section{Introduction \& Background}\label{sec:intro_background}
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-Here we need some background on the ICU department at the Heath; background and
-literature on on ICU bed moves, why we move patients, why it's bad to move
-patients, etc. 
-\end{tcolorbox}
+When a patient is referred to an intensive care unit (ICU), requiring a bed with
+specific clinical characteristics, but none are available, then the ward manager
+faces a dilemma: admit the patient to an inferior bed and accept some clinical
+and operational consequences; or displace an existing patient, moving them to
+another bed, again inflicting some clinical and operational penalties.
+These sorts of decisions are made regularly, and are confounded by the dynamic
+nature of patients' needs and bed availability.
+We consider this exact problem in the context of the ICU at the University
+Hospital Wales (UHW), in Cardiff, UK.
+This is the largest hospital in Wales, and the main centre for Cardiff and Vale
+University Health Board, serving a population of 472,000
+\cite{cavuhb_structure}, while some specialist services also serve the whole of
+Wales (pop. 3.1 million \cite{statswales_pop}).
+We aim to develop a optimal bed move policy that determines when bed moves
+should occur, and how, in order to achieve an objective that considers both
+staff demands and clinical outcomes.
+We define a Markov decision process (MDP) with state transitions governed by a
+discrete event simulation, and find optimal bed moves policy using
+reinforcement learning.
+
+Reasons for bed moves, a type of intra-hospital transfer, are explored in
+\cite{rosenberg18}, where three overarching reasons are found: unit culture,
+workload management, and bed scarcity.
+Unit culture here includes general norms and rules that exist within a given
+unit: in our work we aim to develop a policy that will replace this, which
+explicitly considers workload management and bed scarcity.
+General inter-hospital and intra-hospital bed moves are known to cause negative
+clinical outcomes such as delays in care \cite{horwitz08}, missed medications
+\cite{lee10}, and increased chances of readmissions \cite{araujo13}.
+For non-clinical transfers, the bed moves considered in this paper, their
+clinical and operational consequences have been reported in terms of negative
+outcomes and extended lengths of stays.
+A focused search of clinical and operational literature was conducted internally
+by researchers at UHW, which identified five key studies that evaluate
+non-clinical inter-hospital and intra-hospital ICU bed moves.
+These studies are summarised in Table~\ref{tbl:five_studies}; note that only one
+paper considered intra-hospital bed moves, the focus of our paper.
+Where there is evidence, we see that non-clinical transfers result in longer
+lengths of stay, and while the mortality findings are mixed, wider studies on
+general bed moves do indicate worse outcomes for patients experiencing bed
+moves.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{p{0.07\textwidth}p{0.21\textwidth}p{0.31\textwidth}p{0.31\textwidth}}
+\toprule
+Study & Setting & Length of Stay Finding & Mortality Finding \\
+\midrule
+\cite{barratt12} &
+Inter-hospital transfers in 198 ICUs across England \& Wales. &
+Average increase of 3.2 days on the ICU for patients with bed move. &
+No evidence. \\
+\addlinespace[1.4em]
+\cite{blayney20} &
+Inter-hospital transfers in all 23 Scottish ICUs &
+Not reported. &
+Increase in post-hospital mortality from 7.5\% to 30.0\% when experiencing a bed
+move. \\
+\addlinespace[1.4em]
+\cite{parenmark22} &
+Inter-hospital transfers in 75 Swedish ICUs. &
+No evidence. &
+Patients with non-clinical transfers have 25.0\% 30-day mortality compared with
+14.5\% for patients with clinical transfers. \\
+\addlinespace[1.4em]
+\cite{rylander24} &
+Inter-hospital and intra-hospital transfers in 83 Swedish ICUs.
+& Increase by between 10.2 and 11.8 days for patients with intra-hospital bed
+move. &
+Lower adjusted risk of mortality for patients with bed move. \\
+\addlinespace[1.4em]
+\cite{sternley25} &
+Inter-hospital transfers in 83 Swedish ICUs. &
+Not reported. &
+28.0\% 30-day mortality compared with 21.0\% for patients with clinical
+transfers. \\
+\bottomrule
+\end{tabular}
+\end{center}
+\caption{Summary of the five identified studies on non-clinical
+inter-hospital and intra-hospital transfers.}
+\label{tbl:five_studies}
+\end{table}
+
+Simulation is standard practice for modelling complex stochastic systems in
+healthcare, such as an ICU \cite{brailsford09}, where state transitions can
+often be intractable as analytical problems.
+Simulation-optimisation is an optimisation methodology where objectives are
+usually defined as expected values of some random variable for which simulation
+is required for its evaluation; an overview of simulation-optimisation models
+for healthcare is given in \cite{wang23}, where ambulatory and emergency care
+dominate the application domains.
+For modelling ICUs in particular, \cite{bai18} gives a survey on operational
+research methodologies. Generally modelling of ICUs are concerned with the
+problem of early discharges and admission policies, rather than bed moves and
+patient transfers.
+It also notes that MDPs are not commonly applied to ICUs, though not
+unprecedented, with some key examples discussed below.
+Reinforcement learning (RL) is a common model-free machine learning technique
+that is utilised to solve MDPs: \cite{liu20} and \cite{hong22} give overviews of
+RL applied to ICU problems, where it is usually applied to clinical problem,
+such as medicine dosages and timings of treatments, rather than operational
+problems such as admissions and capacity management.
+\cite{roy23} proposes high-level models for how reinforcement learning could be
+utilised in ICUs, covering treatment selection, actor-critic algorithms, and
+using policy-gradient for continuous action spaces.
+
+Some particularly relevant example of ICU modelling include \cite{kapadia2000},
+where an absorbing Markov model of illness severity during a stay at a
+paediatric ICU is modelled; and \cite{dobson10} where a Markov model of patient
+transfers out of an ICU is built, which considers patients' remaining length of
+stays as the system states.
+Though it is noted that such Markov chains are generally too large for most
+practical ICU applications.
+Patient admission and early discharge policies dominate the optimal-control
+literature for ICUs.
+For example in \cite{kim15} a simulation model of 21 ICUs is built,
+incorporating logistic regression models to evaluate patient outcomes, and used
+to evaluate different admission control policies.
+MDPs have been utilised in this area, with \cite{chan12, li2015, bai21} all
+using the methodology to find optimal policies for early discharges, patient
+admissions, or both.
+Costs considered include ICU occupancy as well as diminished patient health
+outcomes, and value iteration usually used as a solution method.
+\cite{du17} follows a similar methodology, but now models inter-hospital
+transfers, between upper-level and lower-level, that is less desirable,
+hospitals in China.
+To the authors' knowledge no models of intra-ward bed transfers, as modelled in
+this paper, have been considered.
+
+In this paper we consider non-clinical intra-ward bed move policies at the point
+of patient admission, for a 34-bed ICU at the UHW.
+We consider this by developing a simulation-optimisation model based around an
+MDP, with state transfers governed by a discrete event simulation.
+The optimisation component is an RL framework, where costs consider staff
+utilisation and proxies for patient outcomes.
+The state and action space is reduced by considering symmetries in the state and
+action spaces.
+Learned policies are evaluated using simulation, and we investigate their
+robustness, i.e. their effect under different policy adherence rates.
+The remainder of this paper is organised as follows:
+Section~\ref{sec:description} describes the UHW ICU environment and the problem
+to solve, while Section~\ref{sec:param_estimation} analyses hospital data to
+estimate system parameters using stochastic modelling.
+Section~\ref{sec:decomposition} outlines how the model is decomposed into
+smaller tractable problems using single queue analysis, and
+Section~\ref{sec:mdp_formulation} formally defines the underlying MDP, detailing
+the state and action space reductions.
+Section~\ref{sec:rlframework} outlines the RL framework used to learn policies,
+and numerical results and experiments are presented in
+Section~\ref{sec:experiments} 
+
 
 
 \section{Problem Description}\label{sec:description}
@@ -188,7 +335,7 @@ occupancy target implemented in many ICUs and seen as a safe occupancy level in
 terms of patient safety \cite{tierney14}.
 We achieve this by scaling down observed arrival rates by a multiplicative
 factor to yield this target traffic intensity, giving $\lambda_2 = 0.7983$
-people per day, $\lambda_3 = 0.7983$, and $\lambda_{3\text{-I}} = 1.5864$.
+people per day, $\lambda_3 = 0.6608$, and $\lambda_{3\text{-I}} = 1.5864$.
 
 
 In order to parametrise the stochastic process that describes transitioning
@@ -396,9 +543,7 @@ Minimising this loss function numerically using Scipy \cite{scipy} yielded a
 mean squared percentage error of 1.97 with fitted parameters: $r_{2,3} = 0.341$,
 $r_{3, 3\text{-I}} = 0.01$, $r_{3\text{-I}, 3} = 0.190$, $r_{3, 2} = 0.957$,
 $\mu_2 = 0.225$, $\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.104$.
-
-
-Table~\ref{tbl:model_parameters} summarises the parameters found.
+Table~\ref{tbl:model_parameters} summarises all the parameters found.
 
 
 \begin{table}[htbp]
@@ -407,17 +552,17 @@ Table~\ref{tbl:model_parameters} summarises the parameters found.
 \toprule
 \textbf{Category} & \textbf{Parameter} & \textbf{Value} & \textbf{Units} \\
 \midrule
-Arrival rates & $\lambda_2$ & $1.0658$ & patients / day \\
-              & $\lambda_3$ & $0.8822$ & patients / day \\
-              & $\lambda_{3\text{-I}}$ & $2.1178$ & patients / day \\[2.5mm]
-Deterioration rates & $r_{2,3}$  & $0.363$ & 1 / day \\
+Arrival rates & $\lambda_2$ & $0.7983$ & patients / day \\
+              & $\lambda_3$ & $0.6608$ & patients / day \\
+              & $\lambda_{3\text{-I}}$ & $1.5864$ & patients / day \\[2.5mm]
+Deterioration rates & $r_{2,3}$  & $0.341$ & 1 / day \\
                     & $r_{3,3\text{-I}}$ & $0.01$ & 1 / day \\[2.5mm]
-Improvement rates & $r_{3,2}$   & $0.995$ & 1 / day \\
-                  & $r_{3\text{-I},3}$ & $0.189$ & 1 / day \\[2.5mm]
-Exit / Service rates & $\mu_2$     & $0.232$ & 1 / day \\
+Improvement rates & $r_{3,2}$   & $0.957$ & 1 / day \\
+                  & $r_{3\text{-I},3}$ & $0.190$ & 1 / day \\[2.5mm]
+Exit / Service rates & $\mu_2$     & $0.225$ & 1 / day \\
                      & $\mu_3$     & $0.010$ & 1 / day \\
-                     & $\mu_{3\text{-I}}$ & $0.106$ & 1 / day \\[2.5mm]
-LoS Extension & $\kappa$ & $2.5$ & days \\
+                     & $\mu_{3\text{-I}}$ & $0.104$ & 1 / day \\[2.5mm]
+LoS Extension & $\kappa$ & $1.885$ & days \\
 \bottomrule
 \end{tabular}
 \caption{Model parameters.}
@@ -425,7 +570,7 @@ LoS Extension & $\kappa$ & $2.5$ & days \\
 \end{table}
 
 
-\section{Problem Decomposition}
+\section{Problem Decomposition}\label{sec:decomposition}
 The 34 bed ICU problem can be decomposed into two sub-problems by introducing
 another assumption.
 Ignoring the ring-fenced beds, we can group wards A3 North and B3 South, and
@@ -484,7 +629,7 @@ wall, while the 6 bed wall is partitioned into two groups of 3 beds by its
 partial wall.
 
 
-\section{MDP Formulation}
+\section{MDP Formulation}\label{sec:mdp_formulation}
 We will consider the bed move policy problem as a Markov Decision Process (MDP),
 which is a tuple $(S, A, P, R)$, with states $s \in S$, actions $a \in A$,
 transition probabilities $p_{s, s', a} \in P$, and rewards $r_{s, s', a} \in R$.
@@ -1236,6 +1381,9 @@ conversations with Google Gemini~\cite{googlegemini26} to learn and steer some
 of the software development.
 It is fully unit-tested and verified, and openly available
 at \url{https://github.com/geraintpalmer/bed_moves_policy}.
+Freely available open-source simulation, along with its robust verification,
+addresses a number of grand challenges of healthcare simulation proposed in
+\cite{boyle26}.
 
 The $Q$-values are stored in a Numba typed dictionary, an implementation of a
 hash table, that maps state-action pairs to Q-values, which are generally kept
@@ -1486,7 +1634,7 @@ estimation and so better so policies.
 
 
 
-\section{Experiments}
+\section{Experiments}\label{sec:experiments}
 
 \subsection{Evaluation Methodology}
 For a particular set of hyper-parameters, models are trained across 21 stages,
