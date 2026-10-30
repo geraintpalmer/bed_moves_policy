@@ -125,6 +125,7 @@ class WardSimulation:
         isolation_penalty,
         move_penalties,
         surge_penalty,
+        rejection_penalty,
         expected_remaining_los,
         move_los_extension,
         selection_policy,
@@ -186,6 +187,7 @@ class WardSimulation:
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
         self.move_penalties[:2, :] = move_penalties
         self.surge_penalty = np.float32(surge_penalty)
+        self.rejection_penalty = np.float32(rejection_penalty)
         self.expected_remaining_los = expected_remaining_los
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
@@ -430,7 +432,13 @@ class WardSimulation:
                 patient_type=patient_type,
                 to_block=a1
             )
-        
+
+        else:
+            cost = self.rejection_penalty * self.expected_remaining_los[patient_type]
+            self.overall_cost += cost
+            if self.pre_warmup:
+                self.warmup_cost += cost
+
 
 
     def exit(self, patient_idx):

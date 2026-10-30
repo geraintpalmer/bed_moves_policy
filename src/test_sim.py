@@ -107,7 +107,8 @@ def test_WardSimulation_arrival_and_exit():
         isolation_penalty=2.0,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -208,7 +209,8 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -253,7 +255,8 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -298,7 +301,8 @@ def test_can_simulate_with_initial_Qvals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -314,6 +318,117 @@ def test_can_simulate_with_initial_Qvals():
     assert np.int64(364800808) in S.Q_index_map
     assert np.int64(22) not in S.Q_index_map
     assert np.int64(162521625229227) in S.Q_index_map
+
+def test_rejection_cost():
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ('Exponential', 2.5),
+            ('Exponential', 2.0),
+            ('Exponential', 1.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
+        move_los_extension=0.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        epsilon=1.0,
+        zeta=0.2,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0
+    )
+    S.simulate_until_max_time()
+    assert S.overall_cost == 1408.6467
+
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ('Exponential', 2.5),
+            ('Exponential', 2.0),
+            ('Exponential', 1.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        rejection_penalty=1.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
+        move_los_extension=0.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        epsilon=1.0,
+        zeta=0.2,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0
+    )
+    # Cost should be much more than before, as we now have rejections
+    S.simulate_until_max_time()
+    assert S.overall_cost == 1484.6466
+
+    S = sim.WardEvaluation(
+        arrival_distributions=[
+            ('Exponential', 2.5),
+            ('Exponential', 2.0),
+            ('Exponential', 1.5)
+        ],
+        los_distributions=[
+            ('Exponential', 0.1),
+            ('Exponential', 0.5),
+            ('Exponential', 0.2)
+        ],
+        deterioration_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        improvement_distributions=[
+            ('Deterministic', np.inf),
+            ('Deterministic', np.inf)
+        ],
+        occupancy_arrival_probs=np.ones(17),
+        isolation_penalty=3,
+        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
+        surge_penalty=10.0,
+        rejection_penalty=2.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
+        move_los_extension=0.0,
+        selection_policy=chooser.EPSILON_GREEDY,
+        epsilon=1.0,
+        zeta=0.2,
+        seed=0,
+        max_time=40.0,
+        warmup=50.0
+    )
+    # Cost should be even greater than before, as rejections cost more
+    S.simulate_until_max_time()
+    assert S.overall_cost == 1560.6466
 
 def test_using_warmup():
     S = sim.WardEvaluation(
@@ -339,7 +454,8 @@ def test_using_warmup():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -376,7 +492,8 @@ def test_using_warmup():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -415,7 +532,8 @@ def test_deterioration():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -463,7 +581,8 @@ def test_deterioration():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -501,7 +620,8 @@ def test_improvement():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -549,7 +669,8 @@ def test_improvement():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -591,7 +712,8 @@ def test_initial_array_preallocations():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -628,7 +750,8 @@ def test_initial_array_preallocations():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -668,7 +791,8 @@ def test_long_training_run():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.5,
@@ -709,7 +833,8 @@ def test_long_evaluation_run():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -746,7 +871,8 @@ def test_give_policy():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=0.0,
@@ -789,7 +915,8 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         zeta=0.2,
@@ -827,7 +954,8 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         zeta=0.2,
@@ -865,7 +993,8 @@ def test_state_dependent_arrivals():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         zeta=0.2,
@@ -905,7 +1034,8 @@ def test_vary_zeta():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         zeta=0.2,
@@ -947,7 +1077,8 @@ def test_vary_zeta():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         learning_rate=0.5,
@@ -989,7 +1120,8 @@ def test_vary_zeta():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         learning_rate=0.5,
@@ -1033,7 +1165,8 @@ def test_move_los_extension_effect():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -1068,7 +1201,8 @@ def test_move_los_extension_effect():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=1.5,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
@@ -1103,7 +1237,8 @@ def test_move_los_extension_effect():
         isolation_penalty=3,
         move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
         surge_penalty=10.0,
-        expected_remaining_los=np.array([1, 1, 1]),
+        rejection_penalty=0.0,
+        expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=3.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
