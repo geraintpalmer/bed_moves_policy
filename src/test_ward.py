@@ -517,26 +517,35 @@ def test_get_move_penalty():
             [0.0, 0.0, 0.0]
         ]
     )
-    assert ward.get_move_penalty(0, 1, 0, 0, move_penalties, 33.0) == 5.0
-    assert ward.get_move_penalty(0, 5, 0, 0, move_penalties, 33.0) == 5.5
-    assert ward.get_move_penalty(0, 14, 0, 0, move_penalties, 33.0) == 5.5
-    assert ward.get_move_penalty(0, 1, 1, 0, move_penalties, 33.0) == 6.0
-    assert ward.get_move_penalty(0, 5, 1, 0, move_penalties, 33.0) == 6.5
-    assert ward.get_move_penalty(0, 14, 1, 0, move_penalties, 33.0) == 6.5
-    assert ward.get_move_penalty(0, 1, 2, 0, move_penalties, 33.0) == 7.0
-    assert ward.get_move_penalty(0, 5, 2, 0, move_penalties, 33.0) == 7.5
-    assert ward.get_move_penalty(0, 14, 2, 0, move_penalties, 33.0) == 7.5
-    assert ward.get_move_penalty(7, 7, 1, 1, move_penalties, 33.0) == 0.0
-    assert ward.get_move_penalty(1, 0, 0, 0, move_penalties, 33.0) == 5.0
-    assert ward.get_move_penalty(5, 0, 0, 0, move_penalties, 33.0) == 5.5
-    assert ward.get_move_penalty(14, 0, 0, 0, move_penalties, 33.0) == 5.5
-    assert ward.get_move_penalty(1, 0, 1, 0, move_penalties, 33.0) == 6.0
-    assert ward.get_move_penalty(5, 0, 1, 0, move_penalties, 33.0) == 6.5
-    assert ward.get_move_penalty(1, 0, 2, 0, move_penalties, 33.0) == 7.0
-    assert ward.get_move_penalty(5, 0, 2, 0, move_penalties, 33.0) == 7.5
-    assert ward.get_move_penalty(0, 15, 0, 1, move_penalties, 33.0) == 33.0
-    assert ward.get_move_penalty(5, 15, 0, 1, move_penalties, 33.0) == 33.0
-    assert ward.get_move_penalty(14, 15, 0, 1, move_penalties, 33.0) == 33.0
+    surge_penalty = 3.0
+    expected_remaining_los = np.array([4.0, 4.5, 5.0])
+    assert ward.get_move_penalty(0, 1, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.0
+    assert ward.get_move_penalty(0, 5, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.5
+    assert ward.get_move_penalty(0, 14, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.5
+    assert ward.get_move_penalty(0, 1, 1, 0, move_penalties, surge_penalty, expected_remaining_los) == 6.0
+    assert ward.get_move_penalty(0, 5, 1, 0, move_penalties, surge_penalty, expected_remaining_los) == 6.5
+    assert ward.get_move_penalty(0, 14, 1, 0, move_penalties, surge_penalty, expected_remaining_los) == 6.5
+    assert ward.get_move_penalty(0, 1, 2, 0, move_penalties, surge_penalty, expected_remaining_los) == 7.0
+    assert ward.get_move_penalty(0, 5, 2, 0, move_penalties, surge_penalty, expected_remaining_los) == 7.5
+    assert ward.get_move_penalty(0, 14, 2, 0, move_penalties, surge_penalty, expected_remaining_los) == 7.5
+    assert ward.get_move_penalty(7, 7, 1, 1, move_penalties, surge_penalty, expected_remaining_los) == 0.0
+    assert ward.get_move_penalty(1, 0, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.0
+    assert ward.get_move_penalty(5, 0, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.5
+    assert ward.get_move_penalty(14, 0, 0, 0, move_penalties, surge_penalty, expected_remaining_los) == 5.5
+    assert ward.get_move_penalty(1, 0, 1, 0, move_penalties, surge_penalty, expected_remaining_los) == 6.0
+    assert ward.get_move_penalty(5, 0, 1, 0, move_penalties, surge_penalty, expected_remaining_los) == 6.5
+    assert ward.get_move_penalty(1, 0, 2, 0, move_penalties, surge_penalty, expected_remaining_los) == 7.0
+    assert ward.get_move_penalty(5, 0, 2, 0, move_penalties, surge_penalty, expected_remaining_los) == 7.5
+    
+    assert ward.get_move_penalty(0, 15, 0, 1, move_penalties, surge_penalty, expected_remaining_los) == 12.0
+    assert ward.get_move_penalty(5, 15, 0, 1, move_penalties, surge_penalty, expected_remaining_los) == 12.0
+    assert ward.get_move_penalty(14, 15, 0, 1, move_penalties, surge_penalty, expected_remaining_los) == 12.0
+    assert ward.get_move_penalty(0, 15, 1, 1, move_penalties, surge_penalty, expected_remaining_los) == 13.5
+    assert ward.get_move_penalty(5, 15, 1, 1, move_penalties, surge_penalty, expected_remaining_los) == 13.5
+    assert ward.get_move_penalty(14, 15, 1, 1, move_penalties, surge_penalty, expected_remaining_los) == 13.5
+    assert ward.get_move_penalty(0, 15, 2, 1, move_penalties, surge_penalty, expected_remaining_los) == 15.0
+    assert ward.get_move_penalty(5, 15, 2, 1, move_penalties, surge_penalty, expected_remaining_los) == 15.0
+    assert ward.get_move_penalty(14, 15, 2, 1, move_penalties, surge_penalty, expected_remaining_los) == 15.0
 
 
 def test_insert_patient():

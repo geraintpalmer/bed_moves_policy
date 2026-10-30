@@ -24,7 +24,6 @@ def make_sampling_function(dist_info):
         @njit(cache=True)
         def sample():
             return -np.log(1.0 - np.random.random()) * inv_rate
-
         return sample
 
     if dist_info[0] == 'Deterministic':
@@ -33,7 +32,6 @@ def make_sampling_function(dist_info):
         @njit(cache=True)
         def sample():
             return value
-
         return sample
 
 def get_mean(dist_info):
@@ -127,6 +125,7 @@ class WardSimulation:
         isolation_penalty,
         move_penalties,
         surge_penalty,
+        expected_remaining_los,
         move_los_extension,
         selection_policy,
         epsilon,
@@ -187,6 +186,7 @@ class WardSimulation:
         self.move_penalties = np.zeros((3, 3), dtype=np.float32)
         self.move_penalties[:2, :] = move_penalties
         self.surge_penalty = np.float32(surge_penalty)
+        self.expected_remaining_los = expected_remaining_los
         self.learning_rate = np.float32(learning_rate)
         self.discount_factor = np.float32(discount_factor)
 
@@ -379,7 +379,8 @@ class WardSimulation:
                 patient_type=a3,
                 arriving_patient_type=patient_type,
                 move_penalties=self.move_penalties,
-                surge_penalty=self.surge_penalty
+                surge_penalty=self.surge_penalty,
+                expected_remaining_los=self.expected_remaining_los
             )
             cost = state_cost + move_cost
 
@@ -429,6 +430,7 @@ class WardSimulation:
                 patient_type=patient_type,
                 to_block=a1
             )
+        
 
 
     def exit(self, patient_idx):

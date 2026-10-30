@@ -377,7 +377,8 @@ def get_move_penalty(
     patient_type,
     arriving_patient_type,
     move_penalties,
-    surge_penalty
+    surge_penalty,
+    expected_remaining_los
 ):
     """
     Calculates the penalty for moving a patient from block to block.
@@ -392,12 +393,15 @@ def get_move_penalty(
       + `move_penalties`: a 2x3 numpy array of penalties, where the columns
            indicate patient types, and the rows indicate if the moves are
            adjacent or not.
+      + `surger_penalty`: the surge penalty multiplier
+      + `expected_remaining_los`: an array of 3 times: expected remaining
+           time when in Stage 2, Stage 3, and Stage 3-I.
 
     Returns: a numerical penalty for the bed moves.
     """
     adj = adjacency_matrix[from_block, to_block]
     if adj == 3:
-        return surge_penalty
+        return surge_penalty * expected_remaining_los[patient_type]
     return move_penalties[adj, patient_type]
 
 @njit(cache=True)
