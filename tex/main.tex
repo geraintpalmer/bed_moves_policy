@@ -59,8 +59,8 @@ University Health Board, serving a population of 472,000
 \cite{cavuhb_structure}, while some specialist services also serve the whole of
 Wales (pop. 3.1 million \cite{statswales_pop}).
 We aim to develop a optimal bed move policy that determines when bed moves
-should occur, and how, in order to achieve an objective that considers both
-staff demands and clinical outcomes.
+should occur, and how, in order to achieve an objective that considers
+operational rather than clinical outcomes, such as staffing demand.
 We define a Markov decision process (MDP) with state transitions governed by a
 discrete event simulation, and find optimal bed moves policy using
 reinforcement learning.
@@ -179,8 +179,8 @@ In this paper we consider non-clinical intra-ward bed move policies at the point
 of patient admission, for a 34-bed ICU at the UHW.
 We consider this by developing a simulation-optimisation model based around an
 MDP, with state transfers governed by a discrete event simulation.
-The optimisation component is an RL framework, where costs consider staff
-utilisation and proxies for patient outcomes.
+The optimisation component is an RL framework, where costs consider staff and
+bed utilisation.
 The state and action space is reduced by considering symmetries in the state and
 action spaces.
 Learned policies are evaluated using simulation, and we investigate their
@@ -425,7 +425,8 @@ $\kappa = 1.885$.}
 
 
 \subsection{Stage 2: Care level transitions}\label{sec:ctmc_model}
-To consider the deterioration, improvement, and exit rates, define a continuous-time absorbing Markov chain, similar to that of \cite{kapadia2000},
+To consider the deterioration, improvement, and exit rates, define a
+continuous-time absorbing Markov chain, similar to that of \cite{kapadia2000},
 with four states: Stage 2, Stage 3, Stage 3-I, and Exit, which describes a
 patient's progression through care levels from entering the ICU until they
 leave.
@@ -547,6 +548,17 @@ Minimising this loss function numerically using Scipy \cite{scipy} yielded a
 mean squared percentage error of 1.97 with fitted parameters: $r_{2,3} = 0.341$,
 $r_{3, 3\text{-I}} = 0.01$, $r_{3\text{-I}, 3} = 0.190$, $r_{3, 2} = 0.957$,
 $\mu_2 = 0.225$, $\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.104$.
+
+Later is will also be useful to consider the expected time to absorption, or the
+expected time until exiting the system, for patients currently in each stage of
+care, $\mathcal{L}_2$, $\mathcal{L}_3$ and $\mathcal{L}_{3\text{-I}}$.
+These can be derived from the CTMC's fundemental matrix given by
+Equation~\ref{eqn:expected_remaining_time}.
+
+\begin{equation}\label{eqn:expected_remaining_time}
+(\mathcal{L}_2, \mathcal{L}_3, \mathcal{L}_{3\text{-I}})^T = N (1, 1, 1)^{T}
+\end{equation}
+
 Table~\ref{tbl:model_parameters} summarises all the parameters found.
 
 
@@ -1263,7 +1275,7 @@ The reward received for transitioning from state $s_1$ to state $s_2$ given
 action $a$ was taken, $R(s_1, s_2, a)$, consists of four components:
 
 \begin{equation}\label{eqn:reward}
-\text{R}(s_1, s_2, a) = -(C(s_1) + P(s_1, \theta))t_{s_1, s_2} - \Psi(a)
+\text{R}(s_1, s_2, a) = -(C(s_1) + P(s_1, \theta))t_{s_1, s_2} - \Psi(a) - \Xi(t_{s_1, s_2})
 \end{equation}
 
 Where
@@ -1284,10 +1296,20 @@ Where
     Equation~\ref{eqn:penalty_cost}, where $\theta$ is some penalty parameter.
 
     \item $\Psi(a)$ is the cost of taking action $a$, corresponding to either
-    an intra-ward move for patients of type $p$ (cost $\sigma_p$), an inter-ward
-    move for patients of type $p$ (cost $\phi_p$), or moving a Stage 2 patient
-    to surge (cost $\xi$).
+    an intra-ward move for patients of type $p$ (cost $\psi_p$), an inter-ward
+    move for patients of type $p$ (cost $\hat{\psi}_p$), or moving a Stage 2
+    patient to surge (cost $\sigma \mathcal{L}_p$ where $\mathcal{L}_p$ is the
+    expected remaining length of stay for a patient of type $p$).
     This is given by Equation~\ref{eqn:move_cost}.
+
+    \item $\Xi(t_{s_1, s_2})$ is the cost associated with rejecting new patients
+    into the ICU, that is some multiplier $\xi$ multiplied by the total expected
+    lost length of stay of all rejected patients.
+    This corresponds to the cost of another hospital or unit needing to care for
+    those patients for their expected length of stays, at a higher cost due to
+    the extra staffing required due to not being at the appropriate ICU.
+    This is given in Equation~\ref{eqn:reject_cost}, where $n_p$ is the number
+    of rejections of type $p$ that occurred in the time period $t_{s_1, s_2}$.
 \end{itemize}
 
 
@@ -1296,17 +1318,33 @@ C &= G(M) + \sum_{i=1}^{2} \sum_{j=0}^{16} M_{i,j} \label{eqn:staffing_cost} \\[
 P(s_1) &= \theta \sum_{j=0}^{15} M_{2,j} \label{eqn:penalty_cost} \\[4mm]
 \Psi(a) &= \begin{cases}
 0 \text{ if } b = d \\
-\sigma_p \; \text{ if } b \text{ in the same ward as } d \\
-\phi_p \; \text{ if } b \text{ in a different ward to } d \\
-\xi \; \text{ if } d = 16
-\end{cases} \label{eqn:move_cost}
+\psi_p \; \text{ if } b \text{ in the same ward as } d \\
+\hat{\psi}_p \; \text{ if } b \text{ in a different ward to } d \\
+\sigma \mathcal{L}_p \; \text{ if } d = 16
+\end{cases} \label{eqn:move_cost} \\[4mm]
+\Xi(t_{s_1, s_2}) &= \sigma \sum_p n_p \mathcal{L}_p \label{eqn:reject_cost}
 \end{align}
 
 where $s_1 = (M, p)$, $a = (b, d)$, and $G(M)$ represents a function that finds
 the minimum number of nurses required to cover the Stage 2 patients, when pairs
 of adjacent patients can be seen by the same nurse, as shown in
-Figure~\ref{fig:resource_use}. Table~\ref{tbl:penalties} give the values used 
-for penalties in this work.
+Figure~\ref{fig:resource_use}.
+
+The penalty parameters used in Equations~\ref{eqn:staffing_cost}
+to~\ref{eqn:reject_cost} were established from operational reasoning, and
+Table~\ref{tbl:penalties} gives the values used for penalties in this work.
+The base intra-ward move cost ($\psi_2$) is fixed at $\sfrac{1}{6}$ FTE days,
+representing two nurses each disrupted for two hours due to the patient move,
+and any hassle, bed cleaning, and paperwork associated with the move.
+This acts as a baseline for the other move costs, where an hour is added per
+nurse for each increment in care level, and an additional hour per nurse is
+added if the bed move is an inter-ward transfer.
+Staffing multipliers for surge ($\sigma = 3$), non-isolated placement
+($\theta = 2$), and external rejections ($\xi = 4$) reflect the relative
+increase in staffing-power required to manage patients in sub-optimal beds or
+hospital wards or locations.
+The values of $\mathcal{L}_p$ however are derived from the CTMC defined in
+Section~\ref{sec:ctmc_model}.
 
 \begin{table}
 \begin{center}
@@ -1314,10 +1352,12 @@ for penalties in this work.
 \toprule
 & Stage 2 & Stage 3 & Stage 3-I \\
 \midrule
-Intra-ward move & $\sigma_2 = 1.0$ & $\sigma_3 = 1.5$ & $\sigma_{3\text{-I}} = 2.0$ \\
-Inter-ward move & $\phi_2 = 1.5$ & $\phi_3 = 2.0$ & $\phi_{3\text{-I}} = 2.5$ \\
-Surge penalty & \multicolumn{3}{c}{$\xi = 15$} \\
-Isolation penalty & \multicolumn{3}{c}{$\theta = 8$} \\
+Expected remaining LoS & $\mathcal{L}_2 = 5.937$ & $\mathcal{L}_3 = 6.919$ & $\mathcal{L}_{3\text{-I}} = 7.865$ \\
+Intra-ward move & $\psi_2 = \sfrac{1}{6}$ & $\psi_3 = \sfrac{1}{4}$ & $\psi_{3\text{-I}} = \sfrac{1}{3}$ \\
+Inter-ward move & $\hat{\psi}_2 = \sfrac{1}{4}$ & $\hat{\psi}_3 = \sfrac{1}{3}$ & $\hat{\psi}_{3\text{-I}} = \sfrac{5}{12}$ \\
+Surge penalty & \multicolumn{3}{c}{$\sigma = 3$} \\
+Isolation penalty & \multicolumn{3}{c}{$\theta = 2$} \\
+Rejection multiplier & \multicolumn{3}{c}{$\xi = 4$} \\
 \bottomrule
 \end{tabular}
 \caption{Values used for the penalties.}

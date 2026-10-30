@@ -9,11 +9,15 @@ mu_2 : 0.22487619
 mu_3 : 0.01
 mu_3I : 0.10428896
 kappa: 1.885
-intraward_2: 1.0
-intraward_3: 1.5
-intraward_3I: 2.0
-interward_2: 1.5
-interward_3: 2.0
-interward_3I: 2.5
-surge_penalty: 15.0
-isolation_penalty: 8.0
+intraward_2: 0.16666666
+intraward_3: 0.25
+intraward_3I: 0.33333333
+interward_2: 0.25
+interward_3: 0.33333333
+interward_3I: 0.41666666
+surge_penalty: 3.0
+isolation_penalty: 2.0
+rejection_penalty: 4.0
+remaining_los_2: 5.93659458
+remaining_los_3: 6.91894064
+remaining_los_3I: 7.86474000
