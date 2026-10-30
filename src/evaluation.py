@@ -26,6 +26,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 def evaluate(
+    system_params,
     max_time,
     occupancy_arrival_probs,
     zeta,
@@ -50,28 +51,45 @@ def evaluate(
 
     S = sim.WardEvaluation(
         arrival_distributions=[
-            ('Exponential', 3.0),
-            ('Exponential', 2.0),
-            ('Exponential', 1.0)
+            ('Exponential', float(system_params['lambda_2']) * (16 / 17)),
+            ('Exponential', float(system_params['lambda_3']) * (16 / 17)),
+            ('Exponential', float(system_params['lambda_3I']) * (16 / 17))
         ],
         los_distributions=[
-            ('Exponential', 0.3),
-            ('Exponential', 0.7),
-            ('Exponential', 0.4)
+            ('Exponential', float(system_params['mu_2'])),
+            ('Exponential', float(system_params['mu_3'])),
+            ('Exponential', float(system_params['mu_3I']))
         ],
         deterioration_distributions=[
-            ('Deterministic', np.inf),
-            ('Deterministic', np.inf)
+            ('Exponential', float(system_params['r23'])),
+            ('Exponential', float(system_params['r33I']))
         ],
         improvement_distributions=[
-            ('Deterministic', np.inf),
-            ('Deterministic', np.inf)
+            ('Exponential', float(system_params['r32'])),
+            ('Exponential', float(system_params['r3I3']))
         ],
         occupancy_arrival_probs=occupancy_arrival_probs,
-        isolation_penalty=8.0,
-        move_penalties=np.array([[1.0, 1.5, 2.0], [1.5, 2.0, 2.5]]),
-        surge_penalty=15.0,
-        move_los_extender=0.05,
+        isolation_penalty=float(system_params['isolation_penalty']),
+        move_penalties=np.array(
+            [
+                [float(system_params['intraward_2']),
+                 float(system_params['intraward_3']),
+                 float(system_params['intraward_3I'])],
+                [float(system_params['interward_2']),
+                 float(system_params['interward_3']),
+                 float(system_params['interward_3I'])]
+            ], dtype=np.float32
+        ),
+        surge_penalty=float(system_params['surge_penalty']),
+        rejection_penalty=float(system_params['rejection_penalty']),
+        expected_remaining_los=np.array(
+            [
+                float(system_params['remaining_los_2']),
+                float(system_params['remaining_los_3']),
+                float(system_params['remaining_los_3I']),
+            ], dtype=np.float32
+        ),
+        move_los_extension=float(system_params['kappa']),
         selection_policy=selection_policy,
         epsilon=epsilon,
         seed=seed,
@@ -113,6 +131,10 @@ if __name__ == '__main__':
     else:
         annealing_schedule = 'linear'
 
+    with open("icu_params.yml") as f:
+        params_raw = f.read()
+        system_params = yaml.safe_load(params_raw)
+
     occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
 
     training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon, annealing_schedule=annealing_schedule)
@@ -144,6 +166,7 @@ if __name__ == '__main__':
         seeds = [seed + trial for trial in range(trials_per_stage)]
         args_list = [
             (
+                system_params,
                 max_time,
                 occupancy_arrival_probs,
                 zeta,
