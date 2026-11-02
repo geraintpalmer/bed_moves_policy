@@ -90,7 +90,7 @@ def test_WardSimulation_arrival_and_exit():
             ('Deterministic', 9),
             ('Deterministic', 11)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 1),
             ('Deterministic', 3),
             ('Deterministic', 7)
@@ -130,7 +130,7 @@ def test_WardSimulation_arrival_and_exit():
     )
     assert np.array_equal(S.next_arrivals, np.array([5.0, 9.0, 11.0]))
     assert len(S.patients_patient_types) == 16
-    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_next_dates) == 16
     assert len(S.patients_blocks) == 16
     assert len(S.patients_free_indices) == 16
     assert S.patients_number_free == 16
@@ -138,8 +138,8 @@ def test_WardSimulation_arrival_and_exit():
     assert np.max(S.patients_patient_types) == -1
     assert np.min(S.patients_blocks) == -1
     assert np.max(S.patients_blocks) == -1
-    assert np.min(S.patients_exit_dates) == np.inf
-    assert np.max(S.patients_exit_dates) == np.inf
+    assert np.min(S.patients_next_dates) == np.inf
+    assert np.max(S.patients_next_dates) == np.inf
     assert S.now == 0.0
     assert S.max_time == 500.0
     assert np.array_equal(S.state, expected_state_before)
@@ -151,30 +151,30 @@ def test_WardSimulation_arrival_and_exit():
     assert S.now == 5.0
     assert np.array_equal(S.state, expected_state_after)
     assert len(S.patients_patient_types) == 16
-    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_next_dates) == 16
     assert len(S.patients_blocks) == 16
     assert len(S.patients_free_indices) == 15
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == 0
     assert np.min(S.patients_blocks) == -1
     assert np.max(S.patients_blocks) == 1
-    assert np.min(S.patients_exit_dates) == 6.0
-    assert np.max(S.patients_exit_dates) == np.inf
+    assert np.min(S.patients_next_dates) == 6.0
+    assert np.max(S.patients_next_dates) == np.inf
     assert np.array_equal(S.patients_free_indices, [i for i in range(15)])
 
     S.exit(patient_idx=15)
 
     assert np.array_equal(S.next_arrivals, np.array([10.0, 9.0, 11.0]))
     assert len(S.patients_patient_types) == 16
-    assert len(S.patients_exit_dates) == 16
+    assert len(S.patients_next_dates) == 16
     assert len(S.patients_blocks) == 16
     assert len(S.patients_free_indices) == 16
     assert np.min(S.patients_patient_types) == -1
     assert np.max(S.patients_patient_types) == -1
     assert np.min(S.patients_blocks) == -1
     assert np.max(S.patients_blocks) == -1
-    assert np.min(S.patients_exit_dates) == np.inf
-    assert np.max(S.patients_exit_dates) == np.inf
+    assert np.min(S.patients_next_dates) == np.inf
+    assert np.max(S.patients_next_dates) == np.inf
     assert S.now == 6.0
     assert np.array_equal(S.state, expected_state_before)
     assert np.array_equal(S.patients_free_indices, [i for i in range(16)])
@@ -192,7 +192,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -238,7 +238,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -284,7 +284,7 @@ def test_can_simulate_with_initial_Qvals():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -326,7 +326,7 @@ def test_rejection_cost():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -362,7 +362,7 @@ def test_rejection_cost():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -399,7 +399,7 @@ def test_rejection_cost():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -437,7 +437,7 @@ def test_using_warmup():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -475,7 +475,7 @@ def test_using_warmup():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -515,7 +515,7 @@ def test_deterioration():
             ('Deterministic', 13.0),
             ('Deterministic', 22.0)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -564,7 +564,7 @@ def test_deterioration():
             ('Deterministic', 13.0),
             ('Deterministic', 22.0)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -603,7 +603,7 @@ def test_improvement():
             ('Deterministic', 13.0),
             ('Deterministic', 7.0)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -652,7 +652,7 @@ def test_improvement():
             ('Deterministic', 13.0),
             ('Deterministic', 7.0)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -680,7 +680,7 @@ def test_improvement():
         warmup=50.0,
     )
     assert len(S.arrival_distributions) == 3
-    assert len(S.los_distributions) == 3
+    assert len(S.exit_distributions) == 3
     assert len(S.deterioration_distributions) == 3
     assert len(S.improvement_distributions) == 3
     S.simulate_until_max_time()
@@ -695,7 +695,7 @@ def test_initial_array_preallocations():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -733,7 +733,7 @@ def test_initial_array_preallocations():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -774,7 +774,7 @@ def test_long_training_run():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 1.0),
             ('Exponential', 1.5),
             ('Exponential', 0.5)
@@ -805,9 +805,9 @@ def test_long_training_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 171228.61
-    assert S.max_idx == 23555
-    assert len(S.Q_index_map) == 23555
+    assert S.overall_cost == 241033.25
+    assert S.max_idx == 29186
+    assert len(S.Q_index_map) == 29186
 
 def test_long_evaluation_run():
     S = sim.WardEvaluation(
@@ -816,7 +816,7 @@ def test_long_evaluation_run():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 1.0),
             ('Exponential', 1.5),
             ('Exponential', 0.5)
@@ -845,7 +845,7 @@ def test_long_evaluation_run():
     )
     S.simulate_until_max_time()
 
-    assert S.overall_cost == 180077.02
+    assert S.overall_cost == 246784.19
 
 def test_give_policy():
     S = sim.WardEvaluation(
@@ -854,7 +854,7 @@ def test_give_policy():
             ('Deterministic', 13.0),
             ('Deterministic', 22.0)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 10.0),
             ('Deterministic', 10.0),
             ('Deterministic', 10.0)
@@ -898,7 +898,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', 1.1),
             ('Deterministic', 1.2)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 100.0),
             ('Deterministic', 100.0),
             ('Deterministic', 100.0)
@@ -937,7 +937,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', 1.1),
             ('Deterministic', 1.2)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 100.0),
             ('Deterministic', 100.0),
             ('Deterministic', 100.0)
@@ -976,7 +976,7 @@ def test_state_dependent_arrivals():
             ('Deterministic', 1.1),
             ('Deterministic', 1.2)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Deterministic', 100.0),
             ('Deterministic', 100.0),
             ('Deterministic', 100.0)
@@ -1007,7 +1007,7 @@ def test_state_dependent_arrivals():
     )
     S.simulate_until_max_time()
     assert len(S.Q_index_map) == 7
-    assert sum(S.state) == 8
+    assert sum(S.state) == 7
 
 def test_vary_zeta():
     # Testing with no discount factor
@@ -1017,7 +1017,7 @@ def test_vary_zeta():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -1060,7 +1060,7 @@ def test_vary_zeta():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -1103,7 +1103,7 @@ def test_vary_zeta():
             ('Exponential', 1.0),
             ('Exponential', 0.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 0.1),
             ('Exponential', 0.5),
             ('Exponential', 0.2)
@@ -1148,7 +1148,7 @@ def test_move_los_extension_effect():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 1.0),
             ('Exponential', 1.5),
             ('Exponential', 0.5)
@@ -1184,7 +1184,7 @@ def test_move_los_extension_effect():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 1.0),
             ('Exponential', 1.5),
             ('Exponential', 0.5)
@@ -1220,7 +1220,7 @@ def test_move_los_extension_effect():
             ('Exponential', 2.0),
             ('Exponential', 1.5)
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', 1.0),
             ('Exponential', 1.5),
             ('Exponential', 0.5)
@@ -1251,6 +1251,6 @@ def test_move_los_extension_effect():
     cost_M25 = S.overall_cost
 
     # I expect the costs to increase as moves lengthen LoS and make it more congested.
-    assert cost_M00 == 17885.748
-    assert cost_M05 == 31505.508
-    assert cost_M25 == 43244.21
+    assert cost_M00 == 24516.082
+    assert cost_M05 == 37363.734
+    assert cost_M25 == 44496.402
