@@ -55,7 +55,7 @@ def evaluate(
             ('Exponential', float(system_params['lambda_3']) * (16 / 17)),
             ('Exponential', float(system_params['lambda_3I']) * (16 / 17))
         ],
-        los_distributions=[
+        exit_distributions=[
             ('Exponential', float(system_params['mu_2'])),
             ('Exponential', float(system_params['mu_3'])),
             ('Exponential', float(system_params['mu_3I']))
