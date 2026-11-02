@@ -23,6 +23,13 @@ def make_sampling_function(dist_info):
     Returns: a function that samples from that distribution.
     """
     if dist_info[0] == 'Exponential':
+        if dist_info[1] == 0:
+
+            @njit(cache=True)
+            def sample():
+                return np.inf
+            return sample
+
         inv_rate = 1 / dist_info[1]
         
         @njit(cache=True)

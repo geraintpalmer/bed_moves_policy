@@ -3,11 +3,11 @@ lambda_3: 0.660821
 lambda_3I: 1.586380
 r23: 0.0
 r33I: 0.0
-r32: 0.371
-r3I3: 0.187
-mu_2 : 0.226
+r32: 0.37110729
+r3I3: 0.18716189
+mu_2 : 0.22637637
 mu_3 : 0.01
-mu_3I : 0.107
+mu_3I : 0.1069426
 kappa: 1.885
 intraward_2: 0.16666666
 intraward_3: 0.25
@@ -15,9 +15,9 @@ intraward_3I: 0.33333333
 interward_2: 0.25
 interward_3: 0.33333333
 interward_3I: 0.41666666
-surge_penalty: 2.0
-isolation_penalty: 1.5
-rejection_penalty: 3.0
-remaining_los_2: 4.417
-remaining_los_3: 6.925
-remaining_los_3I: 7.807
+surge_penalty: 3.0
+isolation_penalty: 2.0
+rejection_penalty: 3.5
+remaining_los_2: 4.417422
+remaining_los_3: 6.925445
+remaining_los_3I: 7.807359

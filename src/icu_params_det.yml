@@ -1,0 +1,23 @@
+lambda_2: 0.798321
+lambda_3: 0.660821
+lambda_3I: 1.586380
+r23: 0.3410191
+r33I: 0.01
+r32: 0.95716634
+r3I3: 0.19009786
+mu_2 : 0.22487619
+mu_3 : 0.01
+mu_3I : 0.10428896
+kappa: 1.885
+intraward_2: 0.16666666
+intraward_3: 0.25
+intraward_3I: 0.33333333
+interward_2: 0.25
+interward_3: 0.33333333
+interward_3I: 0.41666666
+surge_penalty: 3.0
+isolation_penalty: 2.0
+rejection_penalty: 3.5
+remaining_los_2: 5.936595
+remaining_los_3: 6.918941
+remaining_los_3I: 7.864740

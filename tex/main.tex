@@ -266,12 +266,11 @@ Stage 2, Stage 3, or Stage 3-I, and arrivals follow a Poisson process with
 arrival rates $\lambda_2$, $\lambda_3$ and $\lambda_{3\text{-I}}$ for each stage
 respectively.
 During their stay they can experience clinical deterioration or improvement over
-time, that is they can transition between the care stages during their stay,
-modelled similarly to \cite{palmer26}.
-The rates at which patients deteriorate from Stage 2 to Stage 3, and from Stage
-3 to Stage 3-I, are $r_{2,3}$ and $r_{3,3\text{-I}}$ respectively; while the
-rates at which patients improve from Stage 3 to Stage 2, and from Stage 3-I to
-Stage 3, are $r_{3,2}$ and $r_{3\text{-I},3}$ respectively. 
+time, that is they can transition between the care stages during their stay.
+In this work, only clinical improvement will be modelled, and deterioration is
+discussed in Section~\ref{sec:discussion}.
+The rates at which patients improve from Stage 3 to Stage 2, and from Stage 3-I
+to Stage 3, are $r_{3,2}$ and $r_{3\text{-I},3}$ respectively. 
 Eventually patients are either discharged or they die, and so exit the unit:
 the rates at which patients exit the unit from each care category are $\mu_2$,
 $\mu_3$ and $\mu_{3\text{-I}}$.
@@ -284,7 +283,9 @@ bed moves only occur when a patient is admitted to the ward, then bed move
 events also form a Poisson process with some rate
 $\beta \leq \lambda_2 + \lambda_3 + \lambda_{3\text{-I}}$.
 Each bed move a patient is subject to will extend their length of stay by some
-additive factor $\kappa$.
+additive factor $\kappa$, implemented as a `pause' where they will spend an
+extra $\kappa$ time units in their current care stage before exiting or
+improving.
 
 
 \section{Parameter Estimation}\label{sec:param_estimation}
@@ -336,7 +337,6 @@ terms of patient safety \cite{tierney14}.
 We achieve this by scaling down observed arrival rates by a multiplicative
 factor to yield this target traffic intensity, giving $\lambda_2 = 0.7983$
 people per day, $\lambda_3 = 0.6608$, and $\lambda_{3\text{-I}} = 1.5864$.
-
 
 In order to parametrise the stochastic process that describes transitioning
 between care levels, and length of stay extensions due to bed moves, a two-stage
@@ -425,13 +425,10 @@ $\kappa = 1.885$.}
 
 
 \subsection{Stage 2: Care level transitions}\label{sec:ctmc_model}
-To consider the deterioration, improvement, and exit rates, define a
-continuous-time absorbing Markov chain, similar to that of \cite{kapadia2000},
-with four states: Stage 2, Stage 3, Stage 3-I, and Exit, which describes a
-patient's progression through care levels from entering the ICU until they
-leave.
-Patients deteriorate from Stage 2 to Stage 3 with rate $r_{2, 3}$, and from
-Stage 3 to Stage 3-I with rate $r_{3, 3\text{-I}}$.
+To consider the improvement and exit rates, define a continuous-time absorbing
+Markov chain, similar to that of \cite{kapadia2000}, with four states: Stage 2,
+Stage 3, Stage 3-I, and Exit, which describes a patient's progression through
+care levels from entering the ICU until they leave.
 Patients improve from Stage 3 to Stage 2 with rate $r_{3, 2}$, and from Stage
 3-I to Stage 3 with rate $r_{3\text{-I}, 3}$.
 When in Stage 2 patients exit with rate $\mu_2$, when in Stage 3 patients exit
@@ -464,8 +461,8 @@ through the care levels during their stay at the ICU.}
 
 \begin{equation}\label{eqn:ctmc_transitionmatrix}
 Q = \begin{pmatrix}
--(r_{2,3} + \mu_2) & r_{2,3} & 0 & \mu_2 \\
-r_{3,2} & -(r_{3,2} + r_{3,3\text{-I}} + \mu_3) & r_{3,3\text{-I}} & \mu_{3} \\
+-\mu_2 & 0 & 0 & \mu_2 \\
+r_{3,2} & -(r_{3,2} + \mu_3) & 0 & \mu_{3} \\
 0 & r_{3\text{-I},3} & -(r_{3\text{-I},3} + \mu_{3\text{-I}}) & \mu_{3\text{-I}} \\
 0 & 0 & 0 & 0 \\
 \end{pmatrix}
@@ -545,14 +542,14 @@ $N_{2, 3} + N_{2, 3\text{-I}}$, $N_{3, 2}$, $N_{3, 3} + N_{3, 3\text{-I}}$,
 $N_{3\text{-I}, 2}$, $N_{3\text{-I}, 3} + N_{3\text{-I}, 3\text{-I}}$,
 $\mathbb{P}(\text{Exit} \; | \; \text{Stage 3-I})$, and $H_{3\text{-I}}$.
 Minimising this loss function numerically using Scipy \cite{scipy} yielded a
-mean squared percentage error of 1.97 with fitted parameters: $r_{2,3} = 0.341$,
-$r_{3, 3\text{-I}} = 0.01$, $r_{3\text{-I}, 3} = 0.190$, $r_{3, 2} = 0.957$,
-$\mu_2 = 0.225$, $\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.104$.
+mean squared percentage error of 1.97 with fitted parameters:
+$r_{3\text{-I}, 3} = 0.187$, $r_{3, 2} = 0.371$, $\mu_2 = 0.226$,
+$\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.107$.
 
 Later is will also be useful to consider the expected time to absorption, or the
 expected time until exiting the system, for patients currently in each stage of
 care, $\mathcal{L}_2$, $\mathcal{L}_3$ and $\mathcal{L}_{3\text{-I}}$.
-These can be derived from the CTMC's fundemental matrix given by
+These can be derived from the CTMC's fundamental matrix given by
 Equation~\ref{eqn:expected_remaining_time}.
 
 \begin{equation}\label{eqn:expected_remaining_time}
@@ -571,13 +568,14 @@ Table~\ref{tbl:model_parameters} summarises all the parameters found.
 Arrival rates & $\lambda_2$ & $0.7983$ & patients / day \\
               & $\lambda_3$ & $0.6608$ & patients / day \\
               & $\lambda_{3\text{-I}}$ & $1.5864$ & patients / day \\[2.5mm]
-Deterioration rates & $r_{2,3}$  & $0.341$ & 1 / day \\
-                    & $r_{3,3\text{-I}}$ & $0.01$ & 1 / day \\[2.5mm]
-Improvement rates & $r_{3,2}$   & $0.957$ & 1 / day \\
-                  & $r_{3\text{-I},3}$ & $0.190$ & 1 / day \\[2.5mm]
-Exit / Service rates & $\mu_2$     & $0.225$ & 1 / day \\
+Improvement rates & $r_{3,2}$   & $0.371$ & 1 / day \\
+                  & $r_{3\text{-I},3}$ & $0.187$ & 1 / day \\[2.5mm]
+Exit / Service rates & $\mu_2$     & $0.226$ & 1 / day \\
                      & $\mu_3$     & $0.010$ & 1 / day \\
-                     & $\mu_{3\text{-I}}$ & $0.104$ & 1 / day \\[2.5mm]
+                     & $\mu_{3\text{-I}}$ & $0.107$ & 1 / day \\[2.5mm]
+Expected LoS & $\mathcal{L}_2$ & $4.417$ & days \\
+             & $\mathcal{L}_3$ & $6.925$ & days \\
+             & $\mathcal{L}_{3\text{-I}}$ & $7.807$ & days \\[2.5mm]
 LoS Extension & $\kappa$ & $1.885$ & days \\
 \bottomrule
 \end{tabular}
@@ -715,11 +713,10 @@ M^{\star} = \left(\begin{array}{cccc ;{0.6pt/1.4pt} ccc ;{0.6pt/1.4pt} cccc ;{0.
 \end{array}\right)
 \end{equation}
 
-
 Ward state changes are caused by newly arriving patients of different categories
 being placed into beds in specific blocks, patient discharges, patient
-deterioration or improvement (a patient changing type), and moving a patient
-from one bed to another.
+improvement (a patient changing type), and moving a patient from one bed to
+another.
 
 Actions only take place when a new patient arrives to the ward, and this patient
 can be either Stage 2, Stage 3, or Stage 3-I (category $0$, $1$, or $2$).
@@ -1370,9 +1367,8 @@ Rejection multiplier & \multicolumn{3}{c}{$\xi = 4$} \\
 Deriving state transitions analytically is not needed as the policy will be
 found via discrete event simulation.
 Here transitions are generated procedurally as events such as arrivals, bed
-moves, deterioration, improvement, and exits take place, which are governed by
-sequences of competing Poisson processes; as described in
-Section~\ref{sec:description}.
+moves, improvement, and exits take place, which are governed by sequences of
+competing Poisson processes; as described in Section~\ref{sec:description}.
 
 
 \section{Reinforcement Learning Framework}\label{sec:rlframework}
@@ -1964,6 +1960,14 @@ with the theoretical number of state-action pairs (found combinatorially).
 If we can then work out the same theoretical number of state-action pairs for a
 larger ICU (add one more bed), then we can show that the estimated coverage
 ratio will be too small to effectively solve using this RL algorithm.
+\end{tcolorbox}
+
+\section{Discussion}\label{sec:discussion}
+
+\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
+Show that modelling both deterioration and clinical improvement yields no
+learning. Re-run the final model with deterioration and show the learning curve.
+Explain why.
 \end{tcolorbox}
 
 \appendix
