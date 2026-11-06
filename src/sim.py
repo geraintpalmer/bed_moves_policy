@@ -167,6 +167,7 @@ class WardSimulation:
         rejection_penalty,
         expected_remaining_los,
         move_los_extension,
+        isolation_los_extension,
         selection_policy,
         epsilon,
         seed,
@@ -219,6 +220,7 @@ class WardSimulation:
         self.arrival_distributions = tuple(make_sampling_function(dist_info) for dist_info in arrival_distributions)
         self.exit_distributions = tuple(make_sampling_function(dist_info) for dist_info in exit_distributions)
         self.move_los_extension = move_los_extension
+        self.isolation_los_extension = isolation_los_extension
         self.deterioration_distributions = tuple(make_sampling_function(dist_info) for dist_info in deterioration_distributions + [('Deterministic', np.inf)])
         self.improvement_distributions = tuple(make_sampling_function(dist_info) for dist_info in [('Deterministic', np.inf)] + improvement_distributions)
         self.occupancy_arrival_probs = occupancy_arrival_probs
@@ -420,6 +422,10 @@ class WardSimulation:
                     from_block=a1
                 )
                 if a2 != 15:
+                    if (a3 == 2) and (a2 == 14):
+                        remaining_los = self.patients_next_dates[move_idx] - self.now
+                        remaining_los /= self.isolation_los_extension
+                        self.patients_next_dates[move_idx] = self.now + remaining_los
                     self.patients_next_dates[move_idx] += self.move_los_extension
                 if a2 == 15:
                     self.patients_patient_types[move_idx] = -1
@@ -430,6 +436,11 @@ class WardSimulation:
 
             arrival_idx = self.patients_free_indices[-1]
             self.patients_patient_types[arrival_idx] = patient_type
+            
+            self.patients_blocks[arrival_idx] = a1
+            if (patient_type == 2) and (a1 != 14):
+                imp *= self.isolation_los_extension
+                ext *= self.isolation_los_extension
 
             update_next_event_arrays(
                 next_dates=self.patients_next_dates,
@@ -444,7 +455,6 @@ class WardSimulation:
                 IMPROVE=IMPROVE
             )
 
-            self.patients_blocks[arrival_idx] = a1
             self.patients_free_indices.pop()
             self.patients_number_free -= 1
             ward.insert_patient(

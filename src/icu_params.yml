@@ -16,8 +16,9 @@ interward_2: 0.25
 interward_3: 0.33333333
 interward_3I: 0.41666666
 surge_penalty: 3.0
-isolation_penalty: 2.0
 rejection_penalty: 3.5
+isolation_penalty: 2.0
+isolation_los_extension: 1.3
 remaining_los_2: 4.417422
 remaining_los_3: 6.925445
 remaining_los_3I: 7.807359
