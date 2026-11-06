@@ -438,7 +438,7 @@ class WardSimulation:
             self.patients_patient_types[arrival_idx] = patient_type
             
             self.patients_blocks[arrival_idx] = a1
-            if (patient_type == 2) and (a1 != 14):
+            if (patient_type == 2) and (a1 == 14) and (a2 != 14):
                 imp *= self.isolation_los_extension
                 ext *= self.isolation_los_extension
 

@@ -1315,11 +1315,11 @@ def test_isolation_los_extension_effect():
         epsilon=1.0,
         zeta=0.2,
         seed=0,
-        max_time=1000.0,
+        max_time=2000.0,
         warmup=100.0
     )
     S.simulate_until_max_time()
-    cost_M10 = S.overall_cost
+    cost_M1 = S.overall_cost
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -1347,16 +1347,16 @@ def test_isolation_los_extension_effect():
         rejection_penalty=0.0,
         expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
-        isolation_los_extension=1.1,
+        isolation_los_extension=2.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
         zeta=0.2,
         seed=0,
-        max_time=1000.0,
+        max_time=2000.0,
         warmup=100.0
     )
     S.simulate_until_max_time()
-    cost_M11 = S.overall_cost
+    cost_M2 = S.overall_cost
 
     S = sim.WardEvaluation(
         arrival_distributions=[
@@ -1384,21 +1384,21 @@ def test_isolation_los_extension_effect():
         rejection_penalty=0.0,
         expected_remaining_los=np.array([1, 1, 1], dtype=np.float32),
         move_los_extension=0.0,
-        isolation_los_extension=1.5,
+        isolation_los_extension=3.0,
         selection_policy=chooser.EPSILON_GREEDY,
         epsilon=1.0,
         zeta=0.2,
         seed=0,
-        max_time=1000.0,
+        max_time=2000.0,
         warmup=100.0
     )
     S.simulate_until_max_time()
-    cost_M15 = S.overall_cost
+    cost_M3 = S.overall_cost
 
     # I expect the costs to increase as moves lengthen LoS and make it more congested.
-    assert cost_M10 == 24516.082
-    assert cost_M11 == 25353.723
-    assert cost_M15 == 27721.824
+    assert cost_M1 == 48710.84
+    assert cost_M2 == 49901.887
+    assert cost_M3 == 50627.668
 
 
     ## Now ensure no cost difference if no Stage 3I customers:
