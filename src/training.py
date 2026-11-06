@@ -91,6 +91,7 @@ def train(
             ], dtype=np.float32
         ),
         move_los_extension=float(system_params['kappa']),
+        isolation_los_extension=float(system_params['isolation_los_extension']),
         selection_policy=selection_policy,
         epsilon=epsilon,
         seed=seed,
