@@ -2,7 +2,7 @@ max_time: 600000
 learning_rate: 0.2
 discount_factor: 0.99999
 n_stages: 21
-zeta: 0.9
+zeta: 0.95
 trials_per_stage: 60
 max_epsilon: 1.0
 selection_policy: 'mixture'
