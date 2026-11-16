@@ -32,6 +32,14 @@
 \usepackage{array}
 \usepackage{arydshln}
 
+\newcommand{\splitatcommas}[1]{%
+  \begingroup
+  \begingroup\lccode`~=`, \lowercase{\endgroup
+    \edef~{\mathchar\the\mathcode`, \penalty0 \noexpand\hspace{0pt plus 1em}}%
+  }\mathcode`,="8000 #1%
+  \endgroup
+}
+
 \setcounter{MaxMatrixCols}{17}
 
 \newtheorem{proposition}{Proposition}
@@ -348,7 +356,7 @@ parametrisation model is developed:
 In Section~\ref{sec:monte_carlo_model} length of stay extensions are modelled,
 and then in Section~\ref{sec:ctmc_model} care level transitions are modelled.
 The multiplicative non-isolation `slowing' factor, $\mathcal{J}$ is estimated
-from clinical knowledge to be around 30\% slower, that is $\mathcal{J} = 1.3$.
+from clinical knowledge to be around 50\% slower, that is $\mathcal{J} = 1.5$.
 
 \subsection{Stage 1: LoS extensions}\label{sec:monte_carlo_model}
 Now consider $\kappa$, the additional length of stay added to a patient's length
@@ -583,7 +591,7 @@ Expected LoS & $\mathcal{L}_2$ & $4.417$ & days \\
              & $\mathcal{L}_3$ & $6.925$ & days \\
              & $\mathcal{L}_{3\text{-I}}$ & $7.807$ & days \\[2.5mm]
 LoS Extension & $\kappa$ & $1.885$ & days \\[2.5mm]
-Non-isolation slowing factor & $\mathcal{J}$ & $1.3$ & \\
+Non-isolation slowing factor & $\mathcal{J}$ & $1.5$ & \\
 \bottomrule
 \end{tabular}
 \caption{Model parameters.}
@@ -1698,6 +1706,25 @@ learning behaviour.
 From this training curve, the incumbent policy at the stage that produces the
 lowest median overall cost during evaluation is chosen as the final policy.
 
+We generally compare a policy's performance to the random policy in two ways:
+the percentage difference in median of total costs, and the percentage
+difference in median of potentially avoidable costs.
+This is to account for the fact that even when running at absolute theoretical
+optimum, there is an underlying unavoidable cost associated with caring for the 
+patients.
+We calculate this as the expected cost of treating all patients in the ICU, in
+their appropriate beds, and all Stage 2 patients sharing a nurse.
+This is given in Equation~\ref{eqn:unavoidable_cost}, where $N$ is the
+fundemental matrix of the stochastic process governing patient care levels from
+Section~\ref{sec:ctmc_model}.
+Potentially avoidable costs are therefore the overall cost minus
+$C_{\text{unavoidable}}$, where the factor of $\frac{1}{2}$ scales down by SQA
+component.
+
+\begin{equation}\label{eqn:unavoidable_cost}
+C_{\text{unavoidable}} = \frac{1}{2}\left((\lambda_2, \lambda_3, \lambda_{3\text{-I}}) N\right) \cdot \left(\sfrac{1}{2}, 1, 1\right) = 7.12 \text{ nurses per day}
+\end{equation}
+
 In practice due to human error or unexpected disruptions it may not be possible
 to adhere to a given policy 100\% of the time.
 A robust policy would be able to self-correct when a sub-optimal action is
@@ -1724,23 +1751,30 @@ required during policy deployment.
 
 \subsection{Standard Hyper-parameter Tuning}\label{sec:shpt}
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
-we run four rounds of coordinate decent.
-Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 2$),
-in round 1 we fix $\alpha = 0.2$ as a reasonable initial guess, and search 
-$\gamma \in (0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999, 0.99995,
-0.99999, 0.999995)$, finding that optimal discount factor to be
-$\gamma = 0.9999$.
-Then in round 2 we fix $\gamma = 0.9999$ and search
-$\alpha \in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)$, finding the
-optimal learning rate to be $\alpha = 0.5$.
-In round 3 we fix $\alpha = 0.5$ and tune the discount factor by searching
-$\gamma \in (0.9995, 0.99965, 0.9998, 0.9999, 0.99991, 0.99993, 0.99995)$,
-choosing $\gamma = 0.99965$.
-Finally in round 4 we fix $\gamma = 0.99965$ and tune the learning rate by
-searching $\alpha \in (0.4, 0.433, 0.466, 0.5, 0.533, 0.566, 0.6)$, selecting
-$\alpha = 0.5$.
+we run four rounds of coordinate descent.
+Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 2$,
+over a training epoch of 600,000 time units, with 60 parallel agents):
+
+\begin{enumerate}
+    \item Rodun 1: Fix $\alpha = 0.2$ as an initial guess and search $\gamma \in
+    \splitatcommas{\{0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999,
+    0.99995, 0.99999, 0.999995\}}$, yielding $\gamma = 0.9999$;
+    \item Round 2: Fix $\gamma = 0.9999$ and search $\alpha \in \splitatcommas{
+    \{0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9\}}$, yielding
+    $\alpha = 0.5$.
+    \item Round 3: Fix $\alpha = 0.5$ and refine $\gamma \in \splitatcommas{
+    \{0.9995, 0.99965, 0.9998, 0.9999, 0.99991, 0.99993, 0.99995\}}$, choosing
+    $\gamma = 0.99965$.
+    \item Round 4: Fix $\gamma = 0.99965$ and refine $\alpha \in
+    \splitatcommas{\{0.4, 0.433, 0.466, 0.5, 0.533, 0.566, 0.6\}}$, choosing
+    $\alpha = 0.5$.
+\end{enumerate}
+
 These then are the values used throughout the remainder of the paper.
-The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
+The results of this parameter sweep are given in Figure~\ref{fig:param_sweep},
+where the $y$-axes are the percentage difference in the median cost (for 12,500
+time units evaluated over 200 trials) between a random untrained policy, and the
+fully trained policy.
 
 \begin{figure}
 \begin{center}
@@ -1752,7 +1786,15 @@ The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
 
 Figures~\ref{fig:base_run} and~\ref{fig:base_run_robustness} show the training
 curve and robustness curve when using the found hyper-parameters
-$\alpha = 0.16$ and $\gamma = 0.94$.
+$\alpha = 0.5$ and $\gamma = 0.99965$.
+Overall, this optimal policy produces a median overall cost of 166,732.8,
+improving on a random (median overall cost of 182,741.235), by 8.76\%.
+Disregarding the unavoidable cost $C_{\text{unavoidable}}$, the optimal policy
+improves the potentially avoidable cost by 17.08\%.
+This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
+We can see that for very small errors, up to around 2\%, there is hardly any
+degradation in performance, however there is then a linear decline in
+performance up to a 10\% error rate, and larger deterioration thereafter.
 
 \begin{figure}
 \begin{center}
@@ -1770,36 +1812,6 @@ $\alpha = 0.16$ and $\gamma = 0.94$.
 different exploitation probabilities $\epsilon$.}
 \label{fig:base_run_robustness}
 \end{figure}
-
-The training curve has and interesting shape wave-like shape which can be
-described in four stages:
-\begin{itemize}
-  \item Random - Stage 1: after the first stage the policy improves, discovering
-  some quick `low hanging fruit' gains.
-  \item Stage 1 - Stage 4: the policy worsens with training, which may seem
-  unintuitive, but can however be explained by the the choice of default value
-  of unexplored states, using $\zeta = 0.5$:
-  not only is exploration of unexplored state-actions discouraged (only
-  assuming the running median reward), but long-term sequences of actions are
-  penalised if they contain any unexplored state-actions. Hence in these
-  partially explored and partially trained regions, fully explored sequences
-  look more optimal than partially explored sequences, even if in reality they
-  are less optimal.
-  \item Stage 4 - Stage 12: Here enough of the state-action space is explored
-  sufficiently that further training improves the policy.
-  \item Stage 12 onward: Here the policy gradually worsens with training again,
-  due to over-fitting when training with such high exploitation and no pruning,
-  as expected and discussed in Section~\ref{sec:training_framework}. Therefore
-  the early-stopping scheme would choose the incumbent policy at Stage 12 as the
-  optimal. 
-\end{itemize}
-
-Overall, this optimal policy produces a median overall cost of 177,663.085,
-improving on a random (median overall cost of 203,164.96), by 12.6\%.
-This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
-We can see that for very small errors, up to around 2\%, there is hardly any
-degradation in performance, however there is then a linear decline in
-performance up to a 10\% error rate, and larger deterioration thereafter.
 
 
 \subsection{Algorithm-specific Hyper-parameter Tuning}\label{sec:ashpt}
