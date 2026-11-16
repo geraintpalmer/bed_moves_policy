@@ -1724,22 +1724,29 @@ required during policy deployment.
 
 \subsection{Standard Hyper-parameter Tuning}\label{sec:shpt}
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
-we run an hierarchical grid search.
-Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 0$),
-in round 1 we first search 
-$(\alpha, \gamma) \in (0.1, 0.2, 0.3, 0.4) \times (0.8, 0.9, 0.95, 0.99)$, and
-find the optimal combination to be $\alpha = 0.1$ and $\gamma = 0.9$.
-Then in round 2 we search $(\alpha, \gamma) \in (0.04, 0.08, 0.12, 0.16)
-\times (0.85, 0.89, 0.8, 0.92, 0.94)$, and refine our optimal combination to
-$\alpha = 0.16$ and $\gamma = 0.94$, which are the values used throughout the
-remainder of the paper.
+we run four rounds of coordinate decent.
+Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 2$),
+in round 1 we fix $\alpha = 0.2$ as a reasonable initial guess, and search 
+$\gamma \in (0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999, 0.99995,
+0.99999, 0.999995)$, finding that optimal discount factor to be
+$\gamma = 0.9999$.
+Then in round 2 we fix $\gamma = 0.9999$ and search
+$\alpha \in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)$, finding the
+optimal learning rate to be $\alpha = 0.5$.
+In round 3 we fix $\alpha = 0.5$ and tune the discount factor by searching
+$\gamma \in (0.9995, 0.99965, 0.9998, 0.9999, 0.99991, 0.99993, 0.99995)$,
+choosing $\gamma = 0.99965$.
+Finally in round 4 we fix $\gamma = 0.99965$ and tune the learning rate by
+searching $\alpha \in (0.4, 0.433, 0.466, 0.5, 0.533, 0.566, 0.6)$, selecting
+$\alpha = 0.5$.
+These then are the values used throughout the remainder of the paper.
 The results of this parameter sweep are given in Figure~\ref{fig:param_sweep}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.95\textwidth]{../plt/param_sweep}
 \end{center}
-\caption{Results of the hierarchical grid search for $\alpha$ and $\gamma$.}
+\caption{Results of the coordinate descent search for $\alpha$ and $\gamma$.}
 \label{fig:param_sweep}
 \end{figure}
 
