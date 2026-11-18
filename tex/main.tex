@@ -1650,13 +1650,22 @@ In these cases the baseline $Q$-value for unexplored states will have an effect.
 Assuming $Q$-values follow a Normal distribution, we use their $\zeta$-th
 percentile as a default value, where $\zeta$ is a hyper-parameter to choose,
 $Q_{\zeta}$, using Equation~\ref{eqn:defaultQ}, which can be obtained by keeping
-track of the running mean and variance of the rewards, $\bar{R}$ and $s_R^2$,
-using updates such as Welford's update \cite{welford62}, and the $\zeta$-th
-percentile of the standard Normal distribution, $z_{\zeta}$.
+track of the running mean and standard deviation of the rewards, $\bar{R}$ and
+$s_R$, using updates such as Welford's update \cite{welford62}, and the
+$\zeta$-th percentile of the standard Normal distribution, $z_{\zeta}$.
 
 \begin{equation}\label{eqn:defaultQ}
-Q_{\zeta} = \frac{\bar{R} - z_{\zeta} s_R^2}{1 - \gamma}
+Q_{\zeta} = \frac{\bar{R} + z_{\zeta} s_R}{1 - \gamma}
 \end{equation}
+
+This formulation yields that $\zeta = 0.5$ is neutral, while $\zeta < 0.5$ gives
+a pessimistic default discouraging exploring unexplored states, and
+$\zeta > 0.5$ gives an optimistic default, encouraging exploration into the
+unknown.
+The empirical rewards of our system may not be strictly Normally distributed,
+however we treat $\zeta$ as an algorithm parameter, and by sweeping $\zeta$
+across $(0, 1)$ then $z_{\zeta}$ still spans the full range of effective
+quantiles of the true reward distribution.
 
 
 \subsection{Pruning}\label{sec:pruning}
