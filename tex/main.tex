@@ -474,7 +474,7 @@ through the care levels during their stay at the ICU.}
 \end{figure}
 
 \begin{equation}\label{eqn:ctmc_transitionmatrix}
-Q = \begin{pmatrix}
+\mathbf{Q} = \begin{pmatrix}
 -\mu_2 & 0 & 0 & \mu_2 \\
 r_{3,2} & -(r_{3,2} + \mu_3) & 0 & \mu_{3} \\
 0 & r_{3\text{-I},3} & -(r_{3\text{-I},3} + \mu_{3\text{-I}}) & \mu_{3\text{-I}} \\
@@ -490,21 +490,24 @@ We consider three behaviours:
   \item \textit{Total time spent in each care level:}
   The transition rate matrix has the following block structure of an absorbing Markov chain \cite{stewart09}:
   \begin{equation}
-  Q = \begin{bmatrix}
-  \mathbf{R} & \mathbf{T} \\
+  \mathbf{Q} = \begin{bmatrix}
+  \mathbf{T} & \mathbf{B} \\
   \mathbf{0} & \mathbf{0}
   \end{bmatrix}
   \end{equation}
-  and the entries of fundamental matrix $N_{ij} = (-\mathbf{R}^{-1})_{ij}$ give
-  the expected overall time spent in state $j$ given starting state $i$.
+  and the entries of fundamental matrix $\mathbf{S}_{ij}=(-\mathbf{T}^{-1})_{ij}$
+  give the expected overall time spent in state $j$ given starting state $i$.
 
   The empirical data collected gives the mean total number of days spent in each
   stage, by their stage at admission, although does not distinguish between
   Stages 3 and 3-I.
   This is shown in Figure~\ref{fig:overall_care_days_by_admission_stage}.
-  Hence we can fit $N_{2, 2}$, $N_{2, 3} + N_{2, 3\text{-I}}$, $N_{3, 2}$,
-  $N_{3, 3} + N_{3, 3\text{-I}}$, $N_{3\text{-I}, 2}$, and
-  $N_{3\text{-I}, 3} + N_{3\text{-I}, 3\text{-I}}$ to this data, and define:
+  Hence we can fit $\mathbf{S}_{2, 2}$,
+  $\mathbf{S}_{2, 3} + \mathbf{S}_{2, 3\text{-I}}$, $S_{3, 2}$,
+  $\mathbf{S}_{3, 3} + \mathbf{S}_{3, 3\text{-I}}$,
+  $\mathbf{S}_{3\text{-I}, 2}$, and
+  $\mathbf{S}_{3\text{-I}, 3} + \mathbf{S}_{3\text{-I}, 3\text{-I}}$ to this
+  data, and define:
 
   \item \textit{The exit probability from Stage 3-I:}
   It is assumed that the only patients discharged from Stage 3-I care are those
@@ -516,7 +519,7 @@ We consider three behaviours:
   
   \begin{equation}
   \mathbb{P}(\text{Exit} \; | \; \text{Stage 3-I}) =
-  \mu_{3\text{-I}} \sum_{i \in \{2, 3, 3\text{-I}\}} p_i N_{i, 3\text{-I}} = 0.193,
+  \mu_{3\text{-I}} \sum_{i \in \{2, 3, 3\text{-I}\}} p_i \mathbf{S}_{i, 3\text{-I}} = 0.193,
   \end{equation}
   where $p_i$ is the probability of beginning in stage $i$, which can be found empirically in the data:
   \begin{equation*}
@@ -551,9 +554,10 @@ fundamental matrix.}
 \end{figure}
 
 A loss function is constructed by taking the mean percentage squared error
-between the observed and expected values of $N_{2, 2}$,
-$N_{2, 3} + N_{2, 3\text{-I}}$, $N_{3, 2}$, $N_{3, 3} + N_{3, 3\text{-I}}$,
-$N_{3\text{-I}, 2}$, $N_{3\text{-I}, 3} + N_{3\text{-I}, 3\text{-I}}$,
+between the observed and expected values of $\mathbf{S}_{2, 2}$,
+$\mathbf{S}_{2, 3} + \mathbf{S}_{2, 3\text{-I}}$, $\mathbf{S}_{3, 2}$,
+$\mathbf{S}_{3, 3} + \mathbf{S}_{3, 3\text{-I}}$, $\mathbf{S}_{3\text{-I}, 2}$,
+$\mathbf{S}_{3\text{-I}, 3} + \mathbf{S}_{3\text{-I}, 3\text{-I}}$,
 $\mathbb{P}(\text{Exit} \; | \; \text{Stage 3-I})$, and $H_{3\text{-I}}$.
 Minimising this loss function numerically using Scipy \cite{scipy} yielded a
 mean squared percentage error of 1.97 with fitted parameters:
@@ -567,7 +571,7 @@ These can be derived from the CTMC's fundamental matrix given by
 Equation~\ref{eqn:expected_remaining_time}.
 
 \begin{equation}\label{eqn:expected_remaining_time}
-(\mathcal{L}_2, \mathcal{L}_3, \mathcal{L}_{3\text{-I}})^T = N (1, 1, 1)^{T}
+(\mathcal{L}_2, \mathcal{L}_3, \mathcal{L}_{3\text{-I}})^T = \mathbf{S} (1, 1, 1)^{T}
 \end{equation}
 
 Table~\ref{tbl:model_parameters} summarises all the parameters found.
@@ -1723,7 +1727,7 @@ optimum, there is an underlying unavoidable cost associated with caring for the
 patients.
 We calculate this as the expected cost of treating all patients in the ICU, in
 their appropriate beds, and all Stage 2 patients sharing a nurse.
-This is given in Equation~\ref{eqn:unavoidable_cost}, where $N$ is the
+This is given in Equation~\ref{eqn:unavoidable_cost}, where $\mathbf{S}$ is the
 fundemental matrix of the stochastic process governing patient care levels from
 Section~\ref{sec:ctmc_model}.
 Potentially avoidable costs are therefore the overall cost minus
@@ -1731,7 +1735,7 @@ $C_{\text{unavoidable}}$, where the factor of $\frac{1}{2}$ scales down by SQA
 component.
 
 \begin{equation}\label{eqn:unavoidable_cost}
-C_{\text{unavoidable}} = \frac{1}{2}\left((\lambda_2, \lambda_3, \lambda_{3\text{-I}}) N\right) \cdot \left(\sfrac{1}{2}, 1, 1\right) = 7.12 \text{ nurses per day}
+C_{\text{unavoidable}} = \frac{1}{2}\left((\lambda_2, \lambda_3, \lambda_{3\text{-I}}) \mathbf{S}\right) \cdot \left(\sfrac{1}{2}, 1, 1\right) = 7.12 \text{ nurses per day}
 \end{equation}
 
 In practice due to human error or unexpected disruptions it may not be possible
@@ -1789,7 +1793,8 @@ fully trained policy.
 \begin{center}
 \includegraphics[width=0.95\textwidth]{../plt/param_sweep}
 \end{center}
-\caption{Results of the coordinate descent search for $\alpha$ and $\gamma$.}
+\caption{Results of the coordinate descent search for $\alpha$ and $\gamma$.
+Error bars indicate a 95\% bootstrap confidence interval around the median.}
 \label{fig:param_sweep}
 \end{figure}
 
@@ -1837,37 +1842,36 @@ reward for unexplored states, and therefore the default $Q$-value associated
 with those states is given in Equation~\ref{eqn:defaultQ}.
 In the previous section $\zeta = 0.5$ was used, that is we took the median
 reward seed so far as the default.
-We saw the the wave-like training curve seen in Figure~\ref{fig:base_run} may be
-partially explained by the choice of $\zeta$, and therefore other values may
-exhibit different training behaviour.
+Here we explore the effect of choosing different values of $\zeta$.
 
 Figure~\ref{fig:vary_zeta} shows the training curves of three runs using
-$\zeta \in (0.15, 0.5, 0.85)$, representing pessimistic (assuming unexplored
-states have worse reward than 85\% of what has been observed so far), neutral,
-and optimistic (assuming unexplored states have better reward than 85\% of what
-has been observed so far).
-We see with the pessimistic and neutral values that the policies worsen between
-stages 1 and 4 as exploration is discouraged, pulling the agent into poor local
-choices.
-This is avoided completely with the optimistic choice where exploration is
-encouraged; however it fails to reach the peak performance of the others as
-over-fitting begins early, that is sequences of best actions do not propagate as
-they are interrupted by attractive unexplored states.
-Future work might work to dynamically vary the value of $\zeta$ as the training
-progresses, to capture the best of both pessimistic and optimistic defaults
-where needed.
-Note also that although we call $\zeta = 0.5$ neutral, this depends entirely on
-the distribution of observed rewards, and Figure~\ref{fig:vary_zeta} suggests
-this may be more pessimistic than originally thought due to its similar
-behaviour to the pessimistic choice $\zeta = 0.15$.
+$\zeta \in (0.05, 0.2, 0.35 0.5, 0.65 0.8, 0.95)$, representing a range from
+pessimistic ($\zeta=0.05$ assuming unexplored states have worse reward than 95\%
+of what has been observed so far), through neutral, to optimistic ($\zeta=0.95$
+assuming unexplored states have better reward than 95\% of what has been
+observed so far).
+The more optimistic the value of $\zeta$, that is as it increases when
+$\zeta > 0.5$ encourages more exploration; and yields gradually worse performing
+policies.
+This can be explained by the agents disregarding seldom hit state-action pairs,
+allowing the default $Q$-value to propogate throughout the $Q$ table instead of
+learned values.
+The more pessimistic the value ot $\zeta$, that is as it decreases when
+$\zeta < 0.5$, encourages exploitation; and also yields gradually woese
+performing policies.
+This can be explained by the agents overfitting $Q$-values as it latches on to
+seldom hit state-action pairs which propogate throughout the $Q$ table.
+The plot confirms that a neutral default value, $\zeta = 0.5$ yields the best
+performing policy as it overcomes the above problems.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.6\textwidth]{../plt/vary_zeta}
 \end{center}
-\caption{Comparing the training curve using pessimistic, neutral, and optimistic
-default values for unexplored states. Solid lines denote the median evaluation,
-while shaded regions show the inter-quartile range.}
+\caption{Evaluating policies trained using a range of values of $\zeta$,
+yeilding pessimistic, neutral, and optimistic default values for unexplored
+states. Error bars indicate a 95\% bootstrap confidence interval around the
+median.}
 \label{fig:vary_zeta}
 \end{figure}
 
