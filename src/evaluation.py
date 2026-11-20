@@ -131,6 +131,10 @@ if __name__ == '__main__':
         annealing_schedule = params['annealing_schedule']
     else:
         annealing_schedule = 'linear'
+    if 'annealing_power' in params:
+        annealing_power = params['annealing_power']
+    else:
+        annealing_power = 2
 
     with open("icu_params.yml") as f:
         params_raw = f.read()
@@ -138,7 +142,7 @@ if __name__ == '__main__':
 
     occupancy_arrival_probs = np.genfromtxt('data/state_dependent_arrivals.csv')
 
-    training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon, annealing_schedule=annealing_schedule)
+    training_epsilons = rl.get_param_schedule(n_stages=n_stages, max_value=max_epsilon, annealing_schedule=annealing_schedule, p=annealing_power)
     eval_epsilons = [0.0] + [1.0 for _ in range(n_stages)]
     seed = 0
     costs = {}

@@ -1573,13 +1573,16 @@ $r_a \in \{1, 2, 3\}$.
 We choose to begin the training run with a low $\epsilon$ and gradually increase
 it throughout the run - exploring early to find plausible optimal policies, and
 exploiting later to refine them.
+How $\epsilon$ is increased across the run will be called the annealing schedule
+of the exploitation rate.
 
 With such a vast state space, and high stochasticity, convergence for all states
 is practically impossible, and we must settle on very long enough run times to
 obtain good-enough $Q$-values to read off optimal policies.
 These long run times are still computationally expensive and time intensive.
-We therefore train the agent in a parallel framework, visualised in
-Figure~\ref{fig:training_framework}.
+We therefore train the many parallel agents who share and combine data at
+discrete intervals called stages.
+This is visualised in Figure~\ref{fig:training_framework}.
 
 
 \begin{figure}
@@ -1588,13 +1591,13 @@ Figure~\ref{fig:training_framework}.
 \label{fig:training_framework}
 \end{figure}
 
-We train the model over $M$ stages, utilising $N$ parallel workers.
+We train the model over $M$ stages, utilising $N$ parallel agents.
 At stage $m=0$, $Q$-value tables are initialised as empty, that is no
 states-action pairs have been discovered yet, and we set $\epsilon = 0$ for full
 exploration.
-These $Q$-value tables are replicated $N$ times, and split over $N$ parallel
-workers, each running its own training simulation, updating its own table of
-$Q$-values for a particular stretch of time.
+These $Q$-value tables are replicated $N$ times, one for each of the $N$
+parallel agents, each running its own training simulation, updating its own
+table of $Q$-values for a particular stretch of time.
 Once these parallel training runs are complete, each worker will have its own
 distinct table of $Q$-values: let $Q_n(s, a)$ represent the $n^{\text{th}}$
 worker's estimate of the $Q$-value for the $(s, a)$ state-action pair.
@@ -1607,14 +1610,16 @@ visits, that is:
 Q(s, a) = \frac{\sum_{n=1}^N Q_n(s, a) h_n(s, a)}{\sum_{n=1}^N h_n(s, a)}
 \end{equation}
 
-In the next stage, we update $\epsilon \leftarrow \epsilon + \sfrac{1}{M}$,
+In the next stage, we update $\epsilon$ according to some annealing schedule.
+For example a linear annealing schedule would correspond to
+$\epsilon \leftarrow \epsilon + \frac{1}{M-1}$,
 gradually increasing the agent's rate of exploitation linearly.
 Then $Q$-values are initialised with the combined $Q$-value tables found at the
 end of the last stage, the $h_n$ are reset to zero, and the training is repeated
-on parallel workers.
+on parallel agents.
 This ensures that at the first stage we have full exploration, and by the final
-stage we have full exploitation, with $\epsilon$ increasing linearly over the
-stages.
+stage we have full exploitation, with $\epsilon$ increasing over the stages
+according to the annealing schedule.
 
 After each stage the combined $Q$-values are saved and so the incumbent policy
 can be evaluated by running the simulation, without any $Q$-learning, choosing
@@ -1728,7 +1733,7 @@ patients.
 We calculate this as the expected cost of treating all patients in the ICU, in
 their appropriate beds, and all Stage 2 patients sharing a nurse.
 This is given in Equation~\ref{eqn:unavoidable_cost}, where $\mathbf{S}$ is the
-fundemental matrix of the stochastic process governing patient care levels from
+fundamental matrix of the stochastic process governing patient care levels from
 Section~\ref{sec:ctmc_model}.
 Potentially avoidable costs are therefore the overall cost minus
 $C_{\text{unavoidable}}$, where the factor of $\frac{1}{2}$ scales down by SQA
@@ -1762,14 +1767,16 @@ Let the ``deployment footprint'' be the number of states recorded in the chosen
 final policy; this is an indication of the storage and memory requirement
 required during policy deployment.
 
-\subsection{Standard Hyper-parameter Tuning}\label{sec:shpt}
+\subsection{Hyper-parameter Tuning}\label{sec:shpt}
+\subsubsection{Tuning Learning Rate and Discount Factor}
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
 we run four rounds of coordinate descent.
-Keeping all other parameters equal (for now $\zeta = 0.5$ and $\tilde{h} = 2$,
-over a training epoch of 600,000 time units, with 60 parallel agents):
+Keeping all other parameters equal (for now $\zeta = 0.5$, $\tilde{h} = 2$, a
+linear annealing schedule over 21 stages, each stage has a training epoch of
+600,000 time units, with 60 parallel agents):
 
 \begin{enumerate}
-    \item Rodun 1: Fix $\alpha = 0.2$ as an initial guess and search $\gamma \in
+    \item Round 1: Fix $\alpha = 0.2$ as an initial guess and search $\gamma \in
     \splitatcommas{\{0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999,
     0.99995, 0.99999, 0.999995\}}$, yielding $\gamma = 0.9999$;
     \item Round 2: Fix $\gamma = 0.9999$ and search $\alpha \in \splitatcommas{
@@ -1798,44 +1805,37 @@ Error bars indicate a 95\% bootstrap confidence interval around the median.}
 \label{fig:param_sweep}
 \end{figure}
 
-Figures~\ref{fig:base_run} and~\ref{fig:base_run_robustness} show the training
-curve and robustness curve when using the found hyper-parameters
-$\alpha = 0.5$ and $\gamma = 0.99965$.
-Overall, this optimal policy produces a median overall cost of 166,732.8,
-improving on a random (median overall cost of 182,741.235), by 8.76\%.
-Disregarding the unavoidable cost $C_{\text{unavoidable}}$, the optimal policy
-improves the potentially avoidable cost by 17.08\%.
-This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
-We can see that for very small errors, up to around 2\%, there is hardly any
-degradation in performance, however there is then a linear decline in
-performance up to a 10\% error rate, and larger deterioration thereafter.
+% Figures~\ref{fig:base_run} and~\ref{fig:base_run_robustness} show the training
+% curve and robustness curve when using the found hyper-parameters
+% $\alpha = 0.5$ and $\gamma = 0.99965$.
+% Overall, this optimal policy produces a median overall cost of 166,732.8,
+% improving on a random (median overall cost of 182,741.235), by 8.76\%.
+% Disregarding the unavoidable cost $C_{\text{unavoidable}}$, the optimal policy
+% improves the potentially avoidable cost by 17.08\%.
+% This policy's robustness is shown in Figure~\ref{fig:base_run_robustness}.
+% We can see that for very small errors, up to around 2\%, there is hardly any
+% degradation in performance, however there is then a linear decline in
+% performance up to a 10\% error rate, and larger deterioration thereafter.
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/cost_by_stage}
-\end{center}
-\caption{Training curve with tuned hyper-parameters.}
-\label{fig:base_run}
-\end{figure}
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/cost_by_stage}
+% \end{center}
+% \caption{Training curve with tuned hyper-parameters.}
+% \label{fig:base_run}
+% \end{figure}
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/robust_evaluation}
-\end{center}
-\caption{Evaluation of the best policy (incumbent at Stage 12) when using
-different exploitation probabilities $\epsilon$.}
-\label{fig:base_run_robustness}
-\end{figure}
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.85\textwidth]{../src/experiments/main_run/results/robust_evaluation}
+% \end{center}
+% \caption{Evaluation of the best policy (incumbent at Stage 12) when using
+% different exploitation probabilities $\epsilon$.}
+% \label{fig:base_run_robustness}
+% \end{figure}
 
 
-\subsection{Algorithm-specific Hyper-parameter Tuning}\label{sec:ashpt}
-There are two features built into our reinforcement learning framework that
-require investigation to their effects: the default reward used for the
-unexplored states, parametrised by $\zeta$, and the pruning limit $\tilde{h}$.
-Here we analyse their effects on the training and robustness curves, and their
-memory and storage footprints.
-
-\subsubsection{Effect of Default $Q$-value}
+\subsubsection{Effect of Default $Q$-value}\label{sec:zeta_experiments}
 Recall from Section~\ref{sec:default_unexplored} that $\zeta$ represents the
 quantile of the rewards found so far in the training run used as the default
 reward for unexplored states, and therefore the default $Q$-value associated
@@ -1854,13 +1854,13 @@ The more optimistic the value of $\zeta$, that is as it increases when
 $\zeta > 0.5$ encourages more exploration; and yields gradually worse performing
 policies.
 This can be explained by the agents disregarding seldom hit state-action pairs,
-allowing the default $Q$-value to propogate throughout the $Q$ table instead of
+allowing the default $Q$-value to propagate throughout the $Q$ table instead of
 learned values.
-The more pessimistic the value ot $\zeta$, that is as it decreases when
+The more pessimistic the value of $\zeta$, that is as it decreases when
 $\zeta < 0.5$, encourages exploitation; and also yields gradually woese
 performing policies.
-This can be explained by the agents overfitting $Q$-values as it latches on to
-seldom hit state-action pairs which propogate throughout the $Q$ table.
+This can be explained by the agents over-fitting $Q$-values as it latches on to
+seldom hit state-action pairs which propagate throughout the $Q$ table.
 The plot confirms that a neutral default value, $\zeta = 0.5$ yields the best
 performing policy as it overcomes the above problems.
 
@@ -1869,7 +1869,7 @@ performing policy as it overcomes the above problems.
 \includegraphics[width=0.6\textwidth]{../plt/vary_zeta}
 \end{center}
 \caption{Evaluating policies trained using a range of values of $\zeta$,
-yeilding pessimistic, neutral, and optimistic default values for unexplored
+yielding pessimistic, neutral, and optimistic default values for unexplored
 states. Error bars indicate a 95\% bootstrap confidence interval around the
 median.}
 \label{fig:vary_zeta}
@@ -1882,103 +1882,141 @@ than $\tilde{h}$ times are discarded.
 Beyond slimming down the transient training $Q$-tables and final policies,
 pruning can also speed up training as memory allocation and lookups become
 easier and faster.
-Additionally, Figure~\ref{fig:base_run} indicated that over-fitting due to
-propagation of poorly-trained edge-cases worsens the policy.
-Therefore pruning can eliminate these edge cases improve overall policy
-performance.
+Additionally pruning can prevent over-fitting, as seldom visited state-action
+pairs will have worse $Q$-value estimates, which propagate through the $Q$-table
+due to discounting.
+Pruning these states will effectively replace these bad estimates with the
+default estimate discussed in Section~\ref{sec:zeta_experiments}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=\textwidth]{../plt/pruning_experiment}
 \end{center}
 \caption{Comparing policies trained with various pruning limits $\tilde{h}$.
-Left: comparing policy performance under difference adherence rates $\epsilon$.
+Left: comparing policy performance, error bars indicate a 95\% bootstrap
+confidence interval around the median.
 Right: Comparing training and deployment footprints.}
 \label{fig:pruning_experiment}
 \end{figure}
+
 
 Figure~\ref{fig:pruning_experiment} compares policies trained using various
 prune limits $\tilde{h}$.
 The plot on the right hand side confirms that a larger pruning limit reduces
 the training and deployment footprints according to a inverse power law.
-The plot on the left hand side shows that increasing $\tilde{h}$ does improve on
-the quality of the final policy substantially, to a point, and then the policy
-worsens if too many state-action pairs are pruned.
-Of the values tested, $\tilde{h} = 25$ gives the best performing policy.
-However there is a trade-off between policy performance and policy robustness:
-when the policy improves due to pruning, there is a larger decay in performance
-if the adherence rate drops.
-For example consider the drop in performance between a 100\% adherence rate and
-a 90\% adherence rate: when $\tilde{h} = 0$, there is a 2.44\% drop in
-performance, and when $\tilde{h} = 25$, the limit that produces the best quality
-policy, there is a 7.15\% drop in performance.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.5\textwidth]{../plt/pruning_experiment_training_curves}
-\end{center}
-\caption{Comparing training curves when using various pruning limits
-$\tilde{h}$.}
-\label{fig:pruning_experiment_training}
-\end{figure}
-
-Looking at the training curves for various values of $\tilde{h}$ might provide
-some insight.
-This is given in Figure~\ref{fig:pruning_experiment_training}.
-We see that initially as $\tilde{h}$ increases, the wave-like pattern amplifies:
-initially over-fitting worse than before, but then recovering more
-spectacularly.
-Then, as $\tilde{h}$ increases further, the initial over-fitting completely
-disappears, however the learning curve thereafter is much slower.
-
-
-\subsection{Final Trained Policy}
-In Sections~\ref{sec:shpt} and~\ref{sec:ashpt} we established the effect of
-standard and algorithm-specific hyper-parameters.
-We now amalgamate our findings into a final training run to obtain an optimal
+The plot on the left hand side shows that increasing $\tilde{h}$ from no pruning
+to pruning $h=2$ does improve on
+the quality of the final policy substantially as over-fitting is avoided.
+Then for $h>2$ the policy
+worsens if as many state-action pairs are pruned, and valuable training data is
+lost.
+Therefore, of the values tested, $\tilde{h} = 2$ gives the best performing
 policy.
-We select the tuned learning rate $\alpha = 0.16$, discount factor
-$\gamma = 0.94$, default $Q$-=value quantile $\zeta = 0.5$, and a pruning
-limit $\tilde{h} = 25$.
-Figure~\ref{fig:pruning_experiment_training} indicated that when using
-$\tilde{h} = 25$ the policy may not yet have reached it optimal by the end of
-the training epoch, we extend the training from 21 to 31 stages to ensure a
-better trained policy.
 
-Figures~\ref{fig:final_run} and~\ref{fig:final_run_robustness} show the training
-and robustness curves for this run.
-The best incumbent policy is that from Stage 31, yielding an optimal policy that
-produces a median overall cost of 158,806.14, improving on a random (median
-overall cost of 203,164.96), by 21.8\%.
+\subsubsection{Effect of Annealing Schedule}
+In Section~\ref{sec:training_framework} it was established that over the $M$
+stages of training the exploitation rate $\epsilon$ is increased monotonically.
+Here we explore the effect of three different annealing schedules, for different
+numbers of training stages $M$.
+These schedules all begin at $\epsilon = 0$ and conclude at $\epsilon = 1$, and
+differ by the rate at which $\epsilon$ grows.
+The three schedules to explore are:
 
-It is interesting to note here that even when using 10 more training stages (and
-thus increasing the overall training epoch by 50\%), this policy settles on the
-same valued policy as when training over 21 stages, and that the optimal policy
-is again found at the final training stage.
-This indicates that the policy had indeed reached its optimal, and the learning
-is influenced more by the annealing schedule that the training epoch itself.
-This is further corroborated by the plot in Appendix~\ref{apx:final_41stages}
-which shows the training curve when 41 training stages are used and still
-settled on the same valued policy at the 41st stage.
-Further work therefore may explore better annealing policies to further refine
-the policy.
+\begin{itemize}
+  \item \textbf{Convex}: the rate at which $\epsilon$ grows increases as the
+  stages increase. That is, it spends more time exploring before moving on to
+  exploiting the learned policy. We consider the update:
+  $\epsilon \leftarrow \left(\sqrt{\epsilon} + \frac{1}{M-1}\right)^2$
+  \item \textbf{Linear}: the rate at which $\epsilon$ grows stays constant over
+  the stages. We consider the update:
+  $\epsilon \leftarrow \epsilon + \frac{1}{M-1}$
+  \item \textbf{Concave}: the rate at which $\epsilon$ grows decreases as the
+  stages increase. That is, it quickly moves from exploration to exploitation.
+  We consider the update:
+  $\epsilon \leftarrow \sqrt{\epsilon^2 + \frac{1}{M-1}}$
+\end{itemize}
+
+Figure~\ref{fig:annealing_experiment} shows the cost reduction after the full
+$M$ learning stages when using convex, linear, and concave annealing schedules,
+for 11, 21, 31, 41, and 51 stages.
+First we see that a concave annealing schedule consistently outperforms the
+other annealing schedules.
+We can therefore conclude that for our system it is better to spend more time
+exploiting than exploring. This may be due to the size of the state space:
+heavy exploration can lead the agents so far away from the optimal policy that
+they waste valuable training time in irrelevant regions.
+The experiment also considered the effect of stretching the annealing schedule
+out over more stages, which would also have the effect of the agents training
+for longer, as each stage still contains the same amount of training.
+As expected, for the most part adding training stages increases the policies'
+performance as more training is undertaken.
+However it seems that under the concave annealing schedule the performance hits
+a ceiling at $M=31$ stages, and adding more stages here degrades the policy
+performance.
+This may again be due to over-fitting, or premature convergence, especially as a
+concave schedule would spend more time exploiting, the agents are spending more
+time reinforcing bad, or even slightly suboptimal actions, rather than exploring
+further to find the optimal actions.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/cost_by_stage}
+\includegraphics[width=0.6\textwidth]{../plt/annealing_experiment}
 \end{center}
-\caption{Final training curve with tuned hyper-parameters.}
-\label{fig:final_run}
+\caption{Comparing policies trained with various annealing schedules and numbers
+of stages. Error bars indicate a 95\% bootstrap confidence interval around the
+median.}
+\label{fig:annealing_experiment}
 \end{figure}
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/robust_evaluation}
-\end{center}
-\caption{Evaluation of the final  best policy (incumbent at Stage 31) when using
-different exploitation probabilities $\epsilon$.}
-\label{fig:final_run_robustness}
-\end{figure}
+
+
+% \subsection{Final Trained Policy}
+% In Section~\ref{sec:hpt} we established the effect of standard and
+% algorithm-specific hyper-parameters.
+% We now amalgamate our findings into a final training run to obtain an optimal
+% policy.
+% We select the tuned learning rate $\alpha = 0.16$, discount factor
+% $\gamma = 0.94$, default $Q$-=value quantile $\zeta = 0.5$, and a pruning
+% limit $\tilde{h} = 25$.
+% Figure~\ref{fig:pruning_experiment_training} indicated that when using
+% $\tilde{h} = 25$ the policy may not yet have reached it optimal by the end of
+% the training epoch, we extend the training from 21 to 31 stages to ensure a
+% better trained policy.
+
+% Figures~\ref{fig:final_run} and~\ref{fig:final_run_robustness} show the training
+% and robustness curves for this run.
+% The best incumbent policy is that from Stage 31, yielding an optimal policy that
+% produces a median overall cost of 158,806.14, improving on a random (median
+% overall cost of 203,164.96), by 21.8\%.
+
+% It is interesting to note here that even when using 10 more training stages (and
+% thus increasing the overall training epoch by 50\%), this policy settles on the
+% same valued policy as when training over 21 stages, and that the optimal policy
+% is again found at the final training stage.
+% This indicates that the policy had indeed reached its optimal, and the learning
+% is influenced more by the annealing schedule that the training epoch itself.
+% This is further corroborated by the plot in Appendix~\ref{apx:final_41stages}
+% which shows the training curve when 41 training stages are used and still
+% settled on the same valued policy at the 41st stage.
+% Further work therefore may explore better annealing policies to further refine
+% the policy.
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/cost_by_stage}
+% \end{center}
+% \caption{Final training curve with tuned hyper-parameters.}
+% \label{fig:final_run}
+% \end{figure}
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/robust_evaluation}
+% \end{center}
+% \caption{Evaluation of the final  best policy (incumbent at Stage 31) when using
+% different exploitation probabilities $\epsilon$.}
+% \label{fig:final_run_robustness}
+% \end{figure}
 
 
 \section{Human-Readable Policies}
@@ -2009,14 +2047,6 @@ Show that modelling both deterioration and clinical improvement yields no
 learning. Re-run the final model with deterioration and show the learning curve.
 Explain why.
 \end{tcolorbox}
-
-\appendix
-
-\section{Final Training Curve with 41 Stages}\label{apx:final_41stages}
-
-\begin{center}
-\includegraphics[width=0.6\textwidth]{../src/experiments/final_run41/results/cost_by_stage}
-\end{center}
 
 
 \bibliographystyle{plain}

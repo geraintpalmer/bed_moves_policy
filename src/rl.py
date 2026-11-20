@@ -405,7 +405,7 @@ def prune_and_save(keys_fname, qval_fname, keys, qval, hits, prune_limit, ignore
     return unpruned
 
 
-def get_param_schedule(n_stages, max_value, annealing_schedule='linear'):
+def get_param_schedule(n_stages, max_value, annealing_schedule='linear', p=2):
     """
     Linearly scales params from 0.0 to max_value across stages.
 
@@ -420,12 +420,6 @@ def get_param_schedule(n_stages, max_value, annealing_schedule='linear'):
     if annealing_schedule == 'linear':
         return linear
     if annealing_schedule == 'convex':
-        return linear ** 2
+        return linear ** p
     if annealing_schedule == 'concave':
-        return linear ** (1 / 2)
-    if annealing_schedule == 'wave':
-        third = int(n_stages / 3) + 1
-        middle = int(n_stages / 3)
-        end_segment = np.linspace(0.0, max_value, third)
-        middle_segment = np.linspace(max_value, 0.0, middle)
-        return np.concatenate([end_segment[:-1], middle_segment, end_segment[1:]])
+        return linear ** (1 / p)
