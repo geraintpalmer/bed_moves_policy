@@ -1969,6 +1969,19 @@ median.}
 \end{figure}
 
 
+As a concave annealing schedule performs better than the linear and convex
+annealing schedules, we can explore how the degree of concavity affects the
+policy performance.
+We can parametrise the concave update by some parameter $p \geq 0$, according to
+Equation~\ref{eqn:concave_update}.
+When $p = 2$ this gives the concave update above, $p = 1$ gives the linear
+update, while $p = \sfrac{1}{2}$ gives the convex update. More generally, any
+$p > 1$ gives a convex update, and $p$ controls the speed at which $\epsilon$
+stops exploring. 
+
+\begin{equation}\label{eqn:concave_update}
+\epsilon \leftarrow \left(\epsilon^p + \frac{1}{M-1}\right)^{\sfrac{1}{p}}
+\end{equation}
 
 % \subsection{Final Trained Policy}
 % In Section~\ref{sec:hpt} we established the effect of standard and
