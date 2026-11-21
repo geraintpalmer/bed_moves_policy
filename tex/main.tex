@@ -1743,21 +1743,6 @@ component.
 C_{\text{unavoidable}} = \frac{1}{2}\left((\lambda_2, \lambda_3, \lambda_{3\text{-I}}) \mathbf{S}\right) \cdot \left(\sfrac{1}{2}, 1, 1\right) = 7.12 \text{ nurses per day}
 \end{equation}
 
-In practice due to human error or unexpected disruptions it may not be possible
-to adhere to a given policy 100\% of the time.
-A robust policy would be able to self-correct when a sub-optimal action is
-chosen, through its following sequence of optimal actions.
-For MDPs and reinforcement learning problems a fully converged optimal policy is
-robust by definition, however when training a policy through
-simulation-optimisation heuristics such as reinforcement learning, especially in
-a highly stochastic environment such as this, convergence is not guaranteed, and
-therefore the robustness of the learned policy isn't guaranteed.
-In order to test the robustness of the policy, we evaluate the policy using an
-$\epsilon$-greedy policy, where $\epsilon$ is the probability of exploiting,
-for different values of $\epsilon$.
-We call this is ``robustness curve'', which will be another metric for analysing
-policy behaviour.
-
 Other metrics used to evaluate a policy are related to the policy size.
 Let the ``training footprint'' be the number of state-actions pairs recorded in
 the $Q$-table by the end of the training run, that is after stage 21; this is an
@@ -1767,7 +1752,7 @@ Let the ``deployment footprint'' be the number of states recorded in the chosen
 final policy; this is an indication of the storage and memory requirement
 required during policy deployment.
 
-\subsection{Hyper-parameter Tuning}\label{sec:shpt}
+\subsection{Hyper-parameter Tuning}\label{sec:hpt}
 \subsubsection{Tuning Learning Rate and Discount Factor}
 In order to choose the learning rate $\alpha$ and the discount factor $\gamma$
 we run four rounds of coordinate descent.
@@ -1936,6 +1921,12 @@ The three schedules to explore are:
   $\epsilon \leftarrow \sqrt{\epsilon^2 + \frac{1}{M-1}}$
 \end{itemize}
 
+Recall form Section~\ref{sec:training_framework} that we utilise a bespoke
+mixture action selection scheme, where pure exploitation, $\epsilon = 1$, in
+fact mean randomly choosing between the best three actions, weighted by their
+rank.
+Hence, even at $\epsilon = 1$ the agents will exhibit some exploration.
+
 Figure~\ref{fig:annealing_experiment} shows the cost reduction after the full
 $M$ learning stages when using convex, linear, and concave annealing schedules,
 for 11, 21, 31, 41, and 51 stages.
@@ -1953,10 +1944,10 @@ performance as more training is undertaken.
 However it seems that under the concave annealing schedule the performance hits
 a ceiling at $M=31$ stages, and adding more stages here degrades the policy
 performance.
-This may again be due to over-fitting, or premature convergence, especially as a
-concave schedule would spend more time exploiting, the agents are spending more
-time reinforcing bad, or even slightly suboptimal actions, rather than exploring
-further to find the optimal actions.
+This may again be due to premature convergence, as a concave schedule would
+spend more time exploiting, the agents are spending more time reinforcing bad,
+or even slightly suboptimal actions, rather than exploring further to find the
+optimal actions.
 
 \begin{figure}
 \begin{center}
@@ -1967,7 +1958,6 @@ of stages. Error bars indicate a 95\% bootstrap confidence interval around the
 median.}
 \label{fig:annealing_experiment}
 \end{figure}
-
 
 As a concave annealing schedule performs better than the linear and convex
 annealing schedules, we can explore how the degree of concavity affects the
@@ -1983,53 +1973,82 @@ stops exploring.
 \epsilon \leftarrow \left(\epsilon^p + \frac{1}{M-1}\right)^{\sfrac{1}{p}}
 \end{equation}
 
-% \subsection{Final Trained Policy}
-% In Section~\ref{sec:hpt} we established the effect of standard and
-% algorithm-specific hyper-parameters.
-% We now amalgamate our findings into a final training run to obtain an optimal
-% policy.
-% We select the tuned learning rate $\alpha = 0.16$, discount factor
-% $\gamma = 0.94$, default $Q$-=value quantile $\zeta = 0.5$, and a pruning
-% limit $\tilde{h} = 25$.
-% Figure~\ref{fig:pruning_experiment_training} indicated that when using
-% $\tilde{h} = 25$ the policy may not yet have reached it optimal by the end of
-% the training epoch, we extend the training from 21 to 31 stages to ensure a
-% better trained policy.
+Figure~\ref{fig:annealing_powers_experiment} compares schedules trained with
+various values of $p$, from $p=1$, entirely linear, to $p=300$, corresponding to
+such a heavy hike in exploitation, that near pure exploitation begins at the
+second stage.
+It it obvious for our case that for this system rapidly shifting to heavy
+exploitation yields much better performing policies.
+Again, not that $\epsilon = 1$ does not correspond to pure exploitation, so 
+does allow some further exploration, in a constrained way.
 
-% Figures~\ref{fig:final_run} and~\ref{fig:final_run_robustness} show the training
-% and robustness curves for this run.
-% The best incumbent policy is that from Stage 31, yielding an optimal policy that
-% produces a median overall cost of 158,806.14, improving on a random (median
-% overall cost of 203,164.96), by 21.8\%.
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../plt/annealing_powers_experiment}
+\end{center}
+\caption{Comparing policies trained with various values of $p$ for the annealing
+schedule. Error bars indicate a 95\% bootstrap confidence interval around the
+median.}
+\label{fig:annealing_powers_experiment}
+\end{figure}
 
-% It is interesting to note here that even when using 10 more training stages (and
-% thus increasing the overall training epoch by 50\%), this policy settles on the
-% same valued policy as when training over 21 stages, and that the optimal policy
-% is again found at the final training stage.
-% This indicates that the policy had indeed reached its optimal, and the learning
-% is influenced more by the annealing schedule that the training epoch itself.
-% This is further corroborated by the plot in Appendix~\ref{apx:final_41stages}
-% which shows the training curve when 41 training stages are used and still
-% settled on the same valued policy at the 41st stage.
-% Further work therefore may explore better annealing policies to further refine
-% the policy.
+A key finding here is that of all the hyper-parameter tuning, the annealing
+schedule is the factor that most influenced the policy performance.
 
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/cost_by_stage}
-% \end{center}
-% \caption{Final training curve with tuned hyper-parameters.}
-% \label{fig:final_run}
-% \end{figure}
 
-% \begin{figure}
-% \begin{center}
-% \includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/robust_evaluation}
-% \end{center}
-% \caption{Evaluation of the final  best policy (incumbent at Stage 31) when using
-% different exploitation probabilities $\epsilon$.}
-% \label{fig:final_run_robustness}
-% \end{figure}
+\subsection{Final Trained Policy}
+In Section~\ref{sec:hpt} we established the effect of standard and
+algorithm-specific hyper-parameters.
+We now amalgamate our findings into a final training run to obtain an optimal
+policy.
+We select the tuned learning rate $\alpha = 0.5$, discount factor
+$\gamma = 0.99965$, default $Q$-=value quantile $\zeta = 0.5$, pruning limit
+$\tilde{h} = 2$, train across 31 stages, and implement a concave annealing
+schedule with $p=300$.
+
+Figures~\ref{fig:final_run} shows the training curve for this run.
+The best incumbent policy is that from Stage 31, yielding an optimal policy that
+produces a median overall cost of 159,246.525, improving on a random (median
+overall cost of 182,730.68), by 14.74\%.
+When considering $C_{\text{unavoidable}}$ over the evaluation period is
+89,015.52, this results in a percentage decrease in potentially avoidable costs
+of 33.44\%.
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/cost_by_stage}
+\end{center}
+\caption{Final training curve with tuned hyper-parameters.}
+\label{fig:final_run}
+\end{figure}
+
+In practice due to human error or unexpected disruptions it may not be possible
+to adhere to a given policy 100\% of the time.
+A robust policy would be able to self-correct when a sub-optimal action is
+chosen, through its following sequence of optimal actions.
+For MDPs and reinforcement learning problems a fully converged optimal policy is
+robust by definition, however when training a policy through
+simulation-optimisation heuristics such as reinforcement learning, especially in
+a highly stochastic environment such as this, convergence is not guaranteed, and
+therefore the robustness of the learned policy isn't guaranteed.
+In order to test the robustness of the policy, we evaluate the policy using a
+pure $\epsilon$-greedy policy, where $\epsilon$ is the probability of
+exploiting, or the policy adherence rate, for different values of $\epsilon$.
+Figure~\ref{fig:final_run_robustness} shows the performance of this policy for
+various adherence rates.
+We can see that for very small errors, up to around 5\%, there is hardly any
+degradation in performance, however there is then a steeper degradation in
+performance thereafter.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.85\textwidth]{../src/experiments/final_run/results/robust_evaluation}
+\end{center}
+\caption{Evaluation of the final  best policy (incumbent at Stage 31) when using
+different exploitation probabilities $\epsilon$.}
+\label{fig:final_run_robustness}
+\end{figure}
 
 
 \section{Human-Readable Policies}
