@@ -121,20 +121,38 @@
 # python training.py experiments/annealing_experiments/p4/ $1
 # python evaluation.py experiments/annealing_experiments/p4/ $1
 
-echo "Concave p=6 Stages"
-mkdir experiments/annealing_experiments/p6/results
-mkdir experiments/annealing_experiments/p6/results/tmp
-python training.py experiments/annealing_experiments/p6/ $1
-python evaluation.py experiments/annealing_experiments/p6/ $1
+# echo "Concave p=6 Stages"
+# mkdir experiments/annealing_experiments/p6/results
+# mkdir experiments/annealing_experiments/p6/results/tmp
+# python training.py experiments/annealing_experiments/p6/ $1
+# python evaluation.py experiments/annealing_experiments/p6/ $1
 
-echo "Concave p=9 Stages"
-mkdir experiments/annealing_experiments/p9/results
-mkdir experiments/annealing_experiments/p9/results/tmp
-python training.py experiments/annealing_experiments/p9/ $1
-python evaluation.py experiments/annealing_experiments/p9/ $1
+# echo "Concave p=9 Stages"
+# mkdir experiments/annealing_experiments/p9/results
+# mkdir experiments/annealing_experiments/p9/results/tmp
+# python training.py experiments/annealing_experiments/p9/ $1
+# python evaluation.py experiments/annealing_experiments/p9/ $1
 
-echo "Concave p=15 Stages"
-mkdir experiments/annealing_experiments/p15/results
-mkdir experiments/annealing_experiments/p15/results/tmp
-python training.py experiments/annealing_experiments/p15/ $1
-python evaluation.py experiments/annealing_experiments/p15/ $1
+# echo "Concave p=15 Stages"
+# mkdir experiments/annealing_experiments/p15/results
+# mkdir experiments/annealing_experiments/p15/results/tmp
+# python training.py experiments/annealing_experiments/p15/ $1
+# python evaluation.py experiments/annealing_experiments/p15/ $1
+
+echo "Concave p=30 Stages"
+mkdir experiments/annealing_experiments/p30/results
+mkdir experiments/annealing_experiments/p30/results/tmp
+python training.py experiments/annealing_experiments/p30/ $1
+python evaluation.py experiments/annealing_experiments/p30/ $1
+
+echo "Concave p=75 Stages"
+mkdir experiments/annealing_experiments/p75/results
+mkdir experiments/annealing_experiments/p75/results/tmp
+python training.py experiments/annealing_experiments/p75/ $1
+python evaluation.py experiments/annealing_experiments/p75/ $1
+
+echo "Concave p=300 Stages"
+mkdir experiments/annealing_experiments/p300/results
+mkdir experiments/annealing_experiments/p300/results/tmp
+python training.py experiments/annealing_experiments/p300/ $1
+python evaluation.py experiments/annealing_experiments/p300/ $1
