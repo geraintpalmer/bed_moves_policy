@@ -133,6 +133,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('experiment', help='The path to the experiment folder.')
     parser.add_argument('n_threads', help='The number of parallel processers to use.')
+    parser.add_argument("--det", action="store_true", help="Train while modelling deterioration.")
     args = parser.parse_args()
 
     with open(args.experiment + "/params.yml") as f:
@@ -160,8 +161,12 @@ if __name__ == '__main__':
         annealing_power = params['annealing_power']
     else:
         annealing_power = 2
+    if args.det:
+        icu_params = "icu_params_det.yml"
+    else:
+        icu_params = "icu_params.yml"
 
-    with open("icu_params.yml") as f:
+    with open(icu_params) as f:
         params_raw = f.read()
         system_params = yaml.safe_load(params_raw)
 

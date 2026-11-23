@@ -17,7 +17,15 @@ if __name__ == '__main__':
         params = yaml.safe_load(params_raw)
 
     max_epsilon = float(params['max_epsilon'])
-    epsilons = rl.get_param_schedule(n_stages=int(params['n_stages']), max_value=max_epsilon)
+    if 'annealing_schedule' in params:
+        annealing_schedule = params['annealing_schedule']
+    else:
+        annealing_schedule = 'linear'
+    if 'annealing_power' in params:
+        annealing_power = params['annealing_power']
+    else:
+        annealing_power = 2
+    epsilons = rl.get_param_schedule(n_stages=int(params['n_stages']), max_value=max_epsilon, annealing_schedule=annealing_schedule, p=annealing_power)
 
     stage_labels = [fr"Stage {stage} ($\epsilon={round(epsilons[stage-1], 3)})$" for stage in range(1, params['n_stages'] + 1)]
     ticklabels = ['Random'] + stage_labels
