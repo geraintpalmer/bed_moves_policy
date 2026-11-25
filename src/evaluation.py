@@ -1,5 +1,4 @@
 import sim, ward, chooser, rl
-import ciw
 import yaml
 import argparse
 import numpy as np
@@ -51,9 +50,9 @@ def evaluate(
 
     S = sim.WardEvaluation(
         arrival_distributions=[
-            ('Exponential', float(system_params['lambda_2']) * (16 / 17)),
-            ('Exponential', float(system_params['lambda_3']) * (16 / 17)),
-            ('Exponential', float(system_params['lambda_3I']) * (16 / 17))
+            ('Exponential', float(system_params['lambda_2'])),
+            ('Exponential', float(system_params['lambda_3'])),
+            ('Exponential', float(system_params['lambda_3I']))
         ],
         exit_distributions=[
             ('Exponential', float(system_params['mu_2'])),
