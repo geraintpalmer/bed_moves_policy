@@ -201,7 +201,7 @@ if __name__ == '__main__':
 
                         for i, res in enumerate(results):
                             if not finished_mask[i] and res.ready():
-                                costs[f'Rho={rho}'].append(res.get())
+                                costs[f'Rho={rho}-{mode}'].append(res.get())
                                 results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
                                 finished_mask[i] = True
                                 gc.collect()
