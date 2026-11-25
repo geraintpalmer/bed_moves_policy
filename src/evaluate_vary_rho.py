@@ -152,7 +152,7 @@ if __name__ == '__main__':
                 policy_keys.tofile(policy_keys_path)
                 policy_actions_path = f"experiments/final_run/results/stage_31_overall_policyactions_epsilon_1.0.bin"
                 policy_actions.tofile(policy_actions_path)
-            if node == 'random':
+            if mode == 'random':
                 policy_keys_path = None
                 policy_actions_path = None
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
 
                 with tqdm.tqdm(
                     total=(max_time * trials_per_stage),
-                    desc=f"Evaluating Rho={rho})",
+                    desc=f"Evaluating Rho={rho} ({mode})",
                     unit_scale=True,
                     bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
                 ) as pbar:
