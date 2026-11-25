@@ -139,72 +139,78 @@ if __name__ == '__main__':
 
     rhos = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5]
     
-    for rho in rhos:        
-        keys = np.memmap(f"experiments/final_run/results/stage_31_overall_keys_epsilon_1.0.bin", dtype=np.int64, mode='r')
-        qvals = np.memmap(f"experiments/final_run/results/stage_31_overall_qvals_epsilon_1.0.bin", dtype=np.float32, mode='r')
-        policy_keys, policy_actions = rl.initialise_policy(
-            keys_array=keys,
-            qval_array=qvals
-        )
-        policy_keys_path = f"experiments/final_run/results/stage_31_overall_policykeys_epsilon_1.0.bin"
-        policy_keys.tofile(policy_keys_path)
-        policy_actions_path = f"experiments/final_run/results/stage_31_overall_policyactions_epsilon_1.0.bin"
-        policy_actions.tofile(policy_actions_path)
+    for rho in rhos:
+        for mode in ['random', 'optimal']:
+            if mode == 'optimal':
+                keys = np.memmap(f"experiments/final_run/results/stage_31_overall_keys_epsilon_1.0.bin", dtype=np.int64, mode='r')
+                qvals = np.memmap(f"experiments/final_run/results/stage_31_overall_qvals_epsilon_1.0.bin", dtype=np.float32, mode='r')
+                policy_keys, policy_actions = rl.initialise_policy(
+                    keys_array=keys,
+                    qval_array=qvals
+                )
+                policy_keys_path = f"experiments/final_run/results/stage_31_overall_policykeys_epsilon_1.0.bin"
+                policy_keys.tofile(policy_keys_path)
+                policy_actions_path = f"experiments/final_run/results/stage_31_overall_policyactions_epsilon_1.0.bin"
+                policy_actions.tofile(policy_actions_path)
+            if node == 'random':
+                policy_keys_path = None
+                policy_actions_path = None
 
-        progress_array = manager.Array('d', [0.0] * trials_per_stage)
-        seeds = [seed + trial for trial in range(trials_per_stage)]
-        eta = rho / 0.75
-        args_list = [
-            (
-                system_params,
-                max_time,
-                occupancy_arrival_probs,
-                zeta,
-                eta,
-                selection_policy,
-                1.0,
-                policy_keys_path,
-                policy_actions_path,
-                warmup,
-                seeds[t],
-                t,
-                progress_array
-            ) for t in range(trials_per_stage)
-        ]
-        costs[f'Rho={rho}'] = []
 
-        with multiprocessing.Pool(processes=n_threads) as pool:
-            results = [pool.apply_async(evaluate, args) for args in args_list]
-            del args_list
-            gc.collect()
-            finished_mask = [False] * trials_per_stage
+            progress_array = manager.Array('d', [0.0] * trials_per_stage)
+            seeds = [seed + trial for trial in range(trials_per_stage)]
+            eta = rho / 0.75
+            args_list = [
+                (
+                    system_params,
+                    max_time,
+                    occupancy_arrival_probs,
+                    zeta,
+                    eta,
+                    selection_policy,
+                    1.0,
+                    policy_keys_path,
+                    policy_actions_path,
+                    warmup,
+                    seeds[t],
+                    t,
+                    progress_array
+                ) for t in range(trials_per_stage)
+            ]
+            costs[f'Rho={rho}-{mode}'] = []
 
-            with tqdm.tqdm(
-                total=(max_time * trials_per_stage),
-                desc=f"Evaluating Rho={rho})",
-                unit_scale=True,
-                bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
-            ) as pbar:
-                last_min_progress = 0
-                while not all(finished_mask):
-                    current_min = sum(progress_array)
-                    
-                    if current_min > last_min_progress:
-                        pbar.update(current_min - last_min_progress)
-                        last_min_progress = current_min
+            with multiprocessing.Pool(processes=n_threads) as pool:
+                results = [pool.apply_async(evaluate, args) for args in args_list]
+                del args_list
+                gc.collect()
+                finished_mask = [False] * trials_per_stage
 
-                    for i, res in enumerate(results):
-                        if not finished_mask[i] and res.ready():
-                            costs[f'Rho={rho}'].append(res.get())
-                            results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
-                            finished_mask[i] = True
-                            gc.collect()
-                            trim_memory()
+                with tqdm.tqdm(
+                    total=(max_time * trials_per_stage),
+                    desc=f"Evaluating Rho={rho})",
+                    unit_scale=True,
+                    bar_format="{l_bar}{bar}| {n:.2f}/{total_fmt} [{elapsed}<{remaining}]"
+                ) as pbar:
+                    last_min_progress = 0
+                    while not all(finished_mask):
+                        current_min = sum(progress_array)
+                        
+                        if current_min > last_min_progress:
+                            pbar.update(current_min - last_min_progress)
+                            last_min_progress = current_min
 
-                    time.sleep(1) # Don't burn CPU checking the array
-                pbar.update((max_time * trials_per_stage) - last_min_progress)
+                        for i, res in enumerate(results):
+                            if not finished_mask[i] and res.ready():
+                                costs[f'Rho={rho}'].append(res.get())
+                                results[i] = None # FREE THE DICTIONARY MEMORY IMMEDIATELY
+                                finished_mask[i] = True
+                                gc.collect()
+                                trim_memory()
 
-        seed += trials_per_stage
+                        time.sleep(1) # Don't burn CPU checking the array
+                    pbar.update((max_time * trials_per_stage) - last_min_progress)
+
+            seed += trials_per_stage
 
     df = pd.DataFrame(costs)
     df.to_csv(f"experiments/final_run/results/rho_evaluation.csv", index=False)
