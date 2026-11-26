@@ -53,6 +53,21 @@
 \begin{document}
 \maketitle
 
+\begin{abstract}
+Ward managers at intensive care units can choose to move patients from bed to
+bed, which can alleviate pressure on the overall system, while possibly being
+detrimental to the patient.
+In this paper we build a Markov decision process of bed moves in a busy ICU in
+Cardiff, UK, to find the improved bed moves policies that reduce operational
+costs using reinforcement learning.
+Stochastic models include Monte Carlo simulation and continuous time Markov
+chains are used to help parametrise the system; while state and action
+symmetries are analysed to reduce the vast state space by a factor of $35.2$,
+making training tractable.
+The final trained policy reduces operational costs by $12.85\%$, and reduces
+potentially avoidable costs by $25.06\%$.
+\end{abstract}
+
 
 \section{Introduction \& Background}\label{sec:intro_background}
 When a patient is referred to an intensive care unit (ICU), requiring a bed with
@@ -68,7 +83,7 @@ This is the largest hospital in Wales, and the main centre for Cardiff and Vale
 University Health Board, serving a population of 472,000
 \cite{cavuhb_structure}, while some specialist services also serve the whole of
 Wales (pop. 3.1 million \cite{statswales_pop}).
-We aim to develop a optimal bed move policy that determines when bed moves
+We aim to develop an optimal bed move policy that determines when bed moves
 should occur, and how, in order to achieve an objective that considers
 operational rather than clinical outcomes, such as staffing demand.
 We define a Markov decision process (MDP) with state transitions governed by a
@@ -205,7 +220,7 @@ Section~\ref{sec:mdp_formulation} formally defines the underlying MDP, detailing
 the state and action space reductions.
 Section~\ref{sec:rlframework} outlines the RL framework used to learn policies,
 and numerical results and experiments are presented in
-Section~\ref{sec:experiments} 
+Section~\ref{sec:training} 
 
 
 
@@ -660,7 +675,7 @@ sub-problems are identical, so only one needs to be considered.
 The rest of the paper will now consider just one of the decomposed sub-problems,
 consisting of an ICU with two wards of 6 and 8 beds, and two isolation units,
 giving 16 beds in total. The 8 bed ward is partitioned in two by the partial
-wall, while the 6 bed wall is partitioned into two groups of 3 beds by its
+wall, while the 6 bed ward is partitioned into two groups of 3 beds by its
 partial wall.
 
 
@@ -1749,7 +1764,7 @@ estimation and so better so policies.
 
 
 
-\section{Experiments}\label{sec:experiments}
+\section{Training \& Evaluation}\label{sec:training}
 
 \subsection{Evaluation Methodology}
 For a particular set of hyper-parameters, models are trained across 21 stages,
@@ -1914,7 +1929,7 @@ valuable training data is lost.
 Therefore, of the values tested, $\tilde{h} = 2$ gives the best performing
 policy.
 
-\subsubsection{Effect of Annealing Schedule}
+\subsubsection{Effect of Annealing Schedule}\label{sec:tune_annealing}
 In Section~\ref{sec:training_framework} it was established that over the $M$
 stages of training the exploitation rate $\epsilon$ is increased monotonically.
 Here we explore the effect of three different annealing schedules, for different
@@ -1993,7 +2008,7 @@ Figure~\ref{fig:annealing_powers_experiment} compares schedules trained with
 various values of $p$, from $p=1$, entirely linear, to $p=300$, corresponding to
 such a heavy hike in exploitation, that near pure exploitation begins at the
 second stage.
-It it obvious for our case that for this system rapidly shifting to heavy
+It is obvious for our case that for this system rapidly shifting to heavy
 exploitation yields much better performing policies.
 Again, note that $\epsilon = 1$ does not correspond to pure exploitation, so 
 does allow some further exploration, in a constrained way.
@@ -2020,7 +2035,7 @@ However, this further tuning is beyond the scope of this paper.
 
 
 
-\subsection{Final Trained Policy}
+\subsection{Final Trained Policy}\label{sec:final_policy}
 In Section~\ref{sec:hpt} we established the effect of standard and
 algorithm-specific hyper-parameters.
 We now amalgamate our findings into a final training run to obtain an optimal
@@ -2033,10 +2048,10 @@ schedule with $p=300$.
 Figures~\ref{fig:final_run} shows the training curve for this run.
 The best incumbent policy is that from Stage 31, yielding an optimal policy that
 produces a median overall cost of 159,246.525, improving on a random (median
-overall cost of 182,730.68), by 14.74\%.
+overall cost of 182,730.68), by 12.85\%.
 When considering $C_{\text{unavoidable}}$ over the evaluation period is
 89,015.52, this results in a percentage decrease in potentially avoidable costs
-of 33.44\%.
+of 25.06\%.
 
 
 \begin{figure}
@@ -2083,9 +2098,6 @@ $$
 \text{Representative state space coverage ratio} = \frac{6,715,541}{228,104,760} \times 100 = 2.94\%
 $$
 
-
-
-
 % \section{Human-Readable Policies}
 % \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
 % Idea: Currently the policies that come from the reinforcement learning is a
@@ -2096,15 +2108,255 @@ $$
 % policy, but this is something that can be measured and analysed.
 % \end{tcolorbox}
 
-
 \section{Discussion}\label{sec:discussion}
+This work used multi-method modelling and simulation-optimisation to represent
+an ICU, and find improved bed-move policies.
+These methods include Monte Carlo and Markov chain modelling to parametrise the
+system; single queue analysis to decompose the system into manageable
+components; and discrete event simulation based reinforcement learning on a
+Markov decision process to find improved policies; and group theoretic symmetry
+analysis to reduce the the state space.
 
-\begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO 2]
-Show that modelling both deterioration and clinical improvement yields no
-learning. Re-run the final model with deterioration and show the learning curve.
-Explain why.
-\end{tcolorbox}
+Here we discuss aspects of the learned policy, and how operational researchers
+and ward managers can learn from our modelling and training process.
 
+\subsection{Policy Performance on Variable Systems}
+The policy was trained on a very specific set of parameters, parametrised in
+Section~\ref{sec:param_estimation}, based on a data set provided by the ICU at
+UHW, which covered a year of ICU activity.
+However it is likely that some of these parameters may change or evolve over
+time, most notably demand, which can vary due to seasonality, demographic
+changes, or unprecedented incidents such as an epidemic.
+
+To test the policy's robustness to changes in demand, we evaluate the policy,
+which was trained on a traffic intensity of $\rho = 0.75$, on other near
+identical systems, where the arrival rates are scaled up to achieve a range of
+traffic intensities $\rho \in [0.05, 1.5]$.
+Figure~\ref{fig:rho_experiment} shows the results in terms of percentage
+improvement over random for that system, and the curve shown is the combination
+of two effects: policy optimality, and the system's potential for improvement.
+The system is trained for $\rho = 0.75$ only, and so as we move away from this
+in both directions, the policy will perform worse and worse as it is applied on
+a system more and more different to that for which it was trained.
+Additionally, some systems have more potential for improvement than others:
+systems with a very small traffic intensity may not have much potential for
+improvement as the system is so empty moving and clustering patients does not
+yield much difference; while a system with very high traffic intensity would be
+so crowded there is no room to move patients.
+Hence we see a peak improvement around $\rho=0.55$, as the potential for
+improvement is greater here than at the original $\rho=0.75$; though training a
+specific policy on the system in the first place would yield even greater
+improvement.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\textwidth]{../plt/vary_rho_experiment}
+\end{center}
+\caption{Evaluating the final policy on systems with scaled up arrival rates.
+Error bars indicate a 95\% bootstrap confidence interval around the median.}
+\label{fig:rho_experiment}
+\end{figure}
+
+The plot does show however that the trained policy is robust to even large
+shifts in demand, with good improvement displayed on systems from $\rho=0.35$ to
+$\rho=1$.
+This also justifies a key assumption made in Section~\ref{sec:param_estimation},
+where we chose $\rho=0.75$ based on the safe occupancy target level used in many
+ICUs.
+Even if the actual traffic intensity for the ICU at UHW differs from this,
+Figure~\ref{fig:rho_experiment} demonstrates that the trained policy will still
+yield good improvement.
+
+\subsection{Modelling Clinical Deterioration}\label{sec:model_deterioration}
+A specific modelling choice in Section~\ref{sec:ctmc_model} was to model patient
+improvement, but not to model patients deteriorating, despite clinical
+deterioration being a reality in ICUs \cite{kim2026}.
+Attempting to model both clinical improvement and deterioration in the same
+stochastic model results in a chaotic system in which the learning agents
+struggle to predict the next state.
+
+We demonstrate this by re-formulating the CTMC model to include deterioration,
+including two new rates $r_{2,3}$ and $r_{3,3\text{-I}}$, re-fit all parameters,
+and re-run the training model.
+The CTMC is visualised in Figure~\ref{fig:ctmc_det}, yielding new parameters
+values $r_{2,3} = 0.341$, $r_{3,3\text{-I}} = 0.010$, $r_{3,2} = 0.957$,
+$r_{3\text{-I},3} = 0.190$, $\mu_2 = 0.225$, $\mu_3 = 0.010$,
+$\mu_{3\text{-I}} = 0.104$, $\mathcal{L}_2 = 5.937$, $\mathcal{L}_3 = 6.919$,
+and $\mathcal{L}_{3\text{-I}} = 7.865$.
+After retraining, using the same hyper-parameter values as used in
+Section~\ref{sec:final_policy}, we get the training curve shown in
+Figure~\ref{fig:training_curve_det}, and see that the agents completely failed
+to learn any policy due to the erratic nature of the stochastic process.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../images/CTMC_deterioration}
+    \vspace{5mm}
+    \caption{Adaptation of Figure~\ref{fig:ctmc} to include clinical deterioration.}
+    \label{fig:ctmc_det}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.53\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{../src/experiments/final_run_det/results/cost_by_stage}
+    \caption{Training curve obtained when modelling both clinical improvement
+    and deterioration.}
+    \label{fig:training_curve_det}
+  \end{subfigure}
+  \caption{Clinical deterioration CTMC and corresponding training curve with
+  tuned hyper-parameters.}
+  \label{fig:det_combined}
+\end{figure}
+
+This implies that generally for models of this type, the modelling of clinical
+deterioration and clinical improvement should be handled differently, as
+incorporating them in the same stochastic model cannot produce a system ripe for
+learning.
+We overcame this by introducing a multiplicative non-isolation `slowing' factor,
+$\mathcal{J}$, that delays improvement and extends length of stay.
+
+
+\subsection{Reflections on the Learning}\label{sec:reflections}
+In Section~\ref{sec:training} we tuned the model hyper-parameters and evaluated
+the final policy.
+The final trained policy had a representative state space coverage ratio of
+2.94\%.
+This seems particularly small, however the state space is vast, and even after
+reducing this to the representative state space, is has nearly a quarter of a
+billion representative states; and it is natural only a small percentage of this
+would appear in the on-policy distribution.
+However, we would also expect the policy to contain a large number of off-policy
+states: firstly as a guarantee that the agent had explored enough to reach the
+on-policy distribution and ensure its convergence; and secondly a good robust
+policy should also contain many off-policy states, both adjacent and far from
+the on-policy distribution, in case the system veers off-policy due to high
+stochasticity of bad policy adherence.
+Therefore the 2.94\% coverage ratio shows that improvements can still be made,
+and we see this as the median trend in Figure~\ref{fig:final_run} is still
+decreasing, albeit very slowly.
+
+We may also make the case that it may be difficult to find optimal policies for
+any larger ICUs with the same methodology and computational power and time.
+For example, adding one extra bed, thus modelling a 17-bed component, would
+increase the raw state space by a factor of 4, while also reducing the number of
+symmetries we can utilise, in addition to increasing the action-space.
+It would be reasonable to think then that for the same amount of computing power
+and time, the coverage ratio for a 17-bed component may be even smaller,
+possibly indicating that the $Q$-values would struggle to converge fully due to
+the state space being too vast to sufficiently explore.
+
+The hyper-parameter tuning process itself highlighted key features of the
+learning undertaken.
+The pruning parameter $h$ and the parameter for the default unexplored
+$Q$-values, $\zeta$ played an important role.
+This indicates that due to the highly stochastic nature of the rewards, seldom
+visited state-action pairs carry noisy estimates for their $Q$-values, which
+propagate through the entire $Q$-table due to the high discounting factor.
+This can cause premature convergence to the wrong policy, as those noisy values
+are reinforced as adjacent and close states are re-visited and converging.
+We found that pruning rarely visited pairs, replacing their value by using a
+neutral $\zeta$, neither over- not under-estimating the $Q$-value in relation to
+the overall average, yielded the best results.
+
+The annealing schedule was another major influence on the quality of the final
+policy, and shown in Section~\ref{sec:tune_annealing}, where we hypothesised
+that this was tied closely with the mixed action-selection scheme devised.
+We found that a heavily concave annealing schedule, that shifted quickly from
+exploration to exploitation, yielded the best results.
+Again this may be due to the vast representative state space, and how little of
+it is part of the on-policy distribution: exploring too much wastes time in
+irrelevant regions of the space; while the mixed action selection scheme ensures
+once exploitation is reached, the premature convergence is avoided.
+Much more analysis can be carried out here, tuning the parameters of the mixed
+action-selection scheme, and investigating how they interact with the annealing
+schedule.
+These parameters themselves could anneal alongside $\epsilon$.
+Furthermore, other annealing schedules, including non-concave and non-monotonic
+schedules, may further improve the agents' learning.
+
+
+\subsection{Implications for Ward Management}
+\textcolor{red}{Co-authors to write something here.}
+
+\subsection{Limitations}
+The modelling framework does have some limitations to discuss.
+Firstly, as discussed in Section~\ref{sec:model_deterioration} above, it was not
+amenable to learning when modelling both clinical deterioration and clinical 
+improvement.
+We overcame this by slowing down improvement for some patients, but explicit
+deterioration was omitted.
+
+Another limitation is scaling: the 34 bed ICU had to be split into two 16-bed
+components via SQA (ignoring the two ring-fenced beds), and we hypothesised in
+Section~\ref{sec:reflections} that $Q$-values for a 17-bed component may not
+converge using similar computational time and power.
+Therefore scaling the problem to larger ICUs may be difficult.
+One concrete example of this would be the hashing of state-action pairs,
+described in Section~\ref{sec:hashing}.
+This mixed radix encoding currently uses 15-digit 64-bit integers.
+Larger problems would require larger integers, and 64-bit integers cannot exceed 
+19 digits, thus the state hashing may require a much larger memory footprint,
+taking up more computational time and power to both store policies and read
+policies, and slowing down training.
+
+Our model only allowed bed moves to occur at the point of a patient admission.
+This was done to more easily model using a discrete-jump MDP.
+It is possible that in reality bed moves may occur at any arbitrary point
+throughout the day, for example as they record patients improving or
+deteriorating.
+This would require an MDP in a continuous time frame, which would require
+fundamentally different methodology than presented here.
+Alternatively some ICUs may do all bed moves at the same point in a day, for
+example first thing in the morning, which would be possible to model in the same
+way, though between two decision points the ward may change state many times,
+possibly resulting in longer times for $Q$-values to converge as estimating
+state transitions would become more difficult.
+Similarly, only a single bed move at a time was modelled, though one could
+imagine some cyclic swapping of some subset of patients.
+
+\subsection{Future Work}
+This work has opened up a number of avenues for future work that can build upon
+the foundations laid in this paper, beyond the further hyper-parameter tuning
+considered above.
+Firstly our rewards considered mean rewards only, while our hyper-parameter
+tuning used medians to evaluate performance.
+One avenue of future work would be to train models that reduce variance as well
+as measures of centrality, as in healthcare contexts often reducing variability
+is the best way of achieving efficiency \cite{bekker11}.
+One way to do this may be to use a mean-variance payoff utility popular in
+financial models.
+A related avenue would be to employ robust optimisation, ensuring that policies
+perform well under realistic, sub-optimal policy adherence rates, that is when
+adherence is imperfect.
+
+Currently the policies exist as a large lookup table mapping 6,715,541 states to
+their optimal actions.
+This isn't very accessible for ward managers, and would require software to
+convert the current ICU state to the best action.
+A useful avenue for future work would be to use machine learning techniques to
+learn a set of human-readable guidelines, allowing ward managers to follow
+simple rules effortlessly and quickly during real time ward management.
+These guidelines would be yet another approximation of the policy, allowing and
+evaluation of performance trade-off when following guidelines in comparison to
+using the lookup table.
+
+Finally, the models can be utilised as part of a larger optimisation framework
+which considers different ICU configurations.
+Whenever a ward manager is considering replacing a standard ward bed with an
+isolation unit, part of the cost-effectiveness evaluation could consider a given
+configuration's optimal bed-move policy.
+
+Overall, this work combined stochastic simulation with reinforcement learning to
+find optimal policies for ICU bed moves, achieving policies that can
+significantly reduce staffing and outcome costs for ward managers.
+Along the way it utilised symmetries to reduce the state space, and stochastic
+models to parametrise the underlying MDP.
+Applying the methodology to larger units, producing human readable guidelines,
+and explicitly modelling deterioration remain open challenges.
+The results show that data-driven simulation-optimisation such as this can
+impart significant savings to the ICU.
 
 \bibliographystyle{plain}
 \bibliography{refs}
