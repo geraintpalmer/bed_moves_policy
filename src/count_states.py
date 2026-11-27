@@ -42,5 +42,3 @@ fixed_point_ns = [
 size_representative_state_space = burnside_lemma(fixed_point_ns, total_states)
 
 print(f"Size of state space: {size_state_space}\nSize of representative state space: {size_representative_state_space}")
-
-

@@ -1,4 +1,4 @@
-# Improving ICU Patient Bed Moves Policies with Reinforcement Learning Based Simulation-Optimisation
+# Learning ICU Bed-Move Policies using Markov Decision Processes with Symmetry-Based State-Space Reduction
 
 
 ## Usage
@@ -20,33 +20,33 @@ $ python -m pytest .
 
 ## Training
 
-To train a policy, create a folder `<experiment_name>` inside `src/experiments/`, and place a parameter file inside: `params.yml`. For example `main_run`. Then to train on 5 parallel cores:
+To train a policy, create a folder `<experiment_name>` inside `src/experiments/`, and place a parameter file inside: `params.yml`. For example `final_run`. Then to train on 5 parallel cores:
 
 ```
-$ mkdir src/experiments/main_run/results/
-$ mkdir src/experiments/main_run/results/tmp
-$ python training.py src/experiments/main_run/ 5
+$ mkdir src/experiments/final_run/results/
+$ mkdir src/experiments/final_run/results/tmp
+$ python training.py src/experiments/final_run/ 5
 ```
 
 To evaluate the incumbent policies at each stage:
 
 ```
-$ python evaluation.py src/experiments/main_run/ 5
+$ python evaluation.py src/experiments/final_run/ 5
 ```
 
-This generates `src/experiments/main_run/results/cost_per_stage.pdf`:
+This generates `src/experiments/final_run/results/cost_per_stage.pdf`:
 
-![Example Cost Per Stage](plt/cost_per_stage.png)
+![Example Cost Per Stage](plt/cost_per_stage_readme.png)
 
 Use this to find the best early-stop incumbent policy: here the best performing policy of that after 12 stages of training. Then to evaluate that policy's robustness:
 
 ```
-$ python robust_evaluation.py src/experiments/main_run/ 5 12
+$ python robust_evaluation.py src/experiments/final_run/ 5 12
 ```
 
-This generates `src/experiments/main_run/results/robust_evaluation.pdf`:
+This generates `src/experiments/final_run/results/robust_evaluation.pdf`:
 
-![Example Robust Evaluation](plt/robust_evaluation.png)
+![Example Robust Evaluation](plt/robust_evaluation_readme.png)
 
 
 ## Policies

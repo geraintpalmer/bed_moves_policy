@@ -45,8 +45,7 @@
 
 \newtheorem{proposition}{Proposition}
 
-
-\title{\bf Improving ICU Patient Bed Moves Policies with Reinforcement Learning Based Simulation-Optimisation}
+\title{\bf Learning ICU Bed-Move Policies using Markov Decision Processes with Symmetry-Based State-Space Reduction}
 \author{Geraint I. Palmer-Liyu \and Mark Tuson \and Virginia Ahedo \and Paul R. Harper \and Mathew Pugh \and James Williams \and Matt Morgan}
 \date{}
 
@@ -58,9 +57,9 @@ Ward managers at intensive care units can choose to move patients from bed to
 bed, which can alleviate pressure on the overall system, while possibly being
 detrimental to the patient.
 In this paper we build a Markov decision process of bed moves in a busy ICU in
-Cardiff, UK, to find the improved bed moves policies that reduce operational
+Cardiff, UK, to identify improved bed-move policies that reduce operational
 costs using reinforcement learning.
-Stochastic models include Monte Carlo simulation and continuous time Markov
+Stochastic models including Monte Carlo simulation and continuous time Markov
 chains are used to help parametrise the system; while state and action
 symmetries are analysed to reduce the vast state space by a factor of $35.2$,
 making training tractable.
@@ -69,7 +68,7 @@ potentially avoidable costs by $25.06\%$.
 \end{abstract}
 
 
-\section{Introduction \& Background}\label{sec:intro_background}
+\section{Introduction}\label{sec:intro_background}
 When a patient is referred to an intensive care unit (ICU), requiring a bed with
 specific clinical characteristics, but none are available, then the ward manager
 faces a dilemma: admit the patient to an inferior bed and accept some clinical
@@ -83,13 +82,28 @@ This is the largest hospital in Wales, and the main centre for Cardiff and Vale
 University Health Board, serving a population of 472,000
 \cite{cavuhb_structure}, while some specialist services also serve the whole of
 Wales (pop. 3.1 million \cite{statswales_pop}).
-We aim to develop an optimal bed move policy that determines when bed moves
+We aim to develop an optimal bed-move policy that determines when bed moves
 should occur, and how, in order to achieve an objective that considers
 operational rather than clinical outcomes, such as staffing demand.
 We define a Markov decision process (MDP) with state transitions governed by a
-discrete event simulation, and find optimal bed moves policy using
-reinforcement learning.
+discrete event simulation, and learn optimal bed-moves policy using
+reinforcement learning; however for such a system the state space is exceedingly
+large. A major contribution then is reducing the state- and action-space by
+finding symmetries in the states and actions.
 
+The contributions of this paper are:
+
+\begin{itemize}
+  \item An MDP formulation for intra-ward bed moves within the ICU at UHW;
+  \item A framework to reduce the state-space by exploring symmetries, and
+  similarly for the action-space;
+  \item Parameter estimation using a combination of Monte Carlo and Markov chain
+  modelling;
+  \item Applying a reinforcement learning algorithm to learn bed-move policies
+  that reduce operational costs.
+\end{itemize}
+
+\subsection{Background}
 Reasons for bed moves, a type of intra-hospital transfer, are explored in
 \cite{rosenberg18}, where three overarching reasons are found: unit culture,
 workload management, and bed scarcity.
@@ -166,8 +180,8 @@ For modelling ICUs in particular, \cite{bai18} gives a survey on operational
 research methodologies. Generally modelling of ICUs are concerned with the
 problem of early discharges and admission policies, rather than bed moves and
 patient transfers.
-It also notes that MDPs are not commonly applied to ICUs, though not
-unprecedented, with some key examples discussed below.
+It also notes that MDPs are uncommon in ICU modelling, though not unprecedented,
+with some key examples discussed below.
 Reinforcement learning (RL) is a common model-free machine learning technique
 that is utilised to solve MDPs: \cite{liu20} and \cite{hong22} give overviews of
 RL applied to ICU problems, where it is usually applied to clinical problem,
@@ -177,7 +191,7 @@ problems such as admissions and capacity management.
 utilised in ICUs, covering treatment selection, actor-critic algorithms, and
 using policy-gradient for continuous action spaces.
 
-Some particularly relevant example of ICU modelling include \cite{kapadia2000},
+Some particularly relevant examples of ICU modelling include \cite{kapadia2000},
 where an absorbing Markov model of illness severity during a stay at a
 paediatric ICU is modelled; and \cite{dobson10} where a Markov model of patient
 transfers out of an ICU is built, which considers patients' remaining length of
@@ -200,7 +214,7 @@ hospitals in China.
 To the authors' knowledge no models of intra-ward bed transfers, as modelled in
 this paper, have been considered.
 
-In this paper we consider non-clinical intra-ward bed move policies at the point
+In this paper we consider non-clinical intra-ward bed-move policies at the point
 of patient admission, for a 34-bed ICU at the UHW.
 We consider this by developing a simulation-optimisation model based around an
 MDP, with state transfers governed by a discrete event simulation.
@@ -220,7 +234,9 @@ Section~\ref{sec:mdp_formulation} formally defines the underlying MDP, detailing
 the state and action space reductions.
 Section~\ref{sec:rlframework} outlines the RL framework used to learn policies,
 and numerical results and experiments are presented in
-Section~\ref{sec:training} 
+Section~\ref{sec:training}.
+Finally Section~\ref{sec:discussion} reflects on the training, and discusses the
+features of the trained policy, while offering avenues of future work.
 
 
 
@@ -296,7 +312,7 @@ In this work, only clinical improvement will be modelled, and deterioration is
 discussed in Section~\ref{sec:discussion}.
 The rates at which patients improve from Stage 3 to Stage 2, and from Stage 3-I
 to Stage 3, are $r_{3,2}$ and $r_{3\text{-I},3}$ respectively. 
-Eventually patients are either discharged or they die, and so exit the unit:
+Eventually patients are either discharged or die, and so exit the unit:
 the rates at which patients exit the unit from each care category are $\mu_2$,
 $\mu_3$ and $\mu_{3\text{-I}}$.
 It is assumed that the holding times within each stint in each care category is
@@ -305,10 +321,10 @@ with no bed moves will follow some phase-type distribution.
 
 During their stay a patient can be subject to a bed move, and as we assume that
 bed moves only occur when a patient is admitted to the ward, then bed move
-events also form a Poisson process with some rate
-$\beta \leq \lambda_2 + \lambda_3 + \lambda_{3\text{-I}}$.
-Each bed move a patient is subject to will extend their length of stay by some
-additive factor $\kappa$, implemented as a `pause' where they will spend an
+events also form a Poisson process, a thinning of the arrival process, with
+some rate $\beta \leq \lambda_2 + \lambda_3 + \lambda_{3\text{-I}}$.
+Each bed move a patient is subject to will extend their length of stay (LoS) by
+some additive factor $\kappa$, implemented as a `pause' where they will spend an
 extra $\kappa$ time units in their current care stage before exiting or
 improving.
 Additionally, due to inappropriate conditions, it is assumed that Stage 3-I
@@ -321,10 +337,10 @@ those patients are moved to an isolation unit.
 In order to parametrise the above stochastic model, we use administrative data
 provided by the ICU to fit these unknown rates and parameters.
 This data provides information on every patient that was admitted to the ICU in
-the year 2025, and gives details of their length of stay, the total cumulative
-time spent in each care stage, their ventilation status which indicates the care
-stage at which they entered the ICU, the number of bed moves, and their
-discharge status (alive or dead).
+the year 2025, and gives details of their LoS, the total cumulative time spent
+in each care stage, their ventilation status which indicates the care stage at
+which they entered the ICU, the number of bed moves, and their discharge status
+(alive or dead).
 
 First the ventilation status can heuristically indicate their care level on
 arrival: those needing a ventilator are likely to be Stage 3-I on arrival, those
@@ -354,12 +370,12 @@ proportion from specialty given the stage.}
 
 Arrival rates can then be calculated directly from the data, however the data
 shows that the traffic intensity $\rho$, given by the average number of arrivals
-per day multiplied by the average length of stay, and divided by the number of
-beds, is greater than 1, implying an ICU running over capacity.
+per day multiplied by the average LoS, and divided by the number of beds, is
+greater than 1, implying an ICU running over capacity.
 However this may be an artefact of the data, as it includes stints within a
-patients' length of stay after they had been moved out of the ward; it also
-reflects that extra beds were found to deal with arriving demand, which will not
-be modelled here.
+patients' LoS after they had been moved out of the ward; it also reflects that
+extra beds were found to deal with arriving demand, which will not be modelled
+here.
 A more realistic traffic intensity to model would be $\rho = 0.75$, a common
 occupancy target implemented in many ICUs and seen as a safe occupancy level in
 terms of patient safety \cite{tierney14}.
@@ -368,23 +384,22 @@ factor to yield this target traffic intensity, giving $\lambda_2 = 0.7983$
 people per day, $\lambda_3 = 0.6608$, and $\lambda_{3\text{-I}} = 1.5864$.
 
 In order to parametrise the stochastic process that describes transitioning
-between care levels, and length of stay extensions due to bed moves, a two-stage
+between care levels, and LoS extensions due to bed moves, a two-stage
 parametrisation model is developed:
-In Section~\ref{sec:monte_carlo_model} length of stay extensions are modelled,
+In Section~\ref{sec:monte_carlo_model} LoS extensions are modelled,
 and then in Section~\ref{sec:ctmc_model} care level transitions are modelled.
 The multiplicative non-isolation `slowing' factor, $\mathcal{J}$ is estimated
 from clinical knowledge to be around 50\% slower, that is $\mathcal{J} = 1.5$.
 
 \subsection{Stage 1: LoS extensions}\label{sec:monte_carlo_model}
-Now consider $\kappa$, the additional length of stay added to a patient's length
+Now consider $\kappa$, the additional LoS added to a patient's length
 of stay due to having a bed move.
 The data collected contains only the patients' overall length of stays, and the
 number of bed moves they were subjected to, Figure~\ref{fig:los_by_bedmoves}
 shows the relationship between these.
 There is a confounding effect happening here, akin to inspection bias, where a
-patient's length of stay is extended by each bed move that occurs, and similarly
-longer the patient's length of stay the more bed moves they are likely to be
-subjected to.
+patient's LoS is extended by each bed move that occurs, and similarly longer the
+patient's LoS the more bed moves they are likely to be subjected to.
 In order to disentangle this effect and find $\kappa$, we formulate a stochastic
 model, and use manual parameter calibration alongside Monte Carlo simulation to
 compare to known statistics.
@@ -409,17 +424,17 @@ $\tilde{\omega} = \mathbb{E}[\widetilde{W}]$; and also assume that
 $\widetilde{W} \sim \text{Expon}(\tilde{\omega})$;
 We also let $N$ be a Poisson process with rate $\beta$, where $N(t)$ denotes the
 number of bed moves that occur for a single patient in time $t$.
+$N$ is a thinning of the arrival process as bed moves only occur at arrivals.
 
 The known parameters from the data are: $\beta = 0.06527$, found by dividing the
 total number of bed moves across all patients in a year by the total length of
-stay across all patients in a year; $\mathbb{E}[W \; | \; n]$, the average
-length of stay of patients given they had $n$ bed moves; and
-$\mathbb{P}(N = n)$, probability of a patient having $n$ bed moves during their
-stay.
+stay across all patients in a year; $\mathbb{E}[W \; | \; n]$, the average LoS
+of patients given they had $n$ bed moves; and $\mathbb{P}(N = n)$, probability
+of a patient having $n$ bed moves during their stay.
 Both $\mathbb{E}[W \; | \; n]$ and $\mathbb{P}(N = n)$ are given in
 Figure~\ref{fig:los_by_bedmoves}.
-Also let $\omega^{\star}$ be the average extension to the length of stay due to
-bed moves, this is given by Equation~\ref{eqn:average_extension}.
+Also let $\omega^{\star}$ be the average extension to the LoS due to bed moves,
+this is given by Equation~\ref{eqn:average_extension}.
 From \cite{barratt12} this is estimated to be around 3.2 days.
 
 \begin{equation}\label{eqn:average_extension}
@@ -473,10 +488,10 @@ Stage 3, stage 3-I, then Exit, its transition rate matrix is given by
 Equation~\ref{eqn:ctmc_transitionmatrix}.
 
 Note a deliberate distinction in modelling choice between our parameter
-estimation stages: in Stage 1 length of stay was assumed to be Exponentially
-distributed in order find $\kappa$, while here it is the holding times that are
-assumed to be Exponentially distributed, and hence lengths of stay would follow
-a phase-type distribution.
+estimation stages: in Stage 1 LoS was assumed to be Exponentially distributed in
+order find $\kappa$, while here it is the holding times that are assumed to be
+Exponentially distributed, and hence lengths of stay would follow a phase-type
+distribution.
 This shift in assumptions was necessary due to the sequential nature of the
 parameter estimation methodology, where Stage 1 was a simpler first-order
 approximation feeding into this refined CTMC model.
@@ -527,11 +542,12 @@ We consider three behaviours:
   data, and define:
 
   \item \textit{The exit probability from Stage 3-I:}
-  It is assumed that the only patients discharged from Stage 3-I care are those
-  that died, and that patients do not die in the other care levels.
   Empirical data shows that the proportion of patients who exit the ICU due to
-  death is 19.3\%, and so we can assume that the probability of exiting while in
-  Stage 3-I care corresponds to this proportion.
+  death is 19.3\%.
+  As a modelling assumption and simplification, we assume that the probability
+  of exiting while in Stage 3-I care corresponds to this proportion, as death
+  would usually occur for the most severe patients before their condition
+  improves.
   Hence:
   
   \begin{equation}
@@ -581,7 +597,7 @@ mean squared percentage error of 1.97 with fitted parameters:
 $r_{3\text{-I}, 3} = 0.187$, $r_{3, 2} = 0.371$, $\mu_2 = 0.226$,
 $\mu_3 = 0.01$, $\mu_{3\text{-I}} = 0.107$.
 
-Later is will also be useful to consider the expected time to absorption, or the
+Later it will also be useful to consider the expected time to absorption, or the
 expected time until exiting the system, for patients currently in each stage of
 care, $\mathcal{L}_2$, $\mathcal{L}_3$ and $\mathcal{L}_{3\text{-I}}$.
 These can be derived from the CTMC's fundamental matrix given by
@@ -680,14 +696,21 @@ partial wall.
 
 
 \section{MDP Formulation}\label{sec:mdp_formulation}
-We will consider the bed move policy problem as a Markov Decision Process (MDP),
-which is a tuple $(S, A, P, R)$, with states $s \in S$, actions $a \in A$,
-transition probabilities $p_{s, s', a} \in P$, and rewards $r_{s, s', a} \in R$.
+We will consider the bed-move policy problem as a Markov Decision Process (MDP),
+which is a tuple $(S, A, \Pi, R)$, with states $s \in S$, actions $a \in A$,
+transition probabilities $\pi_{s, s', a} \in \Pi$, and rewards
+$r_{s, s', a} \in R$.
 This is a discrete time MDP, with actions being taken at the discrete events
 when a new patient is admitted.
+
 The approach taken to find the optimal policy will be reinforcement learning, a
-model-free approach, and so the probabilities $P$ need not be defined, and
+model-free approach, and so the probabilities $\Pi$ need not be defined, and
 transitions are taken care of with a simulation model.
+The states are partially aggregated, as actions, which correspond to bed moves,
+only occur at patient arrivals, so intermediate states are omitted, and states
+do not keep track of the number of bed moves and the resulting LoS extensions.
+Hence transitions are not necessarily strictly Markovian, however as these are
+simulated, this is not a necessity for learning policies.
 The following sections describe each component.
 
 
@@ -726,11 +749,11 @@ is no need to differentiate these.
 \end{figure}
 
 Define the ward state by a $3\times15$ matrix $M$, where rows correspond to
-patient types (where $j=0$ corresponds to Stage 2 patients, $j=1$ to Stage 3
-patients, and $j=2$ to Stage 3-I patients), and columns corresponding to bed
+patient types (where $i=0$ corresponds to Stage 2 patients, $i=1$ to Stage 3
+patients, and $i=2$ to Stage 3-I patients), and columns corresponding to bed
 numbers (except for column 14, which corresponds to both isolation units).
-Then its integer entries $M_{ij}$ denote the number of category $j$ patients
-currently occupying a bed $i$.
+Then its integer entries $M_{ij}$ denote the number of category $i$ patients
+currently occupying a bed $j$.
 Note that for columns 0 to 13 the columns sums should be no more than 1, as they
 correspond to single beds, while for column 14 the sum should be no more than 2,
 as it corresponds to both isolation units.
@@ -798,7 +821,7 @@ First consider $|\mathcal{M}|$, the number of matrices $M$ that exist.
   configurations for these columns.
 
   \item For the final column, representing the isolation units,
-  $M_{i,15} \in \{0, 1, 2\}$, and the column sum $M_{\cdot, 14} \leq 2$.
+  $M_{i,14} \in \{0, 1, 2\}$, and the column sum $M_{\cdot, 14} \leq 2$.
   There are ten ways to satisfy this:
 
   $$
@@ -820,6 +843,7 @@ First consider $|\mathcal{M}|$, the number of matrices $M$ that exist.
   possible matrices $M$ representing valid system states.
 \end{itemize}
 
+The three arriving patient types are counted separately.
 However, not all states admit an arriving patient:
 
 \begin{itemize}
@@ -1337,7 +1361,7 @@ index of each transform by 1).
 \begin{figure}
 \includegraphics[width=\textwidth]{../images/fixed_point_decision_tree}
 \caption{Decision tree to check if a state is a fixed-point of a permutation
-concerning the blocks fo 4 beds.}
+concerning the blocks of 4 beds.}
 \label{fig:fixed_point_decision_tree}
 \end{figure}
 
@@ -1347,7 +1371,7 @@ The reward received for transitioning from state $s_1$ to state $s_2$ given
 action $a$ was taken, $R(s_1, s_2, a)$, consists of four components:
 
 \begin{equation}\label{eqn:reward}
-\text{R}(s_1, s_2, a) = -(C(s_1) + P(s_1, \theta))t_{s_1, s_2} - \Psi(a) - \Xi(t_{s_1, s_2})
+\text{R}(s_1, s_2, a) = -(C(s_1) + \mathcal{P}(s_1, \theta))t_{s_1, s_2} - \Psi(a) - \Xi(t_{s_1, s_2})
 \end{equation}
 
 Where
@@ -1361,9 +1385,9 @@ Where
     This can be calculated from the ward-state component of $s_1$, given by
     Equation~\ref{eqn:staffing_cost}.
 
-    \item $P(s_1, \theta)$ is the instantaneous penalty, measured in staff per
-    time unit, corresponding to a Stage 3-I patient not being in an isolation
-    unit.
+    \item $\mathcal{P}(s_1, \theta)$ is the instantaneous penalty, measured in
+    staff per time unit, corresponding to a Stage 3-I patient not being in an
+    isolation unit.
     This can be calculated from the ward-state component of $s_1$, given by
     Equation~\ref{eqn:penalty_cost}, where $\theta$ is some penalty parameter.
 
@@ -1371,28 +1395,28 @@ Where
     an intra-ward move for patients of type $p$ (cost $\psi_p$), an inter-ward
     move for patients of type $p$ (cost $\hat{\psi}_p$), or moving a Stage 2
     patient to surge (cost $\sigma \mathcal{L}_p$ where $\mathcal{L}_p$ is the
-    expected remaining length of stay for a patient of type $p$).
+    expected remaining LoS for a patient of type $p$).
     This is given by Equation~\ref{eqn:move_cost}.
 
     \item $\Xi(t_{s_1, s_2})$ is the cost associated with rejecting new patients
     into the ICU, that is some multiplier $\xi$ multiplied by the total expected
-    lost length of stay of all rejected patients.
+    lost LoS of all rejected patients.
     This corresponds to the cost of another hospital or unit needing to care for
-    those patients for their expected length of stays, at a higher cost due to
-    the extra staffing required due to not being at the appropriate ICU.
+    those patients for their expected LoS, at a higher cost due to the extra
+    staffing required due to not being at the appropriate ICU.
     This is given in Equation~\ref{eqn:reject_cost}, where $n_p$ is the number
     of rejections of type $p$ that occurred in the time period $t_{s_1, s_2}$.
 \end{itemize}
 
 
 \begin{align}
-C &= G(M) + \sum_{i=1}^{2} \sum_{j=0}^{16} M_{i,j} \label{eqn:staffing_cost} \\[4mm]
-P(s_1) &= \theta \sum_{j=0}^{15} M_{2,j} \label{eqn:penalty_cost} \\[4mm]
+C &= G(M) + \sum_{i=1}^{2} \sum_{j=0}^{15} M_{i,j} \label{eqn:staffing_cost} \\[4mm]
+\mathcal{P}(s_1) &= \theta \sum_{j=0}^{14} M_{2,j} \label{eqn:penalty_cost} \\[4mm]
 \Psi(a) &= \begin{cases}
 0 \text{ if } b = d \\
 \psi_p \; \text{ if } b \text{ in the same ward as } d \\
 \hat{\psi}_p \; \text{ if } b \text{ in a different ward to } d \\
-\sigma \mathcal{L}_p \; \text{ if } d = 16
+\sigma \mathcal{L}_p \; \text{ if } d = 15
 \end{cases} \label{eqn:move_cost} \\[4mm]
 \Xi(t_{s_1, s_2}) &= \sigma \sum_p n_p \mathcal{L}_p \label{eqn:reject_cost}
 \end{align}
@@ -1424,7 +1448,7 @@ Section~\ref{sec:ctmc_model}.
 \toprule
 & Stage 2 & Stage 3 & Stage 3-I \\
 \midrule
-Expected remaining LoS & $\mathcal{L}_2 = 5.937$ & $\mathcal{L}_3 = 6.919$ & $\mathcal{L}_{3\text{-I}} = 7.865$ \\
+Expected remaining LoS & $\mathcal{L}_2 = 4.417$ & $\mathcal{L}_3 = 6.925$ & $\mathcal{L}_{3\text{-I}} = 7.807$ \\
 Intra-ward move & $\psi_2 = \sfrac{1}{6}$ & $\psi_3 = \sfrac{1}{4}$ & $\psi_{3\text{-I}} = \sfrac{1}{3}$ \\
 Inter-ward move & $\hat{\psi}_2 = \sfrac{1}{4}$ & $\hat{\psi}_3 = \sfrac{1}{3}$ & $\hat{\psi}_{3\text{-I}} = \sfrac{5}{12}$ \\
 Surge penalty & \multicolumn{3}{c}{$\sigma = 3$} \\
@@ -1519,7 +1543,7 @@ Frobenius inner product~\cite{calderolver25}, and the matrix $W$ is given in
 Equation~\ref{eqn:hash_weights}.
 
 \begin{equation}\label{eqn:hashing}
-H((M, p), (b, d))) = 100000\langle M, W \rangle_F + 10000p + 100b + d
+H((M, p), (b, d)) = 100000\langle M, W \rangle_F + 10000p + 100b + d
 \end{equation}
 
 \begin{equation}\label{eqn:hash_weights}
@@ -1544,16 +1568,16 @@ W = \begin{pmatrix}
 
 The first 14 columns use a counting scheme in base 4, as there are only 4
 configurations for each of these columns.
-Now consider the 15th column, the entries are integers in $\{0, 1, 2\}$, and so
+Now consider the final column, the entries are integers in $\{0, 1, 2\}$, and so
 the elements of this column can be counted in base 3.
 Noting however, due to the constraint that the sum of this column cannot exceed
 2, that the maximum value of this column would be 18, corresponding to
 $(2, 0, 0)^T$, then we can use base 18 to count this entire column.
-Together then, $M$ can be represented by by numbers between 0 and 5100273663,
-that is by at most an 10 digit number.
-Now using positional concatenation (base 10) we can including the arriving
-patient type $p$ and action $a = (b, d)$ gives us a 15 digit
-number, well within the confines of 64-bit integers.
+Together then, $M$ can be represented by numbers between 0 and 5100273663, that
+is by at most an 10 digit number.
+Now using positional concatenation (base 10) we can include the arriving patient
+type $p$ and action $a = (b, d)$ gives us a 15 digit number, well within the
+confines of 64-bit integers.
 
 As an example $H((M^{\star}, 2, (11, 4)) = 507634271021104$, where $M^{\star}$
 is the ward state given in Equation~\ref{eqn:example_M}.
@@ -1578,6 +1602,19 @@ Similarly for actions.
 
 
 \subsection{Training Framework}\label{sec:training_framework}
+With the state-reduced MDP defined, the objective is to find a policy that will
+reduce the operating costs of the ICU.
+The transitions have been defined as a simulation rather than being derived
+analytically as their structure is impractical to enumerate.
+Due to this, and that the aim is to learn a policy rather than to evaluate an
+existing one, reinforcement learning is identified as an appropriate solution
+method.
+In particular $Q$-learning is selected as it fits the model-free simulation
+environment, and handles the stochastic nature of the rewards well
+\cite{suttonbarto1998}.
+In particular, the symmetry reduced state- and action-spaces make the tabular
+learning feasible for a system with such a vast original state space.
+
 Exploration versus exploitation is an important concept in reinforcement
 learning, especially in such vast state spaces.
 Exploration is important to be able to discover new state-action pairs, however
@@ -1997,7 +2034,7 @@ We can parametrise the concave update by some parameter $p \geq 0$, according to
 Equation~\ref{eqn:concave_update}.
 When $p = 2$ this gives the concave update above, $p = 1$ gives the linear
 update, while $p = \sfrac{1}{2}$ gives the convex update. More generally, any
-$p > 1$ gives a convex update, and $p$ controls the speed at which $\epsilon$
+$p > 1$ gives a concave update, and $p$ controls the speed at which $\epsilon$
 stops exploring. 
 
 \begin{equation}\label{eqn:concave_update}
@@ -2041,7 +2078,7 @@ algorithm-specific hyper-parameters.
 We now amalgamate our findings into a final training run to obtain an optimal
 policy.
 We select the tuned learning rate $\alpha = 0.5$, discount factor
-$\gamma = 0.99965$, default $Q$-=value quantile $\zeta = 0.5$, pruning limit
+$\gamma = 0.99965$, default $Q$-value quantile $\zeta = 0.5$, pruning limit
 $\tilde{h} = 2$, train across 31 stages, and implement a concave annealing
 schedule with $p=300$.
 
@@ -2098,24 +2135,45 @@ $$
 \text{Representative state space coverage ratio} = \frac{6,715,541}{228,104,760} \times 100 = 2.94\%
 $$
 
-% \section{Human-Readable Policies}
-% \begin{tcolorbox}[colback=orange!5!white,colframe=orange!75!black,title=TODO]
-% Idea: Currently the policies that come from the reinforcement learning is a
-% mapping from millions / tens of millions of states to optimal actions. I wonder
-% if we can use some sort of machine learning / clustering algorithm to simplify
-% this into general human-readable `guidelines` rather than a full detailed
-% policy. This simplified policy would of course be less effective than the full
-% policy, but this is something that can be measured and analysed.
-% \end{tcolorbox}
+Further analysis is required to fully interpret the policy.
+However a crude summary is given in Table~\ref{tbl:policy_summary} which counts
+the numbers of times, for each time of arriving patient, how the percentage of
+times the policy directly inserts a patient, moves a patient within the ward, or
+moves a patient to surge.
+Though it looks overwhelmingly as if bed moves are discouraged, this table does
+not consider the relative probability of arriving in each of those states, for
+example an arriving Stage 3-I patient is much more common, and they are the
+patients that cause the highest share of bed moves.
+Note that this table should not be considered a simplification of the policy or
+guidelines for ward management, this is considered further in
+Section~\ref{sec:futue_work}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+& \multicolumn{3}{c}{Arriving Patient} \\
+& Stage 2 & Stage 3 & Stage 3-I \\
+\midrule
+Direct insert & 97.20\% & 98.54\% & 73.85\% \\
+Bed move & 2.80\% & 1.23\% & 25.40\% \\
+Move to surge & - & 0.23\% & 0.75\% \\
+\bottomrule
+\end{tabular}
+\caption{Summary of the learned policy.}
+\label{tbl:policy_summary}
+\end{center}
+\end{table}
+
 
 \section{Discussion}\label{sec:discussion}
 This work used multi-method modelling and simulation-optimisation to represent
-an ICU, and find improved bed-move policies.
+an ICU, and learn improved bed-move policies.
 These methods include Monte Carlo and Markov chain modelling to parametrise the
 system; single queue analysis to decompose the system into manageable
 components; and discrete event simulation based reinforcement learning on a
-Markov decision process to find improved policies; and group theoretic symmetry
-analysis to reduce the the state space.
+Markov decision process to learn improved policies; and group theoretic symmetry
+analysis to reduce the state and action space.
 
 Here we discuss aspects of the learned policy, and how operational researchers
 and ward managers can learn from our modelling and training process.
@@ -2212,8 +2270,11 @@ to learn any policy due to the erratic nature of the stochastic process.
 
 This implies that generally for models of this type, the modelling of clinical
 deterioration and clinical improvement should be handled differently, as
-incorporating them in the same stochastic model cannot produce a system ripe for
-learning.
+incorporating them in the same stochastic model produces a system that, under
+the current learning environment and algorithm, is not amenable to learning,
+degrading completely.
+This may be due to and increased level of stochasticity, and more state complex
+transition. 
 We overcame this by introducing a multiplicative non-isolation `slowing' factor,
 $\mathcal{J}$, that delays improvement and extends length of stay.
 
@@ -2237,7 +2298,7 @@ Therefore the 2.94\% coverage ratio shows that improvements can still be made,
 and we see this as the median trend in Figure~\ref{fig:final_run} is still
 decreasing, albeit very slowly.
 
-We may also make the case that it may be difficult to find optimal policies for
+We may also make the case that it may be difficult to learn optimal policies for
 any larger ICUs with the same methodology and computational power and time.
 For example, adding one extra bed, thus modelling a 17-bed component, would
 increase the raw state space by a factor of 4, while also reducing the number of
@@ -2316,7 +2377,7 @@ state transitions would become more difficult.
 Similarly, only a single bed move at a time was modelled, though one could
 imagine some cyclic swapping of some subset of patients.
 
-\subsection{Future Work}
+\subsection{Future Work}\label{sec:futue_work}
 This work has opened up a number of avenues for future work that can build upon
 the foundations laid in this paper, beyond the further hyper-parameter tuning
 considered above.
@@ -2331,6 +2392,14 @@ A related avenue would be to employ robust optimisation, ensuring that policies
 perform well under realistic, sub-optimal policy adherence rates, that is when
 adherence is imperfect.
 
+This work is grounded in operational costs only, and does not fully consider
+patient well-being as part of the reward and cost function.
+This is a major drawback as there is evidence that bed moves are associated with
+negative clinical outcomes, which here are only quantified in terms of their
+impact of staff.
+Future work should try and quantify these in patient-centric terms, finding
+policies that can balance both operational, clinical, and patient needs.
+
 Currently the policies exist as a large lookup table mapping 6,715,541 states to
 their optimal actions.
 This isn't very accessible for ward managers, and would require software to
@@ -2338,6 +2407,8 @@ convert the current ICU state to the best action.
 A useful avenue for future work would be to use machine learning techniques to
 learn a set of human-readable guidelines, allowing ward managers to follow
 simple rules effortlessly and quickly during real time ward management.
+This would allow further analysis of the policies, much more insightful that
+Table~\ref{tbl:policy_summary}.
 These guidelines would be yet another approximation of the policy, allowing and
 evaluation of performance trade-off when following guidelines in comparison to
 using the lookup table.
@@ -2349,7 +2420,7 @@ isolation unit, part of the cost-effectiveness evaluation could consider a given
 configuration's optimal bed-move policy.
 
 Overall, this work combined stochastic simulation with reinforcement learning to
-find optimal policies for ICU bed moves, achieving policies that can
+learn optimal policies for ICU bed moves, achieving policies that can
 significantly reduce staffing and outcome costs for ward managers.
 Along the way it utilised symmetries to reduce the state space, and stochastic
 models to parametrise the underlying MDP.
@@ -2357,6 +2428,24 @@ Applying the methodology to larger units, producing human readable guidelines,
 and explicitly modelling deterioration remain open challenges.
 The results show that data-driven simulation-optimisation such as this can
 impart significant savings to the ICU.
+
+\section{Contributions}
+The contributions of this paper are four-fold:
+
+\begin{itemize}
+  \item A novel MDP formulation for intra-ward bed moves within an ICU;
+  \item A symmetry based state- and action-state reduction framework, achieving
+  a 35.2 fold reduction in state-space size;
+  \item A hybrid methodology for parameter estimation using Monte Carlo and CTMC
+  methods;
+  \item Application of a reinforcement learning framework to find improved
+  policies for a real ICU setting.
+\end{itemize}
+
+All data, models, algorithms, experiments, and analysis are freely and openly
+available here: \url{https://github.com/geraintpalmer/bed_moves_policy}, where
+code is fully tested, adhering to principles of reproducible research
+\cite{benureau18}.
 
 \bibliographystyle{plain}
 \bibliography{refs}
